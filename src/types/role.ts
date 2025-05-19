@@ -8,7 +8,7 @@ export interface RoleDto extends BaseEntityDto {
 export interface RoleDetailDto extends BaseEntityDto {
   roleName: string;
   mark: string;
-  rolePermissionMenuId:number[];
+  rolePermissionMenuId: number[];
 }
 
 export interface CreateOrUpdateRoleBaseDto extends BaseEntityDto {
@@ -16,18 +16,14 @@ export interface CreateOrUpdateRoleBaseDto extends BaseEntityDto {
   mark: string;
 }
 
-
 export interface CreateRoleDto extends RoleDto {}
 
 export interface UpdateRoleDto extends RoleDto {}
 
-
 export interface RolePermissionInput extends BaseEntityDto {
   menuIds: number[];
 }
 
-
 export interface RolePermissionInput extends BaseEntityDto {
   menuIds: number[];
 }
-

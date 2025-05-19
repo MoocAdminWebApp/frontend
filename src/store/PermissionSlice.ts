@@ -35,14 +35,8 @@ const permissionSlice = createSlice({
     ) {
       state.menuItems = action.payload.menuItems;
       state.permissions = action.payload.permissions;
-      localStorage.setItem(
-        "user_menuItems",
-        JSON.stringify(action.payload.menuItems)
-      );
-      localStorage.setItem(
-        "user_permissions",
-        JSON.stringify(action.payload.permissions)
-      );
+      localStorage.setItem("user_menuItems", JSON.stringify(action.payload.menuItems));
+      localStorage.setItem("user_permissions", JSON.stringify(action.payload.permissions));
     },
     clearPermissions(state) {
       state.menuItems = null;

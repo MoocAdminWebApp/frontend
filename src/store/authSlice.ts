@@ -17,9 +17,7 @@ const getInitialState = (): AuthState => {
   return {
     isAuth: true,
     user:
-      userInfoString === "" || userInfoString == null
-        ? null
-        : (JSON.parse(userInfoString) as User),
+      userInfoString === "" || userInfoString == null ? null : (JSON.parse(userInfoString) as User),
   };
 };
 
@@ -46,12 +44,12 @@ const authSlice = createSlice({
       localStorage.removeItem("userInfo");
     },
 
-    reSetAvatar(state, action: PayloadAction<{ avatar: string}>) {
+    reSetAvatar(state, action: PayloadAction<{ avatar: string }>) {
       state.user!.avatar = action.payload.avatar;
       localStorage.setItem("userInfo", JSON.stringify(state.user));
     },
   },
 });
 
-export const { login, logout,reSetAvatar } = authSlice.actions;
+export const { login, logout, reSetAvatar } = authSlice.actions;
 export default authSlice.reducer;

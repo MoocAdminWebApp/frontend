@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   Avatar,
   Box,
@@ -14,28 +14,27 @@ import {
   TextField,
   Typography,
   useTheme,
-} from '@mui/material';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import { Gender } from '../types/enum';
-import { get, post } from '../request/axios';
-import { UserDto } from '../types/user';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
-import toast from 'react-hot-toast';
-import AvatarCrop from '../components/avatarCrop';
-import { useDispatch } from 'react-redux';
-import { reSetAvatar } from '../store/authSlice';
-import { ensureTrailingSlash, imageHttpUrlToBase64, isBase64DataURL } from '../utils/stringUtil';
+} from "@mui/material";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { Gender } from "../types/enum";
+import { get, post } from "../request/axios";
+import { UserDto } from "../types/user";
+import { useSelector } from "react-redux";
+import { RootState } from "../store/store";
+import toast from "react-hot-toast";
+import AvatarCrop from "../components/avatarCrop";
+import { useDispatch } from "react-redux";
+import { reSetAvatar } from "../store/authSlice";
+import { ensureTrailingSlash, imageHttpUrlToBase64, isBase64DataURL } from "../utils/stringUtil";
 //import 'cropperjs/dist/cropper.min.css';
 
 // Form Validation Rules
 const validationSchema = Yup.object().shape({
   email: Yup.string()
-    .email('Please enter a valid email address')
-    .required('Email address cannot be empty'),
-  address: Yup.string()
-    .max(100, 'The address cannot exceed 100 characters'),
+    .email("Please enter a valid email address")
+    .required("Email address cannot be empty"),
+  address: Yup.string().max(100, "The address cannot exceed 100 characters"),
 });
 
 // Form data type
@@ -47,11 +46,8 @@ interface FormValues {
   phone: string;
   age: number;
   address: string;
-  gender: Gender
+  gender: Gender;
 }
-
-
-
 
 // const validationSchema = Yup.object({
 //     userName: Yup.string().required('Username is required'),
@@ -66,24 +62,20 @@ interface FormValues {
 //     //phone: Yup.string().required('Phone is required').matches(/^\d{11}$/, 'Phone must be 11 digits')
 // });
 
-
-
 const ProfileForm = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [savePreview, setSavePreview] = useState<string | null>(null);
 
-
   const [initialValues, setInitialValues] = useState<FormValues>({
     id: 0,
-    userName: '',
-    avatar: '',
-    email: '',
-    phone: '',
+    userName: "",
+    avatar: "",
+    email: "",
+    phone: "",
     age: 0,
-    address: '',
-    gender: Gender.Other
+    address: "",
+    gender: Gender.Other,
   });
-
 
   let user = useSelector((state: RootState) => state.auth.user);
 
@@ -96,13 +88,12 @@ const ProfileForm = () => {
           if (isBase64DataURL(resp.data.avatar)) {
             setPreview(resp.data.avatar);
           } else {
-            let imageUrl = `${ensureTrailingSlash(process.env.REACT_APP_BASE_API_URL ?? '')}${resp.data.avatar}`;
+            let imageUrl = `${ensureTrailingSlash(process.env.REACT_APP_BASE_API_URL ?? "")}${resp.data.avatar}`;
             let imageData = await imageHttpUrlToBase64(imageUrl);
             setPreview(`data:image/png;base64,${imageData}`);
           }
         }
 
-        
         setInitialValues({
           id: user?.userId || 0,
           userName: resp.data.userName,
@@ -114,7 +105,7 @@ const ProfileForm = () => {
           gender: Gender[resp.data.gender as unknown as keyof typeof Gender],
         });
       }
-    }
+    };
     getUserProfile();
   }, []);
 
@@ -129,7 +120,7 @@ const ProfileForm = () => {
           <Grid container spacing={3}>
             {/* Avatar upload area */}
             <Grid item xs={12} md={4}>
-              <AvatarCrop imageData={preview || ''} imageDataCallBack={setSavePreview} />
+              <AvatarCrop imageData={preview || ""} imageDataCallBack={setSavePreview} />
             </Grid>
 
             {/* form field */}
@@ -139,7 +130,6 @@ const ProfileForm = () => {
                 initialValues={initialValues}
                 validationSchema={validationSchema}
                 onSubmit={async (values, { setSubmitting }) => {
-
                   values.avatar = savePreview;
                   let resp = await post<boolean>(`users/UpdateProfile`, values);
                   if (resp.isSuccess) {
@@ -154,7 +144,6 @@ const ProfileForm = () => {
                 {({ values, handleChange, handleBlur, errors, touched, isSubmitting }) => (
                   <Form>
                     <Grid container spacing={2}>
-
                       <Grid item xs={12}>
                         <TextField
                           name="userName"
@@ -164,9 +153,7 @@ const ProfileForm = () => {
                           fullWidth
                           margin="normal"
                           variant="outlined"
-
                         />
-
                       </Grid>
 
                       <Grid item xs={12}>
@@ -182,7 +169,6 @@ const ProfileForm = () => {
                           error={touched.email && Boolean(errors.email)}
                           helperText={touched.email && errors.email}
                         />
-
                       </Grid>
 
                       <Grid item xs={12}>
@@ -242,9 +228,10 @@ const ProfileForm = () => {
                           <MenuItem value={0}>Other</MenuItem>
                           <MenuItem value={1}>Male</MenuItem>
                           <MenuItem value={2}>Female</MenuItem>
-
                         </Select>
-                        {touched.gender && errors.gender && <FormHelperText>{errors.gender}</FormHelperText>}
+                        {touched.gender && errors.gender && (
+                          <FormHelperText>{errors.gender}</FormHelperText>
+                        )}
                       </Grid>
 
                       <Grid item xs={12}>
@@ -253,7 +240,7 @@ const ProfileForm = () => {
                           variant="contained"
                           color="primary"
                           disabled={isSubmitting}
-                          sx={{ width: '100%', mt: 2 }}
+                          sx={{ width: "100%", mt: 2 }}
                         >
                           Save
                         </Button>

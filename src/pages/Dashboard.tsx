@@ -8,8 +8,7 @@ const Dashboard: React.FC = () => {
         Dashboard
       </Typography>
       <Typography>
-        Welcome to the admin dashboard. This is where you can manage your
-        application.
+        Welcome to the admin dashboard. This is where you can manage your application.
       </Typography>
     </Box>
   );

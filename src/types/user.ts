@@ -46,5 +46,5 @@ export interface CreateUserDto extends CreateOrUpdateUserBaseDto {
 }
 
 export interface UpdateUserDto extends CreateOrUpdateUserBaseDto {
-  roles: RoleDto[]
+  roles: RoleDto[];
 }

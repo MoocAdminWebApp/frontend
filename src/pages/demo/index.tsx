@@ -54,7 +54,7 @@ const Demos: React.FC = () => {
 
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
   useEffect(() => {
-    setFilterPagedResultRequest((pre) => ({ ...pre, filter: searchQuery }));
+    setFilterPagedResultRequest(pre => ({ ...pre, filter: searchQuery }));
   }, [searchQuery]);
 
   /**
@@ -84,7 +84,7 @@ const Demos: React.FC = () => {
         let resp = await put<boolean>("/demos", demo);
         if (resp.isSuccess) {
           toast.success("update success");
-          setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
+          setFilterPagedResultRequest(pre => ({ ...pre, page: 1 }));
           handleCloseDialog();
         } else {
           toast.error(resp.message);
@@ -93,7 +93,7 @@ const Demos: React.FC = () => {
         let resp = await post<boolean>("/demos", demo);
         if (resp.isSuccess) {
           toast.success("add success");
-          setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
+          setFilterPagedResultRequest(pre => ({ ...pre, page: 1 }));
           handleCloseDialog();
         } else {
           toast.error(resp.message);
@@ -139,7 +139,7 @@ const Demos: React.FC = () => {
       field: "acitve",
       headerName: "Acitve",
       width: 180,
-      renderCell: (params) => {
+      renderCell: params => {
         return (
           <Stack
             direction="row"
@@ -162,9 +162,7 @@ const Demos: React.FC = () => {
                 <CancelIcon color="error" fontSize="small" />
               </Tooltip>
             )}
-            <Typography variant="body2">
-              {params.value ? "Acitve" : "not active"}
-            </Typography>
+            <Typography variant="body2">{params.value ? "Acitve" : "not active"}</Typography>
           </Stack>
         );
       },
@@ -173,7 +171,7 @@ const Demos: React.FC = () => {
       field: "dataTime",
       headerName: "DataTime",
       width: 250,
-      valueFormatter: (value) => {
+      valueFormatter: value => {
         if (!value) return "-";
         return new Date(value).toLocaleString();
       },
@@ -182,7 +180,7 @@ const Demos: React.FC = () => {
       field: "actions",
       headerName: "Actions",
       width: 150,
-      renderCell: (params) => (
+      renderCell: params => (
         <Box>
           <PermissionControl permission="">
             <IconButton onClick={() => handleUpdate(params.row as DemoDto)}>
@@ -227,7 +225,7 @@ const Demos: React.FC = () => {
   const handleComfirmDelete = async () => {
     let resp = await del<boolean>(`demos/${deData}`);
     if (resp.isSuccess) {
-      setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
+      setFilterPagedResultRequest(pre => ({ ...pre, page: 1 }));
       toast.success("delete success");
     } else {
       toast.error(resp.message);
@@ -241,7 +239,7 @@ const Demos: React.FC = () => {
   };
 
   const onPaginationModelChange = (newModel: GridPaginationModel) => {
-    setFilterPagedResultRequest((preState) => {
+    setFilterPagedResultRequest(preState => {
       return {
         ...preState,
         page: newModel.page + 1,
@@ -264,11 +262,9 @@ const Demos: React.FC = () => {
           variant="outlined"
           placeholder="Search demos..."
           value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
+          onChange={e => setSearchText(e.target.value)}
           InputProps={{
-            startAdornment: (
-              <SearchIcon sx={{ color: "action.active", mr: 1 }} />
-            ),
+            startAdornment: <SearchIcon sx={{ color: "action.active", mr: 1 }} />,
           }}
           sx={{ width: 300 }}
         />
@@ -319,18 +315,13 @@ interface DemoDialogProps {
   onSave: (user: CreateDemoDto | UpdateDemoDto | null) => void;
 }
 
-const UserDialog: React.FC<DemoDialogProps> = ({
-  open,
-  onClose,
-  demo,
-  onSave,
-}) => {
+const UserDialog: React.FC<DemoDialogProps> = ({ open, onClose, demo, onSave }) => {
   //const isEdit = demo != null;
   const validationSchema = Yup.object({
     title: Yup.string().required("title is required"),
     acitve: Yup.boolean()
       .required("acitve is required")
-      .transform((value) => {
+      .transform(value => {
         if (value === "true") return true;
         if (value === "false") return false;
         return value;
@@ -389,14 +380,7 @@ const UserDialog: React.FC<DemoDialogProps> = ({
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {({
-            values,
-            handleChange,
-            handleBlur,
-            setFieldValue,
-            errors,
-            touched,
-          }) => (
+          {({ values, handleChange, handleBlur, setFieldValue, errors, touched }) => (
             <form>
               <TextField
                 name="title"
@@ -453,10 +437,8 @@ const UserDialog: React.FC<DemoDialogProps> = ({
                   type="datetime-local"
                   onBlur={handleBlur}
                   value={toLocalISOString(values.dataTime)}
-                  onChange={(e) => {
-                    const date = e.target.value
-                      ? new Date(e.target.value)
-                      : null;
+                  onChange={e => {
+                    const date = e.target.value ? new Date(e.target.value) : null;
                     setFieldValue("dataTime", date);
                   }}
                 />

@@ -11,8 +11,7 @@ export const isBase64DataURL = (str: string): boolean => {
   //If the match is successful
   if (match) {
     const base64Data = match[2]; //Extract Base64 section
-    const base64Regex =
-      /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/;
+    const base64Regex = /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$/;
     return base64Regex.test(base64Data);
   }
 
@@ -64,4 +63,3 @@ export const imageHttpUrlToBase64 = async (url: string): Promise<string> => {
     throw error;
   }
 };
-
