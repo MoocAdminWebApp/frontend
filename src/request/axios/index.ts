@@ -50,7 +50,7 @@ instance.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
+  error => {
     //Usually, there is no need to handle errors here, unless you want to do some general error handling before sending the request
     //However, please note that errors here are usually caused by configuration issues (such as invalid URLs), rather than network response errors
     return Promise.reject(error);
@@ -97,18 +97,14 @@ instance.interceptors.response.use(
           // If the token is already being refreshed,
           // wait for the refresh to complete and retry the request
           return refreshTokenPromise!.then(() => {
-            originalRequest.headers[
-              "Authorization"
-            ] = `Bearer ${localStorage.getItem("token")}`;
+            originalRequest.headers["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
             originalRequest._retry = true;
 
             return instance(originalRequest);
           });
         }
       } else if (status === 403) {
-        toast.error(
-          "Forbidden: You do not have permission to access this resource."
-        );
+        toast.error("Forbidden: You do not have permission to access this resource.");
       } else {
         let repData = data as ApiResponseResult;
         // let message: string | null = null;

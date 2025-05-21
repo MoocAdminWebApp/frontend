@@ -44,3 +44,117 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+## Code Consistency Configuration
+
+- **Step one**: Install Prettier plug-in
+
+  ```bash
+    npm install -D eslint-config-prettier eslint-plugin-prettier prettier
+  ```
+
+  CRA has Eslint, and only prettier is needed.
+  </br>
+
+- **Step two**: Add configuration files
+  .eslintrc.json
+
+  ```bash
+  {
+    "extends": [
+    "react-app",
+    "react-app/jest",
+    "plugin:prettier/recommended"
+    ],
+
+    "rules": {
+    "prettier/prettier": "error",
+    "no-console": "warn",
+    "no-unused-vars": "warn"
+    }
+  }
+  ```
+
+  react-app 是 CRA 自带的 ESLint preset，plugin:prettier/recommended 会启用 Prettier 插件并关闭冲突的 ESLint 规则。
+
+  .prettierrc
+
+  ```json
+  {
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "all",
+    "printWidth": 100,
+    "bracketSpacing": true,
+    "arrowParens": "avoid"
+  }
+  ```
+
+  .eslintignore and .prettierignore
+
+  ```txt
+  node_modules
+  build
+  dist
+  coverage
+  ```
+
+  </br>
+
+- **Step Three**: VSCode Configuration 在项目根目录添加 .vscode/settings.json：
+
+  ```json
+  {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    }
+  }
+  ```
+
+  </br>
+
+- **Step Four**: add npm script
+  in package.json, add
+
+  ```json
+  "scripts": {
+  "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+  "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\""
+  }
+  ```
+
+  </br>
+
+- **Step Five**: configure pre-commit hook
+  install husky and lint-staged
+
+  ```bash
+    npx husky-init
+    npm install
+    npm install -D lint-staged
+  ```
+
+  然后在 package.json 添加：
+
+  ```json
+  "lint-staged": {
+  "src/**/*.{js,jsx,ts,tsx}": [
+    "eslint --fix",
+    "prettier --write"
+    ]
+  }
+  ```
+
+  </br>
+
+## Summary
+
+| Tool     | Email                       |
+| -------- | --------------------------- |
+| Eslint   | check grammar,style         |
+| Prettier | format code                 |
+| Husky    | intercept git commit        |
+| VScode   | configuration and auto save |

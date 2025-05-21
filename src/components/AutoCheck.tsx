@@ -1,28 +1,26 @@
-import * as React from 'react';
-import useAutocomplete, {
-  AutocompleteGetTagProps,
-} from '@mui/material/useAutocomplete';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
-import { styled } from '@mui/material/styles';
-import { autocompleteClasses } from '@mui/material/Autocomplete';
-import { FilmOptionType } from '../types/types';
-import { useEffect, useState } from 'react';
+import * as React from "react";
+import useAutocomplete, { AutocompleteGetTagProps } from "@mui/material/useAutocomplete";
+import CheckIcon from "@mui/icons-material/Check";
+import CloseIcon from "@mui/icons-material/Close";
+import { styled } from "@mui/material/styles";
+import { autocompleteClasses } from "@mui/material/Autocomplete";
+import { FilmOptionType } from "../types/types";
+import { useEffect, useState } from "react";
 
-const Root = styled('div')(
+const Root = styled("div")(
   ({ theme }) => `
   color:rgba(0,0,0,.85);
   font-size: 14px;
-`,
+`
 );
 
-const Label = styled('label')`
+const Label = styled("label")`
   padding: 0 0 4px;
   line-height: 1.5;
   display: block;
 `;
 
-const InputWrapper = styled('div')(
+const InputWrapper = styled("div")(
   ({ theme }) => `
   width: 100%;
   border: 1px solid #d9d9d9;
@@ -54,7 +52,7 @@ const InputWrapper = styled('div')(
     margin: 0;
     outline: 0;
   }
-`,
+`
 );
 
 interface TagProps extends ReturnType<AutocompleteGetTagProps> {
@@ -66,7 +64,6 @@ export interface AutocompleteProps {
   defaultValue: FilmOptionType[];
   onChange: (value: FilmOptionType[]) => void;
 }
-
 
 function Tag(props: TagProps) {
   const { label, onDelete, ...other } = props;
@@ -109,10 +106,10 @@ const StyledTag = styled(Tag)<TagProps>(
     cursor: pointer;
     padding: 4px;
   }
-`,
+`
 );
 
-const Listbox = styled('ul')(
+const Listbox = styled("ul")(
   ({ theme }) => `
   width: 100%;
   margin: 2px 0 0;
@@ -156,11 +153,10 @@ const Listbox = styled('ul')(
       color: currentColor;
     }
   }
-`,
+`
 );
 
-const AutoCheck: React.FC<AutocompleteProps> = (props) => {
-
+const AutoCheck: React.FC<AutocompleteProps> = props => {
   const [selectedValues, setSelectedValues] = useState<FilmOptionType[]>(props.defaultValue);
 
   const {
@@ -175,27 +171,23 @@ const AutoCheck: React.FC<AutocompleteProps> = (props) => {
     focused,
     setAnchorEl,
   } = useAutocomplete({
-    id: 'customized-hook-demo',
+    id: "customized-hook-demo",
     //defaultValue: props.defaultValue,
     //value: props.defaultValue, // Controlled value
-    value: selectedValues,// Controlled value
+    value: selectedValues, // Controlled value
     multiple: true,
     options: props.options,
-    getOptionLabel: (option) => option.title,
+    getOptionLabel: option => option.title,
     onChange: (event, newValue) => {
       setSelectedValues(newValue);
       props.onChange(newValue);
-    }
+    },
   });
-
-
-
-
 
   return (
     <Root>
       <div {...getRootProps()}>
-        <InputWrapper ref={setAnchorEl} className={focused ? 'focused' : ''}>
+        <InputWrapper ref={setAnchorEl} className={focused ? "focused" : ""}>
           {value.map((option: FilmOptionType, index: number) => {
             const { key, ...tagProps } = getTagProps({ index });
             return <StyledTag key={key} {...tagProps} label={option.title} />;
@@ -218,6 +210,6 @@ const AutoCheck: React.FC<AutocompleteProps> = (props) => {
       ) : null}
     </Root>
   );
-}
+};
 
 export default AutoCheck;
