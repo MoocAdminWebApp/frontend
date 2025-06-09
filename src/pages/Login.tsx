@@ -52,11 +52,10 @@ const Login: React.FC = () => {
     setError("");
 
     try {
-      let resp = await post<LoginResultDto>("/auth/login", {
-        userName: values.username,
+      let resp = await post<LoginResultDto>("/login", {
+        email: values.username,
         password: values.password,
       });
-
       if (resp.isSuccess) {
         dispatch(
           login({
