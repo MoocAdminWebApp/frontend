@@ -1,9 +1,9 @@
-import * as React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { login } from '../store/authSlice';
-import { setPermissions } from '../store/PermissionSlice';
-import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
+import * as React from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { login } from "../store/authSlice";
+import { setPermissions } from "../store/PermissionSlice";
+import { Formik, Form, Field, ErrorMessage, FormikHelpers } from "formik";
 import {
   Box,
   Button,
@@ -13,34 +13,34 @@ import {
   IconButton,
   InputAdornment,
   TextField,
-} from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
-import * as Yup from 'yup';
+} from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import * as Yup from "yup";
 
-import { get, post } from '../request/axios/index';
-import { LoginResultDto } from '../types/user';
-import { UserPermissionDto } from '../types/menu';
+import { get, post } from "../request/axios/index";
+import { LoginResultDto } from "../types/user";
+import { UserPermissionDto } from "../types/menu";
 
 //Define the type of form value
 interface LoginFormValues {
-  username: string;
+  email: string;
   password: string;
 }
 
 //Define Yup validation rules
 const LoginSchema = Yup.object().shape({
-  username: Yup.string()
-    .required('Username is required')
-    .min(3, 'Username must be at least 3 characters'),
+  email: Yup.string()
+    .required("email is required")
+    .min(3, "email must be at least 3 characters"),
   password: Yup.string()
-    .required('Password is required')
-    .min(5, 'Password must be at least 6 characters'),
+    .required("Password is required")
+    .min(5, "Password must be at least 6 characters"),
 });
 
 const Login: React.FC = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState('');
+  const [error, setError] = React.useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -49,27 +49,27 @@ const Login: React.FC = () => {
     { setSubmitting }: FormikHelpers<LoginFormValues>
   ) => {
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
-      let resp = await post<LoginResultDto>('/auth/login', {
-        userName: values.username,
+      let resp = await post<string>("/login", {
+        email: values.email,
         password: values.password,
       });
-
       if (resp.isSuccess) {
-        dispatch(login({
-          accessToken: resp.data.accessToken,
-          user: { ...resp.data }
-        })); //Update Redux status
+        dispatch(
+          login({
+            accessToken: resp.data,
+  
+          })
+        ); //Update Redux status
 
-        navigate('/'); //After successful login, jump to the homepage
+        navigate("/"); //After successful login, jump to the homepage
       } else {
-        setError(resp.message || 'Invalid username or password');
+        setError(resp.message || "Invalid username or password");
       }
-
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
       setSubmitting(false);
@@ -83,35 +83,47 @@ const Login: React.FC = () => {
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-        height: '100vh',
-        backgroundColor: 'background.default',
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+        height: "100vh",
+        backgroundColor: "background.default",
         p: 3,
       }}
     >
-      <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 4 }}>
+      <Typography
+        variant="h4"
+        component="h1"
+        gutterBottom
+        sx={{ fontWeight: "bold", mb: 4 }}
+      >
         Welcome Back
       </Typography>
       <Box
         sx={{
-          width: '100%',
+          width: "100%",
           maxWidth: 400,
           p: 3,
-          bgcolor: 'background.paper',
+          bgcolor: "background.paper",
           borderRadius: 2,
           boxShadow: 3,
         }}
       >
         <Formik
-          initialValues={{ username: '', password: '' }}
+          initialValues={{ email: "alice@gmail.com", password: "password12" }}
           validationSchema={LoginSchema}
           onSubmit={handleLogin}
         >
-          {({ values, errors, touched, handleChange, handleBlur, isSubmitting }) => (
+          {({
+            values,
+            errors,
+            touched,
+            handleChange,
+            handleBlur,
+            isSubmitting,
+          }) => (
             <Form>
               {error && (
                 <Alert severity="error" sx={{ mb: 3 }}>
@@ -119,20 +131,20 @@ const Login: React.FC = () => {
                 </Alert>
               )}
               <TextField
-                name="username"
-                label="Username"
-                value={values.username}
+                name="email"
+                label="email"
+                value={values.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                error={touched.username && Boolean(errors.username)}
-                helperText={touched.username && errors.username}
+                error={touched.email && Boolean(errors.email)}
+                helperText={touched.email && errors.email}
                 fullWidth
                 sx={{ mb: 2 }}
               />
               <TextField
                 name="password"
                 label="Password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 value={values.password}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -143,7 +155,10 @@ const Login: React.FC = () => {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton onClick={handleTogglePasswordVisibility} edge="end">
+                      <IconButton
+                        onClick={handleTogglePasswordVisibility}
+                        edge="end"
+                      >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
@@ -157,7 +172,7 @@ const Login: React.FC = () => {
                 disabled={isSubmitting || isLoading}
                 sx={{ mt: 2, height: 48 }}
               >
-                {isLoading ? <CircularProgress size={24} /> : 'Login'}
+                {isLoading ? <CircularProgress size={24} /> : "Login"}
               </Button>
             </Form>
           )}

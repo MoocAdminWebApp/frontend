@@ -64,37 +64,37 @@ const App: React.FC = () => {
   const { menuItems } = useSelector((state: RootState) => state.permission);
   const dispatch = useDispatch();
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    const getPermissions = async () => {
-      let getResp = await get<UserPermissionDto>(
-        "/Users/GetCurrentUserPermissList"
-      );
-      if (getResp.isSuccess) {
-        getResp.data.menus.push({
-          id: 0,
-          title: "Dashboard",
-          orderNum: -1, level: 0,
-          route: "/",
-          componentPath: "./pages/Dashboard.jsx",
-          menuType: MenuType.Menu,
-          children: [] as Array<MenuDto>,
-          permission: '',
-          mark: ''
-        });
+  //   const getPermissions = async () => {
+  //     let getResp = await get<UserPermissionDto>(
+  //       "/Users/GetCurrentUserPermissList"
+  //     );
+  //     if (getResp.isSuccess) {
+  //       getResp.data.menus.push({
+  //         id: 0,
+  //         title: "Dashboard",
+  //         orderNum: -1, level: 0,
+  //         route: "/",
+  //         componentPath: "./pages/Dashboard.jsx",
+  //         menuType: MenuType.Menu,
+  //         children: [] as Array<MenuDto>,
+  //         permission: '',
+  //         mark: ''
+  //       });
 
-        getResp.data.menus = getResp.data.menus.sort(x => x.orderNum)
-        dispatch(setPermissions({
-          menuItems: getResp.data.menus,
-          permissions: []
-        }));
-      }
-    }
-    if (isAuthenticated) {
-      getPermissions();
-    }
+  //       getResp.data.menus = getResp.data.menus.sort(x => x.orderNum)
+  //       dispatch(setPermissions({
+  //         menuItems: getResp.data.menus,
+  //         permissions: []
+  //       }));
+  //     }
+  //   }
+  //   if (isAuthenticated) {
+  //     getPermissions();
+  //   }
 
-  }, [dispatch, isAuthenticated])
+  // }, [dispatch, isAuthenticated])
 
 
   // useEffect(() => {
