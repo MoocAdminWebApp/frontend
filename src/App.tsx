@@ -66,7 +66,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const getPermissions = async () => {
-      let getResp = await get<UserPermissionDto>("/Users/GetCurrentUserPermissList");
+      let getResp = await get<UserPermissionDto>("/Users/GetCurrentUserPermissionList");
       if (getResp.isSuccess) {
         getResp.data.menus.push({
           id: 0,

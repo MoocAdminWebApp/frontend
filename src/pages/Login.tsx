@@ -108,7 +108,7 @@ const Login: React.FC = () => {
         }}
       >
         <Formik
-          initialValues={{ username: "", password: "" }}
+          initialValues={{ username: "Alice@gmail.com", password: "password12" }}
           validationSchema={LoginSchema}
           onSubmit={handleLogin}
         >

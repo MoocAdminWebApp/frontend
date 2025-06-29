@@ -9,13 +9,14 @@ import toast from "react-hot-toast";
 import { ApiResponseResult } from "../../types/types";
 
 interface RefreshTokenResponse {
-  assceToken: string;
+  accessToken: string;
   refreshToken: string;
 }
 
 const instance: AxiosInstance = axios.create({
   baseURL: process.env.REACT_APP_BASE_API_URL + "/api",
   timeout: 30000,
+  withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -33,7 +34,7 @@ const refreshToken = async () => {
   );
   if (response.isSuccess) {
     // Update stored tokens
-    localStorage.setItem("accessToken", response.data.assceToken);
+    localStorage.setItem("accessToken", response.data.accessToken);
     localStorage.setItem("refreshToken", response.data.refreshToken);
   } else {
     localStorage.removeItem("accessToken");
@@ -44,10 +45,10 @@ const refreshToken = async () => {
 
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
-    }
+    // const token = localStorage.getItem("accessToken");
+    // if (token) {
+    //   config.headers["Authorization"] = `Bearer ${token}`;
+    // }
     return config;
   },
   error => {
@@ -99,7 +100,6 @@ instance.interceptors.response.use(
           return refreshTokenPromise!.then(() => {
             originalRequest.headers["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
             originalRequest._retry = true;
-
             return instance(originalRequest);
           });
         }
