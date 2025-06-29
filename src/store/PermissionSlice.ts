@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { MenuDto } from "../types/menu";
+import { MenuType } from "../types/enum";
+import { Home as HomeIcon ,People as PeopleIcon,} from "@mui/icons-material";
 
 interface PermissionState {
   menuItems: Array<MenuDto> | null;
@@ -7,18 +9,81 @@ interface PermissionState {
 }
 
 const getInitialState = (): PermissionState => {
-  const permissions = localStorage.getItem("user_permissions");
-  const menuDtos = localStorage.getItem("user_menuItems");
-  if (permissions != null && menuDtos != null) {
-    return {
-      permissions: JSON.parse(permissions),
-      menuItems: JSON.parse(menuDtos),
-    };
-  }
-
   return {
-    menuItems: null,
     permissions: null,
+    menuItems: [
+      {
+        id: 0,
+        title: "Dashboard",
+        orderNum: -1,
+        level: 0,
+        menuType: MenuType.Menu,
+        route: "/",
+        componentPath: "./pages/Dashboard.jsx",
+        children: [],
+        permission: "",
+        mark: "",
+        icon: HomeIcon,
+      },
+      {
+        id: 1,
+        title: "Demo Menu",
+        parentId: null,
+        route: "",
+        permission: "",
+        componentPath: "",
+        orderNum: 0,
+        mark: "",
+        menuType: MenuType.Dir,
+        level: 2,
+        icon:HomeIcon,
+        children: [
+          {
+            id: 2,
+            title: "Demo",
+            permission: "Demo.Page",
+            mark: "",
+            menuType: MenuType.Menu,
+            level: 2,
+            parentId: 1,
+            route: "Demo",
+            componentPath: "./pages/demo/index.jsx",
+            orderNum: 0,
+            children: [],
+            icon:HomeIcon
+          },
+        ],
+      },
+      {
+        id: 100,
+        title: "Admin Menu",
+        parentId: null,
+        route: "",
+        permission: "",
+        componentPath: "",
+        orderNum: 0,
+        mark: "",
+        menuType: MenuType.Dir,
+        level: 2,
+        icon:PeopleIcon,
+        children: [
+          {
+            id: 2,
+            title: "User",
+            permission: "",
+            mark: "",
+            menuType: MenuType.Menu,
+            level: 2,
+            parentId: 1,
+            route: "User",
+            componentPath: "./pages/demo/index.jsx",
+            orderNum: 0,
+            children: [],
+            icon:PeopleIcon
+          },
+        ],
+      },
+    ],
   };
 };
 

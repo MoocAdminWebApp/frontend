@@ -19,9 +19,6 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Gender } from '../types/enum';
 import { get, post } from '../request/axios';
-import { UserDto } from '../types/user';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
 import toast from 'react-hot-toast';
 import AvatarCrop from '../components/avatarCrop';
 import { useDispatch } from 'react-redux';
@@ -53,19 +50,6 @@ interface FormValues {
 
 
 
-// const validationSchema = Yup.object({
-//     userName: Yup.string().required('Username is required'),
-//     email: Yup.string().required('Email is required').email('Invalid email'),
-//     password: isEdit
-//         ? Yup.string() : Yup.string().required('Password is required').min(6, 'Password must be at least 8 characters'),
-//     confirmPassword: isEdit
-//         ? Yup.string() : Yup.string().required('Confirm Password is required').oneOf([Yup.ref('password')], 'Passwords must match'),
-//     age: Yup.number().required('Age is required').positive('Age must be positive').integer('Age must be an integer'),
-//     address: Yup.string(),
-//     gender: Yup.number().required('Gender is required').oneOf([Gender.other, Gender.male, Gender.female], 'Invalid gender'),
-//     //phone: Yup.string().required('Phone is required').matches(/^\d{11}$/, 'Phone must be 11 digits')
-// });
-
 
 
 const ProfileForm = () => {
@@ -83,42 +67,6 @@ const ProfileForm = () => {
     address: '',
     gender: Gender.Other
   });
-
-
-  let user = useSelector((state: RootState) => state.auth.user);
-
-  useEffect(() => {
-    let getUserProfile = async () => {
-      let resp = await get<UserDto>(`users/getUserById?id=${user?.userId}`);
-      console.log(resp.data);
-      if (resp.isSuccess) {
-        if (resp.data.avatar) {
-          if (isBase64DataURL(resp.data.avatar)) {
-            setPreview(resp.data.avatar);
-          } else {
-            let imageUrl = `${ensureTrailingSlash(process.env.REACT_APP_BASE_API_URL ?? '')}${resp.data.avatar}`;
-            let imageData = await imageHttpUrlToBase64(imageUrl);
-            setPreview(`data:image/png;base64,${imageData}`);
-          }
-        }
-
-        
-        setInitialValues({
-          id: user?.userId || 0,
-          userName: resp.data.userName,
-          avatar: resp.data.avatar,
-          email: resp.data.email || "",
-          phone: resp.data.phone || "",
-          age: resp.data.age,
-          address: resp.data.address || "",
-          gender: Gender[resp.data.gender as unknown as keyof typeof Gender],
-        });
-      }
-    }
-    getUserProfile();
-  }, []);
-
-  const dispatch = useDispatch();
 
   return (
     <Box sx={{ padding: 3 }}>
@@ -140,14 +88,6 @@ const ProfileForm = () => {
                 validationSchema={validationSchema}
                 onSubmit={async (values, { setSubmitting }) => {
 
-                  values.avatar = savePreview;
-                  let resp = await post<boolean>(`users/UpdateProfile`, values);
-                  if (resp.isSuccess) {
-                    dispatch(reSetAvatar({ avatar: values.avatar ?? "" }));
-                    toast.success("Update successfully");
-                  } else {
-                    toast.error(resp.message);
-                  }
                   setSubmitting(false);
                 }}
               >

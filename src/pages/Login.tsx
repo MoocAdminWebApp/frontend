@@ -2,8 +2,7 @@ import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "../store/authSlice";
-import { setPermissions } from "../store/PermissionSlice";
-import { Formik, Form, Field, ErrorMessage, FormikHelpers } from "formik";
+import { Formik, Form,FormikHelpers } from "formik";
 import {
   Box,
   Button,
@@ -17,9 +16,7 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
 
-import { get, post } from "../request/axios/index";
-import { LoginResultDto } from "../types/user";
-import { UserPermissionDto } from "../types/menu";
+import {post } from "../request/axios/index";
 
 //Define the type of form value
 interface LoginFormValues {

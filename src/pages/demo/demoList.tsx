@@ -12,18 +12,12 @@ interface UserListProps {
     pagedResult: PagedResultDto<DemoDto>;
     columns: GridColDef[];
     onPaginationModelChange?: (newModel: GridPaginationModel) => void;
-    // handleUpdate: (user: UserDto | null) => void;
-    // handleDelete: (id: GridRowId) => void;
-
 }
 
 const DemoList: React.FC<UserListProps> = (props) => {
     let pageSize = props.pageSize ?? 10; // default value
     let page = props.page ?? 0; // default value
-    // const [paginationModel, setPaginationModel] = React.useState<GridPaginationModel>({
-    //     page: page, 
-    //     pageSize: pageSize,
-    //   });
+
     let ageSizeOptions = props.pageSizeOptions ?? [10, 20, 50, 100]; // default value
     return (
         <DataGrid
