@@ -14,16 +14,16 @@ import {
   InputAdornment,
   TextField,
 } from "@mui/material";
+
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
-
 import { get, post } from "../request/axios/index";
 import { LoginResultDto } from "../types/user";
 import { UserPermissionDto } from "../types/menu";
 
 //Define the type of form value
 interface LoginFormValues {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -32,6 +32,7 @@ const LoginSchema = Yup.object().shape({
   username: Yup.string()
     .required("Username is required")
     .min(3, "Username must be at least 3 characters"),
+  email: Yup.string().required("email is required").min(3, "email must be at least 3 characters"),
   password: Yup.string()
     .required("Password is required")
     .min(5, "Password must be at least 6 characters"),
@@ -50,20 +51,24 @@ const Login: React.FC = () => {
   ) => {
     setIsLoading(true);
     setError("");
+    setError("");
 
     try {
       let resp = await post<LoginResultDto>("/login", {
-        email: values.username,
+        userName: values.email,
         password: values.password,
       });
       if (resp.isSuccess) {
         dispatch(
           login({
             accessToken: resp.data.accessToken,
-            user: { ...resp.data },
           })
         ); //Update Redux status
-
+        dispatch(
+          login({
+            accessToken: resp.data.accessToken,
+          })
+        ); //Update Redux status
         navigate("/"); //After successful login, jump to the homepage
       } else {
         setError(resp.message || "Invalid username or password");
@@ -72,7 +77,6 @@ const Login: React.FC = () => {
       setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
-      setSubmitting(false);
     }
   };
 
@@ -108,7 +112,7 @@ const Login: React.FC = () => {
         }}
       >
         <Formik
-          initialValues={{ username: "", password: "" }}
+          initialValues={{ email: "alice@gmail.com", password: "password12" }}
           validationSchema={LoginSchema}
           onSubmit={handleLogin}
         >
@@ -120,13 +124,13 @@ const Login: React.FC = () => {
                 </Alert>
               )}
               <TextField
-                name="username"
-                label="Username"
-                value={values.username}
+                name="email"
+                label="email"
+                value={values.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                error={touched.username && Boolean(errors.username)}
-                helperText={touched.username && errors.username}
+                error={touched.email && Boolean(errors.email)}
+                helperText={touched.email && errors.email}
                 fullWidth
                 sx={{ mb: 2 }}
               />
@@ -165,6 +169,7 @@ const Login: React.FC = () => {
                   },
                 }}
               >
+                {isLoading ? <CircularProgress size={24} /> : "Login"}
                 {isLoading ? <CircularProgress size={24} /> : "Login"}
               </Button>
             </Form>
