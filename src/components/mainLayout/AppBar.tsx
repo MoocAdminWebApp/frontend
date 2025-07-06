@@ -51,6 +51,7 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({ open, handleDrawerOpen }) =
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+ const loginUser = useSelector((state: RootState) => state.auth.user);
   // 打开下拉菜单
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -112,7 +113,7 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({ open, handleDrawerOpen }) =
             aria-haspopup="true"
             onClick={handleMenuOpen}
           >
-          
+            {`${loginUser?.firstName} ${loginUser?.lastName}`}
             {
 
               avatar ? (<img src={avatar} alt="avatar" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />) : (<AccountCircle />)
