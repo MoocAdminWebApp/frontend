@@ -122,7 +122,7 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({ open, handleDrawerOpen }) =
             aria-haspopup="true"
             onClick={handleMenuOpen}
           >
-            {loginUser?.userName}
+            {`${loginUser?.firstName} ${loginUser?.lastName}`}
             {avatar ? (
               <img
                 src={avatar}
