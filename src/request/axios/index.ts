@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import { ApiResponseResult } from "../../types/types";
 
 interface RefreshTokenResponse {
-  assceToken: string;
+  accessToken: string;
   refreshToken: string;
 }
 
@@ -33,7 +33,7 @@ const refreshToken = async () => {
   );
   if (response.isSuccess) {
     // Update stored tokens
-    localStorage.setItem("accessToken", response.data.assceToken);
+    localStorage.setItem("accessToken", response.data.accessToken);
     localStorage.setItem("refreshToken", response.data.refreshToken);
   } else {
     localStorage.removeItem("accessToken");

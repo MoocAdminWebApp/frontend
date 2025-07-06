@@ -158,3 +158,7 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 | Prettier | format code                 |
 | Husky    | intercept git commit        |
 | VScode   | configuration and auto save |
+
+### Config Change Log
+
+- npm i jwt-decode # decode token payload

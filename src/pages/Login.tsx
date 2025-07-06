@@ -14,24 +14,42 @@ import {
   InputAdornment,
   TextField,
 } from "@mui/material";
+
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
-
 import { get, post } from "../request/axios/index";
 import { LoginResultDto } from "../types/user";
 import { UserPermissionDto } from "../types/menu";
+import { jwtDecode } from "jwt-decode";
+import { RolePermissionInput } from "./../types/role";
 
 //Define the type of form value
 interface LoginFormValues {
-  username: string;
+  email: string;
   password: string;
+}
+interface RoleInfo {
+  createdAt: string;
+  createdBy: number;
+  description: string;
+  id: number;
+  roleName: string;
+  status: true;
+  updatedAt: string;
+  updatedBy: number;
+}
+
+interface TokenPayload {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  roles: RoleInfo[];
 }
 
 //Define Yup validation rules
 const LoginSchema = Yup.object().shape({
-  username: Yup.string()
-    .required("Username is required")
-    .min(3, "Username must be at least 3 characters"),
+  email: Yup.string().required("email is required").min(3, "email must be at least 3 characters"),
   password: Yup.string()
     .required("Password is required")
     .min(5, "Password must be at least 6 characters"),
@@ -50,20 +68,27 @@ const Login: React.FC = () => {
   ) => {
     setIsLoading(true);
     setError("");
-
+    setError("");
     try {
-      let resp = await post<LoginResultDto>("/login", {
-        email: values.username,
+      let resp = await post<string>("/login", {
+        email: values.email,
         password: values.password,
       });
+      const decoded = jwtDecode<TokenPayload>(resp.data);
+      const userForFrontEnd = {
+        userId: decoded.id,
+        lastName: decoded.lastName,
+        firstName: decoded.firstName,
+        email: decoded.email,
+        avatar: undefined,
+      };
       if (resp.isSuccess) {
         dispatch(
           login({
-            accessToken: resp.data.accessToken,
-            user: { ...resp.data },
+            accessToken: resp.data,
+            user: userForFrontEnd,
           })
         ); //Update Redux status
-
         navigate("/"); //After successful login, jump to the homepage
       } else {
         setError(resp.message || "Invalid username or password");
@@ -72,7 +97,6 @@ const Login: React.FC = () => {
       setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
-      setSubmitting(false);
     }
   };
 
@@ -108,7 +132,7 @@ const Login: React.FC = () => {
         }}
       >
         <Formik
-          initialValues={{ username: "", password: "" }}
+          initialValues={{ email: "alice@gmail.com", password: "password12" }}
           validationSchema={LoginSchema}
           onSubmit={handleLogin}
         >
@@ -120,13 +144,13 @@ const Login: React.FC = () => {
                 </Alert>
               )}
               <TextField
-                name="username"
-                label="Username"
-                value={values.username}
+                name="email"
+                label="email"
+                value={values.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                error={touched.username && Boolean(errors.username)}
-                helperText={touched.username && errors.username}
+                error={touched.email && Boolean(errors.email)}
+                helperText={touched.email && errors.email}
                 fullWidth
                 sx={{ mb: 2 }}
               />
