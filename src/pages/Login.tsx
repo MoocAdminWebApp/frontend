@@ -17,13 +17,31 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
 
 import {post } from "../request/axios/index";
-
+import { jwtDecode } from "jwt-decode";
 //Define the type of form value
 interface LoginFormValues {
   email: string;
   password: string;
 }
 
+interface RoleInfo {
+  createdAt: string;
+  createdBy: number;
+  description: string;
+  id: number;
+  roleName: string;
+  status: true;
+  updatedAt: string;
+  updatedBy: number;
+}
+
+interface TokenPayload {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  roles: RoleInfo[];
+}
 //Define Yup validation rules
 const LoginSchema = Yup.object().shape({
   email: Yup.string()
@@ -53,11 +71,19 @@ const Login: React.FC = () => {
         email: values.email,
         password: values.password,
       });
+      const decodedData = jwtDecode<TokenPayload>(resp.data);
+       const userForFrontEnd = {
+        userId: decodedData.id,
+        lastName: decodedData.lastName,
+        firstName: decodedData.firstName,
+        email: decodedData.email,
+        avatar: undefined,
+      };
       if (resp.isSuccess) {
         dispatch(
           login({
             accessToken: resp.data,
-  
+            user: userForFrontEnd,
           })
         ); //Update Redux status
 
