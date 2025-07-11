@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "../store/authSlice";
 import { Formik, Form,FormikHelpers } from "formik";
@@ -12,6 +12,8 @@ import {
   IconButton,
   InputAdornment,
   TextField,
+  Grid,
+  Link
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
@@ -200,6 +202,55 @@ const Login: React.FC = () => {
             </Form>
           )}
         </Formik>
+        <Grid
+                container
+                justifyContent="space-between"
+                sx={{ mt: 1, fontSize: "1rem" }}
+              >
+                <Grid item>
+                  <Link
+                    sx={{ textDecoration: "none" }}
+                    component={RouterLink}
+                    to="/forgot"
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "1rem",
+                        color: "#000",
+                        fontWeight: "bold",
+                        mb: 2,
+                        textAlign: "center",
+                      }}
+                      component="h1"
+                      variant="h5"
+                    >
+                      Forgot Password ?
+                    </Typography>
+                  </Link>
+                </Grid>
+                <Grid item>
+                  <Link
+                    sx={{ textDecoration: "none" }}
+                    component={RouterLink}
+                    to="/Signup"
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "1rem",
+                        color: "#000",
+                        fontWeight: "bold",
+                        mb: 2,
+                        textAlign: "center",
+                        textDecoration: "none",
+                      }}
+                      component="h1"
+                      variant="h5"
+                    >
+                      Sign Up
+                    </Typography>
+                  </Link>
+                </Grid>
+              </Grid>
       </Box>
     </Box>
   );
