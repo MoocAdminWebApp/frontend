@@ -10,7 +10,7 @@ export interface User {
   email?: string;
   avatar?: string;
 }
-
+//used for login
 export interface LoginResultDto {
   // userId: number;
   // userName: string;
@@ -20,33 +20,32 @@ export interface LoginResultDto {
   // expiresTime: number;
 }
 
-//used for UserForm
-// export interface UserDto extends BaseEntityDto {
-//   email: string;
-//   password: string;
-//   firstName: string;
-//   lastName: string;
-//   access: EAccessType;
-//   active: boolean;
-//   createBy: Date;
-//   updateBy: Date;
-// }
-
+//The following interfaces are used for user management
 export interface UserDto extends BaseEntityDto {
-  title: string;
-  mark: string;
-  count: number;
-  acitve: boolean;
-  dataTime: Date;
+  email: string;
+  //password: string;
+  firstName: string;
+  lastName: string;
+  access: EAccessType;
+  active: boolean;
+  // createAt: Date;
+  // updateAt: Date;
+  // createBy: number;
+  // updateBy: number;
 }
 
 export interface CreateOrUpdateUserBaseDto {
   id: number; // When id==0, it indicates a new addition; otherwise, it indicates an update
-  title: string;
-  mark: string;
-  count: number;
-  acitve: boolean;
-  dataTime: Date;
+  email: string;
+  //password: string;
+  firstName: string;
+  lastName: string;
+  access: EAccessType;
+  active: boolean;
+  // createAt: Date;
+  // updateAt: Date;
+  // createBy: number;
+  // updateBy: number;
 }
 
 export interface CreateUserDto extends CreateOrUpdateUserBaseDto {}

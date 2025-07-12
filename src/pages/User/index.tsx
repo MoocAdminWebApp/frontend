@@ -31,6 +31,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 
 import toast from "react-hot-toast";
 import UserList from "./UserList";
+
 import {
   FilmOptionType,
   FilterPagedResultRequestDto,
@@ -132,14 +133,15 @@ const User: React.FC = () => {
 
   //Table Column Definition
   const columns: GridColDef[] = [
-    // { field: 'id', headerName: 'ID', width: 90, },
-    { field: "title", headerName: "Title", width: 180 },
-    { field: "mark", headerName: "Mark", width: 220 },
-    { field: "count", headerName: "Count", width: 100 },
+    { field: "id", headerName: "Id", width: 80 },
+    { field: "email", headerName: "Email", width: 240 },
+    { field: "firstName", headerName: "First Name", width: 180 },
+    { field: "lastName", headerName: "Last Name", width: 180 },
+    { field: "access", headerName: "Access", width: 120 },
     {
-      field: "acitve",
-      headerName: "Acitve",
-      width: 180,
+      field: "active",
+      headerName: "Active",
+      width: 120,
       renderCell: (params) => {
         return (
           <Stack
@@ -171,14 +173,25 @@ const User: React.FC = () => {
       },
     },
     {
-      field: "dataTime",
-      headerName: "DataTime",
-      width: 250,
+      field: "createAt",
+      headerName: "CreateAt",
+      width: 180,
       valueFormatter: (value) => {
         if (!value) return "-";
         return new Date(value).toLocaleString();
       },
     },
+    {
+      field: "updateAt",
+      headerName: "UpdateAt",
+      width: 180,
+      valueFormatter: (value) => {
+        if (!value) return "-";
+        return new Date(value).toLocaleString();
+      },
+    },
+    { field: "createBy", headerName: "CreateBy", width: 100 },
+    { field: "updateBy", headerName: "UpdateBy", width: 100 },
     {
       field: "actions",
       headerName: "Actions",
@@ -206,11 +219,15 @@ const User: React.FC = () => {
       let userDetail = resp.data;
       let updateUserDto: UpdateUserDto = {
         id: userDetail.id,
-        title: userDetail.title,
-        mark: userDetail.mark,
-        count: userDetail.count,
-        acitve: userDetail.acitve,
-        dataTime: new Date(userDetail.dataTime),
+        email: userDetail.email,
+        firstName: userDetail.firstName,
+        lastName: userDetail.lastName,
+        access: userDetail.access,
+        active: userDetail.active,
+        // createAt: new Date(userDetail.createAt),
+        // updateAt: new Date(userDetail.updateAt),
+        // createBy: userDetail.createBy,
+        // updateBy: userDetail.updateBy,
       };
       handleOpenDialog(updateUserDto);
     } else {

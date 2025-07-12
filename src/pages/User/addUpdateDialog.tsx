@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { CreateUserDto, UpdateUserDto } from "../../types/user";
+import { EAccessType } from "../../types/enum";
 import * as Yup from "yup";
 import {
   Button,
@@ -11,6 +12,7 @@ import {
   FormControlLabel,
   Switch,
   TextField,
+  MenuItem,
 } from "@mui/material";
 import { Formik } from "formik";
 
@@ -21,7 +23,11 @@ interface AddUpdateDialogProps {
   user: UpdateUserDto | null;
   onSave: (user: CreateUserDto | UpdateUserDto | null) => void;
 }
-
+const accessOptions = [
+  { value: "ADMIN", label: "Admin" },
+  { value: "TEACHER", label: "Teacher" },
+  { value: "STUDENT", label: "Student" },
+];
 const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
   open,
   onClose,
@@ -31,8 +37,8 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
   //const isEdit = user != null;
   const validationSchema = Yup.object({
     title: Yup.string().required("title is required"),
-    acitve: Yup.boolean()
-      .required("acitve is required")
+    active: Yup.boolean()
+      .required("active is required")
       .transform((value) => {
         if (value === "true") return true;
         if (value === "false") return false;
@@ -43,11 +49,14 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
 
   const initialValues = {
     id: user ? user.id : 0,
-    title: user ? user.title : "",
-    mark: user ? user.mark : "",
-    count: user ? user.count : 0,
-    acitve: user ? user.acitve : false,
-    dataTime: user ? user.dataTime : new Date(),
+    email: user ? user.email : "",
+    //password: user ? user.password : "",
+    firstName: user ? user.firstName : "",
+    lastName: user ? user.lastName : "",
+    access: user ? user.access : EAccessType.Teacher,
+    active: user ? user.active : false,
+    // createBy: user ? user.createBy : new Date(),
+    // updateBy: user ? user.updateBy : new Date(),
   };
 
   const formikRef = useRef<any>(null); //  formikRef
@@ -101,42 +110,56 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
           }) => (
             <form>
               <TextField
-                name="title"
-                label="title"
-                value={values.title}
+                name="email"
+                label="email"
+                value={values.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 fullWidth
                 margin="normal"
                 variant="outlined"
-                error={touched.title && Boolean(errors.title)}
-                helperText={touched.title && errors.title}
+                error={touched.email && Boolean(errors.email)}
+                helperText={touched.email && errors.email}
               />
 
               <TextField
-                name="mark"
-                label="mark"
-                value={values.mark}
+                name="firstName"
+                label="firstName"
+                value={values.firstName}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 fullWidth
                 margin="normal"
                 variant="outlined"
               />
-
               <TextField
-                name="count"
-                label="count"
-                value={values.count}
+                name="lastName"
+                label="lastName"
+                value={values.lastName}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 fullWidth
                 margin="normal"
                 variant="outlined"
-                type="number"
               />
-
-              <FormControl fullWidth margin="normal" variant="outlined">
+              <TextField
+                name="access"
+                label="access"
+                value={values.access}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                select
+                fullWidth
+                margin="normal"
+                variant="outlined"
+              >
+                {accessOptions.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+              {/* <FormControl fullWidth margin="normal" variant="outlined">
                 <TextField
                   name="dataTime"
                   label="Birthday"
@@ -150,18 +173,18 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
                     setFieldValue("dataTime", date);
                   }}
                 />
-              </FormControl>
+              </FormControl> */}
 
               <FormControlLabel
                 control={
                   <Switch
-                    name="acitve"
-                    checked={values.acitve}
+                    name="active"
+                    checked={values.active}
                     onChange={handleChange}
                     color="primary"
                   />
                 }
-                label={values.acitve ? "acitve" : "not acitve"}
+                label={values.active ? "active" : "not active"}
                 labelPlacement="end"
               />
             </form>
