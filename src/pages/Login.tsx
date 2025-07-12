@@ -94,7 +94,7 @@ const Login: React.FC = () => {
         setError(resp.message || "Invalid username or password");
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError("Invalid username or password. Please try again.");
     } finally {
       setIsLoading(false);
       setSubmitting(false);
@@ -211,7 +211,7 @@ const Login: React.FC = () => {
                   <Link
                     sx={{ textDecoration: "none" }}
                     component={RouterLink}
-                    to="/forgot"
+                    to="/forgotPwd"
                   >
                     <Typography
                       sx={{

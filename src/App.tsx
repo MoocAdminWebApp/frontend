@@ -13,10 +13,15 @@ import store from "./store/store";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useDispatch } from "react-redux";
 //import menuItems, { MenuItem } from './menuItems';
-import ProfileForm from "./pages/ProfileForm";
+import ProfileForm from './pages/ProfileForm';
+import Demos from './pages/demo';
+import SignupSuccess from './pages/SignupSuccess';
+import ResetPwdSuccess from './pages/ResetPwdSuccess';
+import ResetPwd from './pages/ResetPwd';
+import ForgotPwd from './pages/ForgotPwd';
+import SendResetEmailSuccess from './pages/SendResetEmailSuccess';
 import User from "./pages/User";
-import Demos from "./pages/demo";
-import SignupSuccess from "./pages/SignupSuccess";
+
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
@@ -41,9 +46,13 @@ const App: React.FC = () => {
           <CssBaseline />
           <Routes>
             {/* Login page not required Layout */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/signupSuccess" element={<SignupSuccess />} />
+            <Route path="/login" element={<Login />}/>
+            <Route path="/signup" element={<Signup/>}/>
+            <Route path="/signupSuccess" element={<SignupSuccess/>}/>
+            <Route path="/resetPwd" element={<ResetPwd/>}/>
+            <Route path="/resetPwdSuccess" element={<ResetPwdSuccess/>}/>
+            <Route path="/forgotPwd" element={<ForgotPwd/>}/>
+            <Route path="/sendResetEmailSuccess" element={<SendResetEmailSuccess/>}/>
             {/* Other pages require Layout */}
             <Route
               element={
