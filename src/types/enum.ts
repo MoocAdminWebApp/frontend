@@ -9,3 +9,9 @@ export enum MenuType {
   Menu = 2,
   Btn = 3,
 }
+
+export enum EAccessType {
+  Admin = 1,
+  Teacher = 2,
+  Student = 3,
+}
