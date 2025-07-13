@@ -21,6 +21,7 @@ import ResetPwd from './pages/ResetPwd';
 import ForgotPwd from './pages/ForgotPwd';
 import SendResetEmailSuccess from './pages/SendResetEmailSuccess';
 import User from "./pages/User";
+import Role from "./pages/role";
 
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -71,6 +72,7 @@ const App: React.FC = () => {
               <Route path="/profile" element={<ProfileForm />} />
               <Route path="/Demo" element={<Demos />} />
               <Route path="/User" element={<User />} />
+              <Route path="/Role" element={<Role />} />
             </Route>
             <Route path="*" element={<Page404 />} />
           </Routes>
