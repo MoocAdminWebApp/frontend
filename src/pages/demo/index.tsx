@@ -136,8 +136,8 @@ const Demos: React.FC = () => {
     { field: "mark", headerName: "Mark", width: 220 },
     { field: "count", headerName: "Count", width: 100 },
     {
-      field: "acitve",
-      headerName: "Acitve",
+      field: "active",
+      headerName: "Active",
       width: 180,
       renderCell: (params) => {
         return (
@@ -154,7 +154,7 @@ const Demos: React.FC = () => {
             }}
           >
             {params.value ? (
-              <Tooltip title="Acitve">
+              <Tooltip title="Active">
                 <CheckCircleIcon color="success" fontSize="small" />
               </Tooltip>
             ) : (
@@ -163,7 +163,7 @@ const Demos: React.FC = () => {
               </Tooltip>
             )}
             <Typography variant="body2">
-              {params.value ? "Acitve" : "not active"}
+              {params.value ? "Active" : "not active"}
             </Typography>
           </Stack>
         );

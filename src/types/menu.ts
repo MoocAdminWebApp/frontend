@@ -9,9 +9,9 @@ export interface MenuDto extends BaseEntityDto {
   menuType: MenuType;
   route?: string;
   componentPath?: string;
-  parentId?: number;
+  parentId?: number | null;
   level: number;
-  icon?: string;
+  icon?: React.ElementType;
   children: MenuDto[];
 }
 
