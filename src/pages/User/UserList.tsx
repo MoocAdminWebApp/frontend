@@ -6,19 +6,19 @@ import {
   GridRowId,
 } from "@mui/x-data-grid";
 import { PagedResultDto } from "../../types/types";
-import { DemoDto } from "../../types/demo";
+import { UserDto } from "../../types/user";
 
 interface UserListProps {
   loading?: boolean;
   page?: number;
   pageSize?: number;
   pageSizeOptions?: number[];
-  pagedResult: PagedResultDto<DemoDto>;
+  pagedResult: PagedResultDto<UserDto>;
   columns: GridColDef[];
   onPaginationModelChange?: (newModel: GridPaginationModel) => void;
 }
 
-const DemoList: React.FC<UserListProps> = (props) => {
+const UserList: React.FC<UserListProps> = (props) => {
   let pageSize = props.pageSize ?? 10; // default value
   let page = props.page ?? 0; // default value
 
@@ -49,4 +49,4 @@ const DemoList: React.FC<UserListProps> = (props) => {
   );
 };
 
-export default DemoList;
+export default UserList;

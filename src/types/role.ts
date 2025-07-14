@@ -1,33 +1,21 @@
-import { BaseEntityDto } from "./types";
+export interface RoleDto {
+  id: number;
+  roleName: string;     
+  description: string;
+  status?: boolean;     
+}
 
-export interface RoleDto extends BaseEntityDto {
+export interface CreateRoleDto {
+  id: number;    
+  roleName: string;       
+  description: string;
+  status?: boolean;
+}
+
+export interface UpdateRoleDto {
+  id: number;            
   roleName: string;
-  mark: string;
-}
-
-export interface RoleDetailDto extends BaseEntityDto {
-  roleName: string;
-  mark: string;
-  rolePermissionMenuId:number[];
-}
-
-export interface CreateOrUpdateRoleBaseDto extends BaseEntityDto {
-  roleName: string;
-  mark: string;
-}
-
-
-export interface CreateRoleDto extends RoleDto {}
-
-export interface UpdateRoleDto extends RoleDto {}
-
-
-export interface RolePermissionInput extends BaseEntityDto {
-  menuIds: number[];
-}
-
-
-export interface RolePermissionInput extends BaseEntityDto {
-  menuIds: number[];
+  description: string;
+  status?: boolean;
 }
 

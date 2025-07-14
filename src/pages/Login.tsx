@@ -1,9 +1,8 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "../store/authSlice";
-import { setPermissions } from "../store/PermissionSlice";
-import { Formik, Form, Field, ErrorMessage, FormikHelpers } from "formik";
+import { Formik, Form,FormikHelpers } from "formik";
 import {
   Box,
   Button,
@@ -13,20 +12,38 @@ import {
   IconButton,
   InputAdornment,
   TextField,
+  Grid,
+  Link
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
 
-import { get, post } from "../request/axios/index";
-import { LoginResultDto } from "../types/user";
-import { UserPermissionDto } from "../types/menu";
-
+import {post } from "../request/axios/index";
+import { jwtDecode } from "jwt-decode";
 //Define the type of form value
 interface LoginFormValues {
   email: string;
   password: string;
 }
 
+interface RoleInfo {
+  createdAt: string;
+  createdBy: number;
+  description: string;
+  id: number;
+  roleName: string;
+  status: true;
+  updatedAt: string;
+  updatedBy: number;
+}
+
+interface TokenPayload {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  roles: RoleInfo[];
+}
 //Define Yup validation rules
 const LoginSchema = Yup.object().shape({
   email: Yup.string()
@@ -56,11 +73,19 @@ const Login: React.FC = () => {
         email: values.email,
         password: values.password,
       });
+      const decodedData = jwtDecode<TokenPayload>(resp.data);
+       const userForFrontEnd = {
+        userId: decodedData.id,
+        lastName: decodedData.lastName,
+        firstName: decodedData.firstName,
+        email: decodedData.email,
+        avatar: undefined,
+      };
       if (resp.isSuccess) {
         dispatch(
           login({
             accessToken: resp.data,
-  
+            user: userForFrontEnd,
           })
         ); //Update Redux status
 
@@ -69,7 +94,7 @@ const Login: React.FC = () => {
         setError(resp.message || "Invalid username or password");
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError("Invalid username or password. Please try again.");
     } finally {
       setIsLoading(false);
       setSubmitting(false);
@@ -177,6 +202,55 @@ const Login: React.FC = () => {
             </Form>
           )}
         </Formik>
+        <Grid
+                container
+                justifyContent="space-between"
+                sx={{ mt: 1, fontSize: "1rem" }}
+              >
+                <Grid item>
+                  <Link
+                    sx={{ textDecoration: "none" }}
+                    component={RouterLink}
+                    to="/forgotPwd"
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "1rem",
+                        color: "#000",
+                        fontWeight: "bold",
+                        mb: 2,
+                        textAlign: "center",
+                      }}
+                      component="h1"
+                      variant="h5"
+                    >
+                      Forgot Password ?
+                    </Typography>
+                  </Link>
+                </Grid>
+                <Grid item>
+                  <Link
+                    sx={{ textDecoration: "none" }}
+                    component={RouterLink}
+                    to="/Signup"
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "1rem",
+                        color: "#000",
+                        fontWeight: "bold",
+                        mb: 2,
+                        textAlign: "center",
+                        textDecoration: "none",
+                      }}
+                      component="h1"
+                      variant="h5"
+                    >
+                      Sign Up
+                    </Typography>
+                  </Link>
+                </Grid>
+              </Grid>
       </Box>
     </Box>
   );

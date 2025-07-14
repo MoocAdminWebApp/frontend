@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { MenuDto } from "../types/menu";
 import { MenuType } from "../types/enum";
-import { Home as HomeIcon ,People as PeopleIcon,} from "@mui/icons-material";
+import { Home as HomeIcon ,People as PeopleIcon, SupervisorAccount as RoleIcon} from "@mui/icons-material";
 
 interface PermissionState {
   menuItems: Array<MenuDto> | null;
@@ -80,6 +80,20 @@ const getInitialState = (): PermissionState => {
             orderNum: 0,
             children: [],
             icon:PeopleIcon
+          },
+          {
+            id: 3,
+            title: "Role",
+            permission: "",
+            mark: "",
+            menuType: MenuType.Menu,
+            level: 2,
+            parentId: 1,
+            route: "Role",
+            componentPath: "./pages/demo/index.jsx",
+            orderNum: 0,
+            children: [],
+            icon:RoleIcon
           },
         ],
       },

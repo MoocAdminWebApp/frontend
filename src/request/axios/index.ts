@@ -22,26 +22,6 @@ const instance: AxiosInstance = axios.create({
 let isRefreshing = false;
 let refreshTokenPromise: Promise<void> | null = null;
 
-const refreshToken = async () => {
-  let refreshTokenValue = localStorage.getItem("refreshToken");
-  if (!refreshTokenValue) {
-    window.location.href = "/login";
-  }
-  const response: ApiResponseResult<RefreshTokenResponse> = await instance.post(
-    "/auth/RefreshToken",
-    { refreshToken: refreshTokenValue }
-  );
-  if (response.isSuccess) {
-    // Update stored tokens
-    localStorage.setItem("accessToken", response.data.assceToken);
-    localStorage.setItem("refreshToken", response.data.refreshToken);
-  } else {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    window.location.href = "/login";
-  }
-};
-
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("accessToken");
@@ -76,23 +56,6 @@ instance.interceptors.response.use(
           localStorage.removeItem("refreshToken");
           window.location.href = "/login";
 
-          // refreshTokenPromise = refreshToken().finally(() => {
-          //   isRefreshing = false;
-          // });
-
-          // try {
-          //   await refreshTokenPromise;
-          //   //Reset the token and retry the request
-          //   originalRequest.headers[
-          //     "Authorization"
-          //   ] = `Bearer ${localStorage.getItem("token")}`;
-          //   originalRequest._retry = true;
-
-          //   return instance(originalRequest);
-          // } catch (err) {
-          //   // Failed to refresh token, user  need to log in again
-          //   return Promise.reject(err);
-          // }
         } else {
           // If the token is already being refreshed,
           // wait for the refresh to complete and retry the request
@@ -111,17 +74,7 @@ instance.interceptors.response.use(
         );
       } else {
         let repData = data as ApiResponseResult;
-        // let message: string | null = null;
-        // if (repData) {
-        //   message = repData.message;
-        // }
-        // if (status === 400) {
-        //   toast.error(`Bad Request: ${message || "Invalid request"}`);
-        // } else if (status === 400) {
-        //   toast.error("Server Error: Please try again later.");
-        // } else {
-        //   toast.error(`Error: ${message || "An error occurred"}`);
-        // }
+  
         if (repData) {
           return repData;
         } else {

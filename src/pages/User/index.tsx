@@ -30,7 +30,8 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 
 import toast from "react-hot-toast";
-import DemoList from "./demoList";
+import UserList from "./UserList";
+
 import {
   FilmOptionType,
   FilterPagedResultRequestDto,
@@ -40,17 +41,17 @@ import {
 import { del, get, post, put } from "../../request/axios/index";
 import { Gender } from "../../types/enum";
 import { Formik } from "formik";
-import { CreateDemoDto, DemoDto, UpdateDemoDto } from "../../types/demo";
+import { CreateUserDto, UserDto, UpdateUserDto } from "../../types/user";
 import PageLoading from "../../components/PageLoading";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
 import useDebounce from "../../hooks/useDebounce";
 import PermissionControl from "../../components/PermissionControl";
 import AddUpdateDialog from "./addUpdateDialog";
 
-const Demos: React.FC = () => {
+const User: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [currentDemo, setCurrentDemo] = useState<UpdateDemoDto | null>(null);
+  const [currentUser, setCurrentUser] = useState<UpdateUserDto | null>(null);
   const [searchText, setSearchText] = useState("");
 
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
@@ -62,8 +63,8 @@ const Demos: React.FC = () => {
    * open Dialog
    * @param user
    */
-  const handleOpenDialog = (demo: UpdateDemoDto | null) => {
-    setCurrentDemo(demo);
+  const handleOpenDialog = (user: UpdateUserDto | null) => {
+    setCurrentUser(user);
     setOpenDialog(true);
   };
 
@@ -72,17 +73,17 @@ const Demos: React.FC = () => {
    */
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setCurrentDemo(null);
+    setCurrentUser(null);
   };
 
   /**
-   * Save demo (add or modify)
-   * @param demo
+   * Save user (add or modify)
+   * @param user
    */
-  const handleSaveDemo = async (demo: CreateDemoDto | UpdateDemoDto | null) => {
-    if (demo) {
-      if (demo.id > 0) {
-        let resp = await put<boolean>("/demos", demo);
+  const handleSaveUser = async (user: CreateUserDto | UpdateUserDto | null) => {
+    if (user) {
+      if (user.id > 0) {
+        let resp = await put<boolean>("/users", user);
         if (resp.isSuccess) {
           toast.success("update success");
           setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
@@ -91,7 +92,7 @@ const Demos: React.FC = () => {
           toast.error(resp.message);
         }
       } else {
-        let resp = await post<boolean>("/demos", demo);
+        let resp = await post<boolean>("/users", user);
         if (resp.isSuccess) {
           toast.success("add success");
           setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
@@ -105,7 +106,7 @@ const Demos: React.FC = () => {
 
   const [filterPagedResultRequest, setFilterPagedResultRequest] =
     useState<FilterPagedResultRequestDto>({ page: 1, pageSize: 10 });
-  const [pageData, setPageData] = useState<PagedResultDto<DemoDto>>({
+  const [pageData, setPageData] = useState<PagedResultDto<UserDto>>({
     items: [],
     total: 0,
   });
@@ -117,8 +118,8 @@ const Demos: React.FC = () => {
         let filterPagedResultRequestDto: FilterPagedResultRequestDto = {
           ...filterPagedResultRequest,
         };
-        let resp = await get<PagedResultDto<DemoDto>>(
-          `/demos/${filterPagedResultRequestDto.page}/${filterPagedResultRequestDto.pageSize}?title=${filterPagedResultRequestDto.filter}`
+        let resp = await get<PagedResultDto<UserDto>>(
+          `/users/${filterPagedResultRequestDto.page}/${filterPagedResultRequestDto.pageSize}?title=${filterPagedResultRequestDto.filter}`
         );
         if (resp.isSuccess) {
           setPageData(resp.data);
@@ -132,14 +133,15 @@ const Demos: React.FC = () => {
 
   //Table Column Definition
   const columns: GridColDef[] = [
-    // { field: 'id', headerName: 'ID', width: 90, },
-    { field: "title", headerName: "Title", width: 180 },
-    { field: "mark", headerName: "Mark", width: 220 },
-    { field: "count", headerName: "Count", width: 100 },
+    { field: "id", headerName: "Id", width: 80 },
+    { field: "email", headerName: "Email", width: 240 },
+    { field: "firstName", headerName: "First Name", width: 180 },
+    { field: "lastName", headerName: "Last Name", width: 180 },
+    { field: "access", headerName: "Access", width: 120 },
     {
       field: "active",
       headerName: "Active",
-      width: 180,
+      width: 120,
       renderCell: (params) => {
         return (
           <Stack
@@ -155,7 +157,7 @@ const Demos: React.FC = () => {
             }}
           >
             {params.value ? (
-              <Tooltip title="Active">
+              <Tooltip title="Acitve">
                 <CheckCircleIcon color="success" fontSize="small" />
               </Tooltip>
             ) : (
@@ -164,21 +166,32 @@ const Demos: React.FC = () => {
               </Tooltip>
             )}
             <Typography variant="body2">
-              {params.value ? "Active" : "not active"}
+              {params.value ? "Acitve" : "not active"}
             </Typography>
           </Stack>
         );
       },
     },
     {
-      field: "dataTime",
-      headerName: "DataTime",
-      width: 250,
+      field: "createAt",
+      headerName: "CreateAt",
+      width: 180,
       valueFormatter: (value) => {
         if (!value) return "-";
         return new Date(value).toLocaleString();
       },
     },
+    {
+      field: "updateAt",
+      headerName: "UpdateAt",
+      width: 180,
+      valueFormatter: (value) => {
+        if (!value) return "-";
+        return new Date(value).toLocaleString();
+      },
+    },
+    { field: "createBy", headerName: "CreateBy", width: 100 },
+    { field: "updateBy", headerName: "UpdateBy", width: 100 },
     {
       field: "actions",
       headerName: "Actions",
@@ -186,7 +199,7 @@ const Demos: React.FC = () => {
       renderCell: (params) => (
         <Box>
           <PermissionControl permission="">
-            <IconButton onClick={() => handleUpdate(params.row as DemoDto)}>
+            <IconButton onClick={() => handleUpdate(params.row as UserDto)}>
               <EditIcon />
             </IconButton>
           </PermissionControl>
@@ -200,19 +213,23 @@ const Demos: React.FC = () => {
     },
   ];
 
-  const handleUpdate = async (demo: DemoDto | null) => {
-    let resp = await get<DemoDto>(`demos/${demo?.id}`);
+  const handleUpdate = async (user: UserDto | null) => {
+    let resp = await get<UserDto>(`users/${user?.id}`);
     if (resp.isSuccess) {
-      let demoDetail = resp.data;
-      let updateDemoDto: UpdateDemoDto = {
-        id: demoDetail.id,
-        title: demoDetail.title,
-        mark: demoDetail.mark,
-        count: demoDetail.count,
-        acitve: demoDetail.acitve,
-        dataTime: new Date(demoDetail.dataTime),
+      let userDetail = resp.data;
+      let updateUserDto: UpdateUserDto = {
+        id: userDetail.id,
+        email: userDetail.email,
+        firstName: userDetail.firstName,
+        lastName: userDetail.lastName,
+        access: userDetail.access,
+        active: userDetail.active,
+        // createAt: new Date(userDetail.createAt),
+        // updateAt: new Date(userDetail.updateAt),
+        // createBy: userDetail.createBy,
+        // updateBy: userDetail.updateBy,
       };
-      handleOpenDialog(updateDemoDto);
+      handleOpenDialog(updateUserDto);
     } else {
       toast.error(resp.message);
     }
@@ -226,7 +243,7 @@ const Demos: React.FC = () => {
   };
 
   const handleComfirmDelete = async () => {
-    let resp = await del<boolean>(`demos/${deData}`);
+    let resp = await del<boolean>(`users/${deData}`);
     if (resp.isSuccess) {
       setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
       toast.success("delete success");
@@ -258,12 +275,12 @@ const Demos: React.FC = () => {
                 loading={loading}
                 size={50}
                 color="primary"
-                message="Loading demos, please wait..."
+                message="Loading users, please wait..."
             /> */}
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
           variant="outlined"
-          placeholder="Search demos..."
+          placeholder="Search users..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           InputProps={{
@@ -280,10 +297,10 @@ const Demos: React.FC = () => {
           startIcon={<AddIcon />}
           onClick={() => handleOpenDialog(null)}
         >
-          Add Demo
+          Add User
         </Button>
       </Box>
-      <DemoList
+      <UserList
         loading={loading}
         columns={columns}
         pagedResult={pageData}
@@ -295,8 +312,8 @@ const Demos: React.FC = () => {
       <AddUpdateDialog
         open={openDialog}
         onClose={handleCloseDialog}
-        demo={currentDemo}
-        onSave={handleSaveDemo}
+        user={currentUser}
+        onSave={handleSaveUser}
         //errors={errors}
         //roles={roles}
       />
@@ -312,6 +329,4 @@ const Demos: React.FC = () => {
   );
 };
 
-
-
-export default Demos;
+export default User;
