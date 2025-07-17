@@ -22,6 +22,7 @@ import ForgotPwd from './pages/ForgotPwd';
 import SendResetEmailSuccess from './pages/SendResetEmailSuccess';
 import User from "./pages/User";
 import Role from "./pages/role";
+import CourseOffering from "./pages/courseOffering";
 
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -73,6 +74,7 @@ const App: React.FC = () => {
               <Route path="/Demo" element={<Demos />} />
               <Route path="/User" element={<User />} />
               <Route path="/Role" element={<Role />} />
+              <Route path="/CourseOffering" element={<CourseOffering />} />
             </Route>
             <Route path="*" element={<Page404 />} />
           </Routes>
