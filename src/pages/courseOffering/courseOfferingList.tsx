@@ -3,17 +3,17 @@ import { DataGrid, GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import { PagedResultDto } from "../../types/types";
 import { CourseOfferingDto } from "../../types/courseOffering";
 
-interface CourseOfferingListProps{
+interface CourseOfferingListProps<T=any>{
     loading?: boolean;
     page?: number;
     pageSize?: number;
     pageSizeOptions?:number[];
-    pagedResult:PagedResultDto<CourseOfferingDto>;
+    pagedResult:PagedResultDto<T>;
     columns:GridColDef[];
     onPaginationModelChange?:(newModel:GridPaginationModel)=>void;
 }
 
-const CourseOfferingList:React.FC<CourseOfferingListProps> = (props) =>{
+const CourseOfferingList=<T,>(props:CourseOfferingListProps<T>) =>{
     const pageSize=props.pageSize ?? 10;
     const page=props.page ?? 0;
     const pageSizeOptions=props.pageSizeOptions ?? [10,20,50,100];

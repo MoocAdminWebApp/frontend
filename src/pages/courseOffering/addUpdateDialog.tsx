@@ -141,7 +141,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({open,onClose,data,onSa
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
                                     <TextField
-                                     label="Course"
+                                     label="Course Id"
                                      name="courseId"
                                      value={values.courseId}
                                      onChange={handleChange}
