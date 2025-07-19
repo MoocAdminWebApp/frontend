@@ -22,6 +22,7 @@ import ForgotPwd from './pages/ForgotPwd';
 import SendResetEmailSuccess from './pages/SendResetEmailSuccess';
 import User from "./pages/User";
 import Role from "./pages/role";
+import Course from "./pages/course";
 import CourseOffering from "./pages/courseOffering";
 
 
@@ -75,6 +76,7 @@ const App: React.FC = () => {
               <Route path="/User" element={<User />} />
               <Route path="/Role" element={<Role />} />
               <Route path="/CourseOffering" element={<CourseOffering />} />
+              <Route path="/Course" element={<Course/>}/>
             </Route>
             <Route path="*" element={<Page404 />} />
           </Routes>
