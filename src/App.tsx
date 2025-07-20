@@ -24,6 +24,7 @@ import User from "./pages/User";
 import Role from "./pages/role";
 import Course from "./pages/course";
 import CourseOffering from "./pages/courseOffering";
+import QuestionBank from "./pages/QuestionBank";
 
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -77,6 +78,7 @@ const App: React.FC = () => {
               <Route path="/Role" element={<Role />} />
               <Route path="/CourseOffering" element={<CourseOffering />} />
               <Route path="/Course" element={<Course/>}/>
+              <Route path="/QuestionBank" element={<QuestionBank />} />
             </Route>
             <Route path="*" element={<Page404 />} />
           </Routes>
