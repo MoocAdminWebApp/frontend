@@ -8,6 +8,7 @@ import {
   Typography,
   IconButton,
   Tooltip,
+  Dialog,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -279,7 +280,7 @@ const CoursePage: React.FC = () => {
         }}
       />
 
-      <AddUpdateCoursedialog
+      <AddUpdateCourseDialog
         open={openDialog}
         onClose={handleDialogClose}
         course={currentCourse}

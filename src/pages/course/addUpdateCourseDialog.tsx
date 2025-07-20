@@ -1,4 +1,3 @@
-// pages/course/addUpdateCoursedialog.tsx
 import React, { useRef } from "react";
 import {
   Button,
@@ -20,19 +19,20 @@ interface Instructor {
 }
 
 export interface Course {
-  id?: number;
+  id: number;
   title: string;
   description: string;
   status: "draft" | "published";
-  instructor: Instructor | null;
+  instructor: Instructor;
   active: boolean;
+  createdAt: string;
 }
 
 interface AddUpdateCourseDialogProps {
   open: boolean;
   onClose: () => void;
   course: Course | null;
-  onSave: (course: Course | null) => void;
+  onSave: (course: Course) => void;
 }
 
 const validationSchema = Yup.object({
@@ -41,13 +41,10 @@ const validationSchema = Yup.object({
   status: Yup.string()
     .oneOf(["draft", "published"])
     .required("Status is required"),
-  instructor: Yup.object()
-    .shape({
-      id: Yup.number().required(),
-      name: Yup.string().required(),
-    })
-    .nullable()
-    .required("Instructor is required"),
+  instructor: Yup.object({
+    id: Yup.number().required(),
+    name: Yup.string().required(),
+  }).required("Instructor is required"),
 });
 
 const instructorsMock: Instructor[] = [
@@ -56,7 +53,7 @@ const instructorsMock: Instructor[] = [
   { id: 103, name: "Carol" },
 ];
 
-const AddUpdateCourseDialog: React.FC<AddUpdateCoursedialogProps> = ({
+const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
   open,
   onClose,
   course,
@@ -65,12 +62,13 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCoursedialogProps> = ({
   const formikRef = useRef<any>(null);
 
   const initialValues: Course = {
-    id: course?.id,
-    title: course?.title || "",
-    description: course?.description || "",
-    status: course?.status || "draft",
-    instructor: course?.instructor || null,
+    id: course?.id ?? 0, // 默认0代表新建
+    title: course?.title ?? "",
+    description: course?.description ?? "",
+    status: course?.status ?? "draft",
+    instructor: course?.instructor ?? { id: 0, name: "" }, // 用默认Instructor对象，不能是null或undefined
     active: course?.active ?? true,
+    createdAt:course?.createdAt ?? new Date().toISOString(),
   };
 
   const handleSubmit = (values: Course) => {
@@ -173,19 +171,19 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCoursedialogProps> = ({
                 id="instructor"
                 name="instructor"
                 label="Instructor"
-                value={values.instructor?.id || ""}
+                value={values.instructor.id}
                 onChange={(e) => {
                   const inst = instructorsMock.find(
                     (i) => i.id === Number(e.target.value)
                   );
-                  setFieldValue("instructor", inst || null);
+                  setFieldValue("instructor", inst ?? { id: 0, name: "" });
                 }}
                 onBlur={handleBlur}
                 error={touched.instructor && Boolean(errors.instructor)}
                 helperText={touched.instructor && (errors.instructor as any)}
                 SelectProps={{ native: true }}
               >
-                <option value="">Select Instructor</option>
+                <option value={0}>Select Instructor</option>
                 {instructorsMock.map((inst) => (
                   <option key={inst.id} value={inst.id}>
                     {inst.name}
