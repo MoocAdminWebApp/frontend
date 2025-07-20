@@ -3,6 +3,7 @@ import {
   DataGrid,
   GridColDef,
   GridPaginationModel,
+  GridRowSelectionModel
 } from "@mui/x-data-grid";
 
 import { PagedResultDto } from "../../types/types";
@@ -16,6 +17,8 @@ interface UserListProps {
   pagedResult: PagedResultDto<QuestionDto>;
   columns: GridColDef[];
   onPaginationModelChange?: (newModel: GridPaginationModel) => void;
+  rowSelectionModel: GridRowSelectionModel
+  onRowSelectionModelChange?: (newModel: GridRowSelectionModel) => void;
 }
 
 const QuestionList: React.FC<UserListProps> = (props) => {
@@ -45,6 +48,13 @@ const QuestionList: React.FC<UserListProps> = (props) => {
       }}
       pagination
       disableRowSelectionOnClick
+      checkboxSelection
+      rowSelectionModel={props.rowSelectionModel}
+      onRowSelectionModelChange={(newRowSelectionModel) => {
+        props.onRowSelectionModelChange &&
+        props.onRowSelectionModelChange(newRowSelectionModel)
+      }}
+
     />
   );
 };

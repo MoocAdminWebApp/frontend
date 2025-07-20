@@ -7,7 +7,7 @@ import {
   TextField,
 } from "@mui/material";
 
-import { GridColDef, GridPaginationModel, GridRowId } from "@mui/x-data-grid";
+import { GridColDef, GridPaginationModel, GridRowId, GridRowSelectionModel } from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
@@ -176,17 +176,23 @@ const Questions: React.FC = () => {
     }
   };
 
+  const [deleteMode, setDelMode] = useState<"single" | "bulk"> ("single")
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [deleteId, setDelData] = useState(0);
+
+  const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([]);
+  const onRowSelectionModelChange = (newRowSelectionModel: GridRowSelectionModel) => {
+    setRowSelectionModel(newRowSelectionModel)
+  }
+
   const handleDelete = async (id: GridRowId) => {
+    setDelMode("single")
     setDelData(id as number);
     setConfirmDialogOpen(true);
   };
 
   const handleConfirmDelete = async () => {
-    console.log(deleteId)
     let resp = await del<boolean>(`questions/${deleteId}`);
-    console.log(resp)
     if (resp.status === 204) {
       setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
       toast.success("delete success");
@@ -196,6 +202,24 @@ const Questions: React.FC = () => {
     setConfirmDialogOpen(false);
     console.log("handleConfirmDelete", deleteId);
   };
+
+  const handleBulkDelete= async() => {
+    setDelMode("bulk")
+    setConfirmDialogOpen(true);
+  }
+
+  const handleConfirmBulkDelete = async () => {
+    const ids = rowSelectionModel.map(Number)
+    let resp = await del<boolean>("questions/bulk", {ids});
+    if (resp.status === 204) {
+      setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
+      toast.success("delete success");
+    } else {
+      toast.error(resp.message);
+    }
+    setConfirmDialogOpen(false);
+    console.log("handleConfirmDelete", deleteId);
+  }
 
   const handleConfirmCancel = () => {
     setConfirmDialogOpen(false);
@@ -212,7 +236,7 @@ const Questions: React.FC = () => {
   };
 
   return (
-    <Box sx={{ height: 500, width: "100%", p: 3 }}>
+    <Box sx={{ height: 650, width: "100%", p: 3 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
           variant="outlined"
@@ -226,16 +250,27 @@ const Questions: React.FC = () => {
           }}
           sx={{ width: 300 }}
         />
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1, minWidth: "25%"}}>
+          <Button 
+            size="small"
+            disabled={rowSelectionModel.length === 0}
+            variant="contained"
+            onClick={() => handleBulkDelete()}
+          >
+            <DeleteIcon />
+          </Button>
 
-        <Button
-          disabled={loading}
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog(null)}
-        >
-          Add Question
-        </Button>
+          <Button
+            disabled={loading}
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog(null)}
+          >
+            Add Question
+          </Button>
+        </Box>
       </Box>
+
       <QuestionList
         loading={loading}
         columns={columns}
@@ -243,6 +278,8 @@ const Questions: React.FC = () => {
         page={filterPagedResultRequest.page - 1}
         pageSize={filterPagedResultRequest.pageSize}
         onPaginationModelChange={onPaginationModelChange}
+        rowSelectionModel={rowSelectionModel}
+        onRowSelectionModelChange={onRowSelectionModelChange}
       />
 
       <AddUpdateDialog
@@ -255,8 +292,12 @@ const Questions: React.FC = () => {
       <OperateConfirmationDialog
         open={confirmDialogOpen}
         title="confirm delete"
-        content="Are you sure you want to delete this item? This operation is irrevocable."
-        onConfirm={handleConfirmDelete}
+        content={
+          deleteMode === 'single'
+            ? "Are you sure you want to delete this question? This action cannot be undone."
+            : `Are you sure you want to delete ${rowSelectionModel.length} selected questions? This action cannot be undone.`
+        }
+        onConfirm={deleteMode === "single" ? handleConfirmDelete : handleConfirmBulkDelete}
         onCancel={handleConfirmCancel}
       />
     </Box>
