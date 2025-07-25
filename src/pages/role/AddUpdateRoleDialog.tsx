@@ -26,7 +26,7 @@ const AddUpdateRoleDialog: React.FC<AddUpdateRoleDialogProps> = ({
   role,
   onSave,
 }) => {
-  // 使用 roleName 统一命名，status 替代 active
+  // 初始化表单值，新增时为空，编辑时带入已有数据
   const initialValues = {
     id: role?.id ?? 0,
     roleName: role?.roleName ?? "",
@@ -34,6 +34,7 @@ const AddUpdateRoleDialog: React.FC<AddUpdateRoleDialogProps> = ({
     status: role?.status ?? false,
   };
 
+  // 校验规则，roleName 必填，description 可选，status 布尔值
   const validationSchema = Yup.object({
     roleName: Yup.string().required("Role Name is required"),
     description: Yup.string(),

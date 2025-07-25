@@ -5,13 +5,11 @@ import {
   TextField,
   IconButton,
   Stack,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import {
   GridColDef,
   GridPaginationModel,
-  GridRowId,
 } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -21,7 +19,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import SearchIcon from "@mui/icons-material/Search";
 import toast from "react-hot-toast";
 
-import { del, get, post, put } from "../../request/axios";
+import { get, post, put, del } from "../../request/axios";
 import useDebounce from "../../hooks/useDebounce";
 import RoleList from "./RoleList";
 import AddUpdateRoleDialog from "./AddUpdateRoleDialog";
@@ -36,10 +34,17 @@ const Role: React.FC = () => {
   const [searchText, setSearchText] = React.useState("");
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [deleteId, setDeleteId] = React.useState<number>(0);
-  const [filter, setFilter] = React.useState<FilterPagedResultRequestDto>({ page: 1, pageSize: 10 });
-  const [pagedResult, setPagedResult] = React.useState<PagedResultDto<RoleDto>>({ items: [], total: 0 });
+  const [filter, setFilter] = React.useState<FilterPagedResultRequestDto>({
+    page: 1,
+    pageSize: 10,
+  });
+  const [pagedResult, setPagedResult] = React.useState<PagedResultDto<RoleDto>>({
+    items: [],
+    total: 0,
+  });
 
   const searchQuery = useDebounce(searchText, 500);
+
   React.useEffect(() => {
     setFilter((prev) => ({ ...prev, filter: searchQuery }));
   }, [searchQuery]);
@@ -47,9 +52,19 @@ const Role: React.FC = () => {
   React.useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const resp = await get<PagedResultDto<RoleDto>>(`/roles/${filter.page}/${filter.pageSize}?filter=${filter.filter ?? ""}`);
-      if (resp.isSuccess) {
+      const resp = await get<PagedResultDto<RoleDto>>(
+        `/roles/page`,
+        {
+          page: filter.page,
+          pageSize: filter.pageSize,
+          filters: filter.filter ? JSON.stringify({ roleName: filter.filter }) : undefined,
+          fuzzyKeys: "roleName",
+        }
+      );
+      if (resp.isSuccess && resp.data) {
         setPagedResult(resp.data);
+      } else {
+        toast.error(resp.message || "Failed to load roles");
       }
       setLoading(false);
     };
@@ -57,66 +72,73 @@ const Role: React.FC = () => {
   }, [filter]);
 
   const handlePaginationChange = (model: GridPaginationModel) => {
-    setFilter((prev) => ({ ...prev, page: model.page + 1, pageSize: model.pageSize }));
+    setFilter((prev) => ({
+      ...prev,
+      page: model.page + 1,
+      pageSize: model.pageSize,
+    }));
   };
 
   const handleSave = async (role: CreateRoleDto | UpdateRoleDto | null) => {
     if (!role) return;
-    const resp = role.id > 0
-      ? await put("/roles", role)
-      : await post("/roles", role);
-
+    let resp;
+    if (role.id && role.id > 0) {
+      resp = await put(`/roles/${role.id}`, role);
+    } else {
+      resp = await post("/roles", role);
+    }
     if (resp.isSuccess) {
-      const isUpdate = !!role?.id && role.id > 0;
-      toast.success(`${isUpdate ? "Updated" : "Added"} successfully`);
-      setFilter((prev) => ({ ...prev, page: 1 }));
+      toast.success(role.id ? "Updated successfully" : "Created successfully");
+      setFilter((prev) => ({ ...prev, page: 1 })); // reload first page
       setOpenDialog(false);
     } else {
-      toast.error(resp.message);
+      toast.error(resp.message || "Operation failed");
     }
   };
 
   const handleEdit = async (row: RoleDto) => {
     const resp = await get<RoleDto>(`/roles/${row.id}`);
-    if (resp.isSuccess) {
-      const data = resp.data;
-      setCurrentRole({ ...data });
+    if (resp.isSuccess && resp.data) {
+      setCurrentRole(resp.data);
       setOpenDialog(true);
+    } else {
+      toast.error(resp.message || "Failed to load role");
     }
   };
 
   const handleDelete = async () => {
     const resp = await del(`/roles/${deleteId}`);
     if (resp.isSuccess) {
-      toast.success("Deleted");
+      toast.success("Deleted successfully");
       setFilter((prev) => ({ ...prev, page: 1 }));
     } else {
-      toast.error(resp.message);
+      toast.error(resp.message || "Delete failed");
     }
     setConfirmOpen(false);
   };
 
   const columns: GridColDef[] = [
-    { field: "name", headerName: "Role Name", flex: 1 },
+    { field: "roleName", headerName: "Role Name", flex: 1 },
     { field: "description", headerName: "Description", flex: 1 },
-    { field: "status", headerName: "Status", flex: 1 },
-    { field: "createdBy", headerName: "CreatedBy", flex: 1 },
-    { field: "updatedBy", headerName: "UpdatedBy", flex: 1 },
     {
-      field: "active",
-      headerName: "Active",
+      field: "status",
+      headerName: "Status",
       width: 120,
-      renderCell: ({ value }) => (
-        <Stack direction="row" alignItems="center" spacing={1}>
-          {value ? (
+      renderCell: ({ value }) =>
+        value ? (
+          <Stack direction="row" alignItems="center" spacing={1}>
             <CheckCircleIcon color="success" fontSize="small" />
-          ) : (
+            <Typography variant="body2">Active</Typography>
+          </Stack>
+        ) : (
+          <Stack direction="row" alignItems="center" spacing={1}>
             <CancelIcon color="error" fontSize="small" />
-          )}
-          <Typography variant="body2">{value ? "Active" : "Inactive"}</Typography>
-        </Stack>
-      ),
+            <Typography variant="body2">Inactive</Typography>
+          </Stack>
+        ),
     },
+    { field: "createdBy", headerName: "Created By", flex: 1 },
+    { field: "updatedBy", headerName: "Updated By", flex: 1 },
     {
       field: "actions",
       headerName: "Actions",
@@ -126,7 +148,12 @@ const Role: React.FC = () => {
           <IconButton onClick={() => handleEdit(row)}>
             <EditIcon />
           </IconButton>
-          <IconButton onClick={() => { setDeleteId(row.id); setConfirmOpen(true); }}>
+          <IconButton
+            onClick={() => {
+              setDeleteId(row.id);
+              setConfirmOpen(true);
+            }}
+          >
             <DeleteIcon />
           </IconButton>
         </Box>
@@ -150,7 +177,10 @@ const Role: React.FC = () => {
         <Button
           startIcon={<AddIcon />}
           variant="contained"
-          onClick={() => { setCurrentRole(null); setOpenDialog(true); }}
+          onClick={() => {
+            setCurrentRole(null);
+            setOpenDialog(true);
+          }}
         >
           Add Role
         </Button>
@@ -174,7 +204,7 @@ const Role: React.FC = () => {
 
       <OperateConfirmationDialog
         open={confirmOpen}
-        title="Confirm delete"
+        title="Confirm Delete"
         content="Are you sure you want to delete this role?"
         onConfirm={handleDelete}
         onCancel={() => setConfirmOpen(false)}

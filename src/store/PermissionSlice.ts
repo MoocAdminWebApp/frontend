@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { MenuDto } from "../types/menu";
 import { MenuType } from "../types/enum";
-import { Home as HomeIcon ,People as PeopleIcon, SupervisorAccount as RoleIcon, School as CourseOfferingIcon, Quiz as QuizIcon} from "@mui/icons-material";
+import { Home as HomeIcon ,People as PeopleIcon, AdminPanelSettings as RoleIcon, School as CourseOfferingIcon, Quiz as QuizIcon} from "@mui/icons-material";
 
 interface PermissionState {
   menuItems: Array<MenuDto> | null;

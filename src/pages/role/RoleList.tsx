@@ -3,7 +3,6 @@ import {
   DataGrid,
   GridColDef,
   GridPaginationModel,
-  GridRowId,
 } from "@mui/x-data-grid";
 import { PagedResultDto } from "../../types/types";
 import { RoleDto } from "../../types/role";
@@ -18,22 +17,34 @@ interface RoleListProps {
   onPaginationModelChange?: (newModel: GridPaginationModel) => void;
 }
 
-const RoleList: React.FC<RoleListProps> = (props) => {
-  const pageSize = props.pageSize ?? 10;
-  const page = props.page ?? 0;
-  const pageSizeOptions = props.pageSizeOptions ?? [10, 20, 50];
-
+const RoleList: React.FC<RoleListProps> = ({
+  loading = false,
+  page = 0,
+  pageSize = 10,
+  pageSizeOptions = [10, 20, 50],
+  pagedResult,
+  columns,
+  onPaginationModelChange,
+}) => {
   return (
     <DataGrid
-      loading={props.loading || false}
-      rows={props.pagedResult.items}
-      rowCount={props.pagedResult.total}
-      columns={props.columns}
+      loading={loading}
+      rows={pagedResult.items}
+      rowCount={pagedResult.total}
+      columns={columns}
       paginationModel={{ page, pageSize }}
+      initialState={{
+        pagination: {
+          paginationModel: {
+            pageSize: pageSize,
+          },
+        },
+      }}
       paginationMode="server"
       pageSizeOptions={pageSizeOptions}
-      onPaginationModelChange={props.onPaginationModelChange}
+      onPaginationModelChange={onPaginationModelChange}
       disableRowSelectionOnClick
+      getRowId={(row) => row.id}
     />
   );
 };
