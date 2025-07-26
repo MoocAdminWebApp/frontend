@@ -122,26 +122,66 @@ const User: React.FC = () => {
     { field: "email", headerName: "Email", width: 240 },
     { field: "firstName", headerName: "First Name", width: 180 },
     { field: "lastName", headerName: "Last Name", width: 180 },
-    { field: "access", headerName: "Access", width: 120 },
+    { field: "access", headerName: "Access", flex: 1 },
     {
       field: "active",
       headerName: "Active",
-      width: 120,
+      flex: 1,
       renderCell: ({ value }) =>
         value ? (
-          <Stack direction="row" alignItems="center" spacing={1}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            sx={{
+              height: "100%",
+              position: "relative",
+              top: "50%",
+              transform: "translateY(-50%)",
+            }}
+          >
             <CheckCircleIcon color="success" fontSize="small" />
             <Typography variant="body2">Active</Typography>
           </Stack>
         ) : (
-          <Stack direction="row" alignItems="center" spacing={1}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            sx={{
+              height: "100%",
+
+              position: "relative",
+              top: "50%",
+              transform: "translateY(-50%)",
+            }}
+          >
             <CancelIcon color="error" fontSize="small" />
             <Typography variant="body2">Inactive</Typography>
           </Stack>
         ),
     },
+    // {
+    //   field: "createAt",
+    //   headerName: "CreateAt",
+    //   width: 180,
+    //   valueFormatter: (value) => {
+    //     if (!value) return "-";
+    //     return new Date(value).toLocaleString();
+    //   },
+    // },
+    // {
+    //   field: "updateAt",
+    //   headerName: "UpdateAt",
+    //   width: 180,
+    //   valueFormatter: (value) => {
+    //     if (!value) return "-";
+    //     return new Date(value).toLocaleString();
+    //   },
+    // },
     { field: "createdBy", headerName: "Created By", flex: 1 },
     { field: "updatedBy", headerName: "Updated By", flex: 1 },
+
     {
       field: "actions",
       headerName: "Actions",
