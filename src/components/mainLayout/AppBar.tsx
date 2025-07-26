@@ -1,23 +1,23 @@
-import * as React from 'react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { styled } from '@mui/material/styles';
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import { Box } from '@mui/material';
+import * as React from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { styled } from "@mui/material/styles";
+import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import MenuIcon from "@mui/icons-material/Menu";
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import { Box } from "@mui/material";
 
-import { logout } from '../../store/authSlice'
-import { clearPermissions } from '../../store/PermissionSlice'
-import { useDispatch } from 'react-redux';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/store';
-import { ensureTrailingSlash, isBase64DataURL } from '../../utils/stringUtil';
+import { logout } from "../../store/authSlice";
+import { clearPermissions } from "../../store/PermissionSlice";
+import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
+import { ensureTrailingSlash, isBase64DataURL } from "../../utils/stringUtil";
 
 const drawerWidth = 300;
 
@@ -26,16 +26,16 @@ interface AppBarProps extends MuiAppBarProps {
 }
 
 const AppBar = styled(MuiAppBar, {
-  shouldForwardProp: (prop) => prop !== 'open',
+  shouldForwardProp: (prop) => prop !== "open",
 })<AppBarProps>(({ theme, open }) => ({
-  transition: theme.transitions.create(['margin', 'width'], {
+  transition: theme.transitions.create(["margin", "width"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
   }),
   ...(open && {
     width: `calc(100% - ${drawerWidth}px)`,
     marginLeft: `${drawerWidth}px`,
-    transition: theme.transitions.create(['margin', 'width'], {
+    transition: theme.transitions.create(["margin", "width"], {
       easing: theme.transitions.easing.easeOut,
       duration: theme.transitions.duration.enteringScreen,
     }),
@@ -47,11 +47,14 @@ interface CustomAppBarProps {
   handleDrawerOpen: () => void;
 }
 
-const CustomAppBar: React.FC<CustomAppBarProps> = ({ open, handleDrawerOpen }) => {
+const CustomAppBar: React.FC<CustomAppBarProps> = ({
+  open,
+  handleDrawerOpen,
+}) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
- const loginUser = useSelector((state: RootState) => state.auth.user);
+  const loginUser = useSelector((state: RootState) => state.auth.user);
   // 打开下拉菜单
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -74,12 +77,12 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({ open, handleDrawerOpen }) =
   const handleMenuItemClick = (action: string) => {
     handleMenuClose();
     switch (action) {
-      case 'profile':
-        navigate('/profile');
+      case "profile":
+        navigate("/profile");
         break;
-      case 'logout':
-        console.log('Logout clicked');
-       
+      case "logout":
+        console.log("Logout clicked");
+
         dispatch(logout());
         //dispatch(clearPermissions());
         break;
@@ -87,8 +90,7 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({ open, handleDrawerOpen }) =
         break;
     }
   };
-  const [avatar, setAvatar] = useState<string>('');
-
+  const [avatar, setAvatar] = useState<string>("");
 
   return (
     <AppBar position="fixed" open={open}>
@@ -98,7 +100,7 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({ open, handleDrawerOpen }) =
           aria-label="open drawer"
           onClick={handleDrawerOpen}
           edge="start"
-          sx={{ mr: 2, ...(open && { display: 'none' }) }}
+          sx={{ mr: 2, ...(open && { display: "none" }) }}
         >
           <MenuIcon />
         </IconButton>
@@ -114,12 +116,15 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({ open, handleDrawerOpen }) =
             onClick={handleMenuOpen}
           >
             {`${loginUser?.firstName} ${loginUser?.lastName}`}
-            {
-
-              avatar ? (<img src={avatar} alt="avatar" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />) : (<AccountCircle />)
-
-            }
-
+            {avatar ? (
+              <img
+                src={avatar}
+                alt="avatar"
+                style={{ width: "30px", height: "30px", borderRadius: "50%" }}
+              />
+            ) : (
+              <AccountCircle />
+            )}
           </IconButton>
           <Menu
             id="user-menu"
@@ -127,16 +132,20 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({ open, handleDrawerOpen }) =
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
             anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
+              vertical: "bottom",
+              horizontal: "right",
             }}
             transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
+              vertical: "top",
+              horizontal: "right",
             }}
           >
-            <MenuItem onClick={() => handleMenuItemClick('profile')}>Profile</MenuItem>
-            <MenuItem onClick={() => handleMenuItemClick('logout')}>Logout</MenuItem>
+            <MenuItem onClick={() => handleMenuItemClick("profile")}>
+              Profile
+            </MenuItem>
+            <MenuItem onClick={() => handleMenuItemClick("logout")}>
+              Logout
+            </MenuItem>
           </Menu>
         </Box>
       </Toolbar>

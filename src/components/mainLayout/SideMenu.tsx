@@ -54,7 +54,7 @@ const renderMenu = (
             sx={{
               backgroundColor:
                 currentPath === item.route ? "#e0e0e0" : "transparent",
-              borderRadius: 1,
+              // borderRadius: 1,
               mb: 1,
               "&:hover": {
                 backgroundColor: "#f5f5f5",
