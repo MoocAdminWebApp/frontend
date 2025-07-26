@@ -15,3 +15,10 @@ export enum EAccessType {
   Teacher = 2,
   Student = 3,
 }
+
+export enum StatusType {
+  Active = 1,
+  Inactive = 2,
+  Draft = 3,
+  Deleted = 4,
+}
