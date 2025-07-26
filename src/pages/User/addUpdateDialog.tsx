@@ -127,6 +127,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
                 variant="outlined"
                 error={touched.email && Boolean(errors.email)}
                 helperText={touched.email && errors.email}
+                disabled={!!user}
               />
 
               <TextField

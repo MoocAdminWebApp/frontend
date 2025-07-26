@@ -82,11 +82,15 @@ const User: React.FC = () => {
   const handleSave = async (user: CreateUserDto | UpdateUserDto | null) => {
     if (!user) return;
     let resp;
+    console.log(user);
     if (user.id && user.id > 0) {
-      resp = await put(`/users/${user.id}`, user);
+      const { email, ...userWithoutEmail } = user;
+      resp = await put(`/users/${user.id}`, userWithoutEmail);
+      console.log("update resp", resp);
     } else {
       resp = await post("/users", user);
     }
+    console.log("success", resp.isSuccess);
     if (resp.isSuccess) {
       toast.success(user.id ? "Updated successfully" : "Created successfully");
       setFilter((prev) => ({ ...prev, page: 1 })); // reload first page
