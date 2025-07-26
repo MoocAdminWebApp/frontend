@@ -140,6 +140,24 @@ const Role: React.FC = () => {
     { field: "createdBy", headerName: "Created By", flex: 1 },
     { field: "updatedBy", headerName: "Updated By", flex: 1 },
     {
+    field: 'createdAt',
+    headerName: 'Created At',
+    flex: 1,
+    valueFormatter: (params) => {
+    if (!params) return "";
+    return new Date(params).toISOString().split("T")[0];
+  },
+  },
+  {
+    field: 'updatedAt',
+    headerName: 'Updated At',
+    flex: 1,
+    valueFormatter: (params) => {
+    if (!params) return "";
+    return new Date(params).toISOString().split("T")[0];
+  },
+    },
+    {
       field: "actions",
       headerName: "Actions",
       width: 150,

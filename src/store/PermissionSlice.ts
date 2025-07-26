@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { MenuDto } from "../types/menu";
 import { MenuType } from "../types/enum";
-import { Home as HomeIcon ,People as PeopleIcon, AdminPanelSettings as RoleIcon, School as CourseOfferingIcon, Quiz as QuizIcon} from "@mui/icons-material";
+import { Home as HomeIcon ,People as PeopleIcon, AdminPanelSettings as RoleIcon, School as CourseOfferingIcon, Quiz as QuizIcon, MenuBook as MenuBookIcon} from "@mui/icons-material";
 
 interface PermissionState {
   menuItems: Array<MenuDto> | null;
@@ -55,7 +55,7 @@ const getInitialState = (): PermissionState => {
         ],
       },
       {
-        id: 100,
+        id: 2,
         title: "Admin Menu",
         parentId: null,
         route: "",
@@ -122,6 +122,35 @@ const getInitialState = (): PermissionState => {
             orderNum: 0,
             children: [],
             icon: QuizIcon, 
+          },
+        ],
+      },
+      {
+        id: 3,
+        title: "Course Menu",
+        parentId: null,
+        route: "",
+        permission: "",
+        componentPath: "",
+        orderNum: 0,
+        mark: "",
+        menuType: MenuType.Dir,
+        level: 2,
+        icon:PeopleIcon,
+        children: [
+          {
+            id: 2,
+            title: "Course",
+            permission: "",
+            mark: "",
+            menuType: MenuType.Menu,
+            level: 2,
+            parentId: 1,
+            route: "Course",
+            componentPath: "./pages/demo/index.jsx",
+            orderNum: 0,
+            children: [],
+            icon:MenuBookIcon
           },
         ],
       },
