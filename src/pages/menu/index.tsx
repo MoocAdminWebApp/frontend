@@ -57,6 +57,8 @@ const Menu: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [currentMenu, setCurrentMenu] = useState<UpdateMenuDto | null>(null);
   const [searchText, setSearchText] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedType, setSelectedType] = useState<string>("");
 
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
   useEffect(() => {
@@ -150,12 +152,6 @@ const Menu: React.FC = () => {
       headerName: "Permission",
       type: "text",
       width: 180,
-    },
-    {
-      field: "Comment",
-      headerName: "Comment",
-      type: "text",
-      width: 200,
     },
     { field: "createdAt", headerName: "Created At", type: "text", width: 150 },
     { field: "actions", headerName: "Actions", type: "action", width: 100 },
