@@ -21,7 +21,6 @@ interface UserListProps {
 const UserList: React.FC<UserListProps> = (props) => {
   let pageSize = props.pageSize ?? 10; // default value
   let page = props.page ?? 0; // default value
-
   let ageSizeOptions = props.pageSizeOptions ?? [10, 20, 50, 100]; // default value
   return (
     <DataGrid

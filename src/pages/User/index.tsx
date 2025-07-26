@@ -1,137 +1,122 @@
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
-  Tooltip,
+  IconButton,
   Stack,
   Typography,
-  Switch,
-  FormControlLabel,
 } from "@mui/material";
-
-import { GridColDef, GridPaginationModel, GridRowId } from "@mui/x-data-grid";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
+import { GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
-import SearchIcon from "@mui/icons-material/Search";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
-
+import SearchIcon from "@mui/icons-material/Search";
 import toast from "react-hot-toast";
-import UserList from "./UserList";
 
-import {
-  FilmOptionType,
-  FilterPagedResultRequestDto,
-  ListResultDto,
-  PagedResultDto,
-} from "../../types/types";
-import { del, get, post, put } from "../../request/axios/index";
-import { Gender } from "../../types/enum";
-import { Formik } from "formik";
-import { CreateUserDto, UserDto, UpdateUserDto } from "../../types/user";
-import PageLoading from "../../components/PageLoading";
-import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
+import { get, post, put, del } from "../../request/axios";
 import useDebounce from "../../hooks/useDebounce";
-import PermissionControl from "../../components/PermissionControl";
+import UserList from "./UserList";
 import AddUpdateDialog from "./addUpdateDialog";
+import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
+import { UserDto, CreateUserDto, UpdateUserDto } from "../../types/user";
+import { FilterPagedResultRequestDto, PagedResultDto } from "../../types/types";
 
 const User: React.FC = () => {
-  const [loading, setLoading] = useState(false);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [currentUser, setCurrentUser] = useState<UpdateUserDto | null>(null);
-  const [searchText, setSearchText] = useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [openDialog, setOpenDialog] = React.useState(false);
+  const [currentUser, setCurrentUser] = React.useState<UpdateUserDto | null>(
+    null
+  );
+  const [searchText, setSearchText] = React.useState("");
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [deleteId, setDeleteId] = React.useState<number>(0);
+  const [filter, setFilter] = React.useState<FilterPagedResultRequestDto>({
+    page: 1,
+    pageSize: 10,
+  });
+  const [pagedResult, setPagedResult] = React.useState<PagedResultDto<UserDto>>(
+    {
+      items: [],
+      total: 0,
+    }
+  );
 
-  const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
-  useEffect(() => {
-    setFilterPagedResultRequest((pre) => ({ ...pre, filter: searchQuery }));
+  const searchQuery = useDebounce(searchText, 500);
+
+  React.useEffect(() => {
+    setFilter((prev) => ({ ...prev, filter: searchQuery }));
   }, [searchQuery]);
 
-  /**
-   * open Dialog
-   * @param user
-   */
-  const handleOpenDialog = (user: UpdateUserDto | null) => {
-    setCurrentUser(user);
-    setOpenDialog(true);
-  };
-
-  /**
-   * Close Dialog
-   */
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setCurrentUser(null);
-  };
-
-  /**
-   * Save user (add or modify)
-   * @param user
-   */
-  const handleSaveUser = async (user: CreateUserDto | UpdateUserDto | null) => {
-    if (user) {
-      if (user.id > 0) {
-        let resp = await put<boolean>("/users", user);
-        if (resp.isSuccess) {
-          toast.success("update success");
-          setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
-          handleCloseDialog();
-        } else {
-          toast.error(resp.message);
-        }
+  React.useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      const resp = await get<PagedResultDto<UserDto>>(`/users/page`, {
+        page: filter.page,
+        pageSize: filter.pageSize,
+        filters: filter.filter
+          ? JSON.stringify({ userName: filter.filter })
+          : undefined,
+        fuzzyKeys: "userName",
+      });
+      if (resp.isSuccess && resp.data) {
+        setPagedResult(resp.data);
       } else {
-        let resp = await post<boolean>("/users", user);
-        if (resp.isSuccess) {
-          toast.success("add success");
-          setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
-          handleCloseDialog();
-        } else {
-          toast.error(resp.message);
-        }
+        toast.error(resp.message || "Failed to load users");
       }
+      setLoading(false);
+    };
+    load();
+  }, [filter]);
+
+  const handlePaginationChange = (model: GridPaginationModel) => {
+    setFilter((prev) => ({
+      ...prev,
+      page: model.page + 1,
+      pageSize: model.pageSize,
+    }));
+  };
+
+  const handleSave = async (user: CreateUserDto | UpdateUserDto | null) => {
+    if (!user) return;
+    let resp;
+    if (user.id && user.id > 0) {
+      resp = await put(`/users/${user.id}`, user);
+    } else {
+      resp = await post("/users", user);
+    }
+    if (resp.isSuccess) {
+      toast.success(user.id ? "Updated successfully" : "Created successfully");
+      setFilter((prev) => ({ ...prev, page: 1 })); // reload first page
+      setOpenDialog(false);
+    } else {
+      toast.error(resp.message || "Operation failed");
     }
   };
 
-  const [filterPagedResultRequest, setFilterPagedResultRequest] =
-    useState<FilterPagedResultRequestDto>({ page: 1, pageSize: 10 });
-  const [pageData, setPageData] = useState<PagedResultDto<UserDto>>({
-    items: [],
-    total: 0,
-  });
+  const handleEdit = async (row: UserDto) => {
+    const resp = await get<UserDto>(`/users/${row.id}`);
+    if (resp.isSuccess && resp.data) {
+      setCurrentUser(resp.data);
+      setOpenDialog(true);
+    } else {
+      toast.error(resp.message || "Failed to load user");
+    }
+  };
 
-  useEffect(() => {
-    let getPageData = async () => {
-      setLoading(true);
-      try {
-        let filterPagedResultRequestDto: FilterPagedResultRequestDto = {
-          ...filterPagedResultRequest,
-        };
-        let resp = await get<PagedResultDto<UserDto>>(
-          `/users/${filterPagedResultRequestDto.page}/${filterPagedResultRequestDto.pageSize}?title=${filterPagedResultRequestDto.filter}`
-        );
-        if (resp.isSuccess) {
-          setPageData(resp.data);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    getPageData();
-  }, [filterPagedResultRequest]);
+  const handleDelete = async () => {
+    const resp = await del(`/users/${deleteId}`);
+    if (resp.isSuccess) {
+      toast.success("Deleted successfully");
+      setFilter((prev) => ({ ...prev, page: 1 }));
+    } else {
+      toast.error(resp.message || "Delete failed");
+    }
+    setConfirmOpen(false);
+  };
 
-  //Table Column Definition
   const columns: GridColDef[] = [
     { field: "id", headerName: "Id", width: 80 },
     { field: "email", headerName: "Email", width: 240 },
@@ -142,141 +127,45 @@ const User: React.FC = () => {
       field: "active",
       headerName: "Active",
       width: 120,
-      renderCell: (params) => {
-        return (
-          <Stack
-            direction="row"
-            alignItems="center"
-            spacing={1}
-            sx={{
-              height: "100%",
-
-              position: "relative",
-              top: "50%",
-              transform: "translateY(-50%)",
-            }}
-          >
-            {params.value ? (
-              <Tooltip title="Acitve">
-                <CheckCircleIcon color="success" fontSize="small" />
-              </Tooltip>
-            ) : (
-              <Tooltip title="not active">
-                <CancelIcon color="error" fontSize="small" />
-              </Tooltip>
-            )}
-            <Typography variant="body2">
-              {params.value ? "Acitve" : "not active"}
-            </Typography>
+      renderCell: ({ value }) =>
+        value ? (
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <CheckCircleIcon color="success" fontSize="small" />
+            <Typography variant="body2">Active</Typography>
           </Stack>
-        );
-      },
+        ) : (
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <CancelIcon color="error" fontSize="small" />
+            <Typography variant="body2">Inactive</Typography>
+          </Stack>
+        ),
     },
-    {
-      field: "createAt",
-      headerName: "CreateAt",
-      width: 180,
-      valueFormatter: (value) => {
-        if (!value) return "-";
-        return new Date(value).toLocaleString();
-      },
-    },
-    {
-      field: "updateAt",
-      headerName: "UpdateAt",
-      width: 180,
-      valueFormatter: (value) => {
-        if (!value) return "-";
-        return new Date(value).toLocaleString();
-      },
-    },
-    { field: "createBy", headerName: "CreateBy", width: 100 },
-    { field: "updateBy", headerName: "UpdateBy", width: 100 },
+    { field: "createdBy", headerName: "Created By", flex: 1 },
+    { field: "updatedBy", headerName: "Updated By", flex: 1 },
     {
       field: "actions",
       headerName: "Actions",
       width: 150,
-      renderCell: (params) => (
+      renderCell: ({ row }) => (
         <Box>
-          <PermissionControl permission="">
-            <IconButton onClick={() => handleUpdate(params.row as UserDto)}>
-              <EditIcon />
-            </IconButton>
-          </PermissionControl>
-          <PermissionControl permission="">
-            <IconButton onClick={() => handleDelete(params.id)}>
-              <DeleteIcon />
-            </IconButton>
-          </PermissionControl>
+          <IconButton onClick={() => handleEdit(row)}>
+            <EditIcon />
+          </IconButton>
+          <IconButton
+            onClick={() => {
+              setDeleteId(row.id);
+              setConfirmOpen(true);
+            }}
+          >
+            <DeleteIcon />
+          </IconButton>
         </Box>
       ),
     },
   ];
 
-  const handleUpdate = async (user: UserDto | null) => {
-    let resp = await get<UserDto>(`users/${user?.id}`);
-    if (resp.isSuccess) {
-      let userDetail = resp.data;
-      let updateUserDto: UpdateUserDto = {
-        id: userDetail.id,
-        email: userDetail.email,
-        firstName: userDetail.firstName,
-        lastName: userDetail.lastName,
-        access: userDetail.access,
-        active: userDetail.active,
-        // createAt: new Date(userDetail.createAt),
-        // updateAt: new Date(userDetail.updateAt),
-        // createBy: userDetail.createBy,
-        // updateBy: userDetail.updateBy,
-      };
-      handleOpenDialog(updateUserDto);
-    } else {
-      toast.error(resp.message);
-    }
-  };
-
-  const [comfirmDialogOpen, setComfirmDialogOpen] = useState(false);
-  const [deData, setDelData] = useState(0);
-  const handleDelete = async (id: GridRowId) => {
-    setDelData(id as number);
-    setComfirmDialogOpen(true);
-  };
-
-  const handleComfirmDelete = async () => {
-    let resp = await del<boolean>(`users/${deData}`);
-    if (resp.isSuccess) {
-      setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
-      toast.success("delete success");
-    } else {
-      toast.error(resp.message);
-    }
-    setComfirmDialogOpen(false);
-    console.log("handleComfirmDelete", deData);
-  };
-
-  const handleComfirmCancel = () => {
-    setComfirmDialogOpen(false);
-  };
-
-  const onPaginationModelChange = (newModel: GridPaginationModel) => {
-    setFilterPagedResultRequest((preState) => {
-      return {
-        ...preState,
-        page: newModel.page + 1,
-        pageSize: newModel.pageSize,
-      };
-    });
-  };
-
   return (
-    <Box sx={{ height: 500, width: "100%", p: 3 }}>
-      {/* Load animation components */}
-      {/* <PageLoading
-                loading={loading}
-                size={50}
-                color="primary"
-                message="Loading users, please wait..."
-            /> */}
+    <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
           variant="outlined"
@@ -284,46 +173,44 @@ const User: React.FC = () => {
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           InputProps={{
-            startAdornment: (
-              <SearchIcon sx={{ color: "action.active", mr: 1 }} />
-            ),
+            startAdornment: <SearchIcon sx={{ mr: 1 }} />,
           }}
           sx={{ width: 300 }}
         />
-
         <Button
-          disabled={loading}
-          variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog(null)}
+          variant="contained"
+          onClick={() => {
+            setCurrentUser(null);
+            setOpenDialog(true);
+          }}
         >
           Add User
         </Button>
       </Box>
+
       <UserList
         loading={loading}
         columns={columns}
-        pagedResult={pageData}
-        page={filterPagedResultRequest.page - 1}
-        pageSize={filterPagedResultRequest.pageSize}
-        onPaginationModelChange={onPaginationModelChange}
+        pagedResult={pagedResult}
+        page={filter.page - 1}
+        pageSize={filter.pageSize}
+        onPaginationModelChange={handlePaginationChange}
       />
 
       <AddUpdateDialog
         open={openDialog}
-        onClose={handleCloseDialog}
+        onClose={() => setOpenDialog(false)}
         user={currentUser}
-        onSave={handleSaveUser}
-        //errors={errors}
-        //roles={roles}
+        onSave={handleSave}
       />
 
       <OperateConfirmationDialog
-        open={comfirmDialogOpen}
-        title="confirm delete"
-        content="Are you sure you want to delete this item? This operation is irrevocable."
-        onConfirm={handleComfirmDelete}
-        onCancel={handleComfirmCancel}
+        open={confirmOpen}
+        title="Confirm Delete"
+        content="Are you sure you want to delete this user?"
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmOpen(false)}
       />
     </Box>
   );

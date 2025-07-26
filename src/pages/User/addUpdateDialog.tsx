@@ -36,15 +36,14 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
 }) => {
   //const isEdit = user != null;
   const validationSchema = Yup.object({
-    title: Yup.string().required("title is required"),
-    active: Yup.boolean()
-      .required("active is required")
-      .transform((value) => {
-        if (value === "true") return true;
-        if (value === "false") return false;
-        return value;
-      }),
-    dataTime: Yup.date().required("dataTime is required"),
+    email: Yup.string().required("email is required"),
+    //password: Yup.string().required("password is required"),
+    firstName: Yup.string().required("firstName is required"),
+    lastName: Yup.string().required("lastName is required"),
+    access: Yup.mixed()
+      .oneOf(["ADMIN", "TEACHER", "STUDENT"], "Invalid access type")
+      .required("access is required"),
+    active: Yup.boolean().required("access is required"),
   });
 
   const initialValues = {
@@ -60,9 +59,17 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
   };
 
   const formikRef = useRef<any>(null); //  formikRef
-  const handleSubmit = (values: UpdateUserDto) => {
-    if (onSave) {
-      onSave(values);
+  const handleSubmit = (values: UpdateUserDto | CreateUserDto) => {
+    // create a new user（user为null）
+    if (!user) {
+      const emailPrefix = values.email.split("@")[0];
+      const password = `${values.firstName}${emailPrefix}`;
+      // add password to values
+      const newValues = { ...values, password };
+      onSave && onSave(newValues);
+    } else {
+      // do not change password when updating an existed user
+      onSave && onSave(values);
     }
   };
 
@@ -79,16 +86,16 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
     }
   };
 
-  function toLocalISOString(date: Date) {
-    // 1. Obtain local time for each part
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    // 2. Combine the format required for timestamp local
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  }
+  // function toLocalISOString(date: Date) {
+  //   // 1. Obtain local time for each part
+  //   const year = date.getFullYear();
+  //   const month = String(date.getMonth() + 1).padStart(2, "0");
+  //   const day = String(date.getDate()).padStart(2, "0");
+  //   const hours = String(date.getHours()).padStart(2, "0");
+  //   const minutes = String(date.getMinutes()).padStart(2, "0");
+  //   // 2. Combine the format required for timestamp local
+  //   return `${year}-${month}-${day}T${hours}:${minutes}`;
+  // }
 
   return (
     <Dialog open={open} onClose={handleClose}>
@@ -131,6 +138,8 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
                 fullWidth
                 margin="normal"
                 variant="outlined"
+                error={touched.firstName && Boolean(errors.firstName)}
+                helperText={touched.firstName && errors.firstName}
               />
               <TextField
                 name="lastName"
@@ -141,6 +150,8 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
                 fullWidth
                 margin="normal"
                 variant="outlined"
+                error={touched.lastName && Boolean(errors.lastName)}
+                helperText={touched.lastName && errors.lastName}
               />
               <TextField
                 name="access"
