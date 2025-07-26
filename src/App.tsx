@@ -13,19 +13,19 @@ import store from "./store/store";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useDispatch } from "react-redux";
 //import menuItems, { MenuItem } from './menuItems';
-import ProfileForm from './pages/ProfileForm';
-import Demos from './pages/demo';
-import SignupSuccess from './pages/SignupSuccess';
-import ResetPwdSuccess from './pages/ResetPwdSuccess';
-import ResetPwd from './pages/ResetPwd';
-import ForgotPwd from './pages/ForgotPwd';
-import SendResetEmailSuccess from './pages/SendResetEmailSuccess';
+import ProfileForm from "./pages/ProfileForm";
+import Demos from "./pages/demo";
+import SignupSuccess from "./pages/SignupSuccess";
+import ResetPwdSuccess from "./pages/ResetPwdSuccess";
+import ResetPwd from "./pages/ResetPwd";
+import ForgotPwd from "./pages/ForgotPwd";
+import SendResetEmailSuccess from "./pages/SendResetEmailSuccess";
 import User from "./pages/User";
 import Role from "./pages/role";
+import Menu from "./pages/menu";
 import Course from "./pages/course";
 import CourseOffering from "./pages/courseOffering";
 import QuestionBank from "./pages/QuestionBank";
-
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
@@ -50,13 +50,16 @@ const App: React.FC = () => {
           <CssBaseline />
           <Routes>
             {/* Login page not required Layout */}
-            <Route path="/login" element={<Login />}/>
-            <Route path="/signup" element={<Signup/>}/>
-            <Route path="/signupSuccess" element={<SignupSuccess/>}/>
-            <Route path="/resetPwd" element={<ResetPwd/>}/>
-            <Route path="/resetPwdSuccess" element={<ResetPwdSuccess/>}/>
-            <Route path="/forgotPwd" element={<ForgotPwd/>}/>
-            <Route path="/sendResetEmailSuccess" element={<SendResetEmailSuccess/>}/>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/signupSuccess" element={<SignupSuccess />} />
+            <Route path="/resetPwd" element={<ResetPwd />} />
+            <Route path="/resetPwdSuccess" element={<ResetPwdSuccess />} />
+            <Route path="/forgotPwd" element={<ForgotPwd />} />
+            <Route
+              path="/sendResetEmailSuccess"
+              element={<SendResetEmailSuccess />}
+            />
             {/* Other pages require Layout */}
             <Route
               element={
@@ -76,8 +79,9 @@ const App: React.FC = () => {
               <Route path="/Demo" element={<Demos />} />
               <Route path="/User" element={<User />} />
               <Route path="/Role" element={<Role />} />
+              <Route path="/Menu" element={<Menu />} />
               <Route path="/CourseOffering" element={<CourseOffering />} />
-              <Route path="/Course" element={<Course/>}/>
+              <Route path="/Course" element={<Course />} />
               <Route path="/QuestionBank" element={<QuestionBank />} />
             </Route>
             <Route path="*" element={<Page404 />} />
