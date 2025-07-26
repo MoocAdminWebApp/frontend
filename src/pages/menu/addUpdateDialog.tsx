@@ -11,6 +11,7 @@ import {
   FormControlLabel,
   Switch,
   TextField,
+  Typography,
 } from "@mui/material";
 import { Formik } from "formik";
 import { MenuType, StatusType } from "../../types/enum";
@@ -89,6 +90,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>{menu ? "Edit Menu" : "Add Menu"}</DialogTitle>
+      <Typography sx={{ color: "#ff0000" }}>TO BE FIXED</Typography>
       <DialogContent>
         <Formik
           innerRef={formikRef}
