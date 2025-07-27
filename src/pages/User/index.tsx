@@ -165,27 +165,27 @@ const User: React.FC = () => {
           </Stack>
         ),
     },
-    // {
-    //   field: "createAt",
-    //   headerName: "CreateAt",
-    //   width: 180,
-    //   valueFormatter: (value) => {
-    //     if (!value) return "-";
-    //     return new Date(value).toLocaleString();
-    //   },
-    // },
-    // {
-    //   field: "updateAt",
-    //   headerName: "UpdateAt",
-    //   width: 180,
-    //   valueFormatter: (value) => {
-    //     if (!value) return "-";
-    //     return new Date(value).toLocaleString();
-    //   },
-    // },
+
     { field: "createdBy", headerName: "Created By", flex: 1 },
     { field: "updatedBy", headerName: "Updated By", flex: 1 },
-
+    {
+      field: "createdAt",
+      headerName: "CreatedAt",
+      width: 180,
+      valueFormatter: (value) => {
+        if (!value) return "-";
+        return new Date(value).toLocaleString();
+      },
+    },
+    {
+      field: "updatedAt",
+      headerName: "UpdatedAt",
+      width: 180,
+      valueFormatter: (value) => {
+        if (!value) return "-";
+        return new Date(value).toLocaleString();
+      },
+    },
     {
       field: "actions",
       headerName: "Actions",

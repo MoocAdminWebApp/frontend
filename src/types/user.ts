@@ -29,10 +29,6 @@ export interface UserDto extends BaseEntityDto {
   lastName: string;
   access: EAccessType;
   active: boolean;
-  // createAt: Date;
-  // updateAt: Date;
-  // createBy: number;
-  // updateBy: number;
 }
 
 export interface CreateOrUpdateUserBaseDto {
@@ -42,10 +38,6 @@ export interface CreateOrUpdateUserBaseDto {
   lastName: string;
   access: EAccessType;
   active: boolean;
-  // createAt: Date;
-  // updateAt: Date;
-  // createBy: number;
-  // updateBy: number;
 }
 
 export interface CreateUserDto extends CreateOrUpdateUserBaseDto {}
