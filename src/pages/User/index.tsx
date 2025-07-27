@@ -57,9 +57,9 @@ const User: React.FC = () => {
         page: filter.page,
         pageSize: filter.pageSize,
         filters: filter.filter
-          ? JSON.stringify({ userName: filter.filter })
+          ? JSON.stringify({ email: filter.filter })
           : undefined,
-        fuzzyKeys: "userName",
+        fuzzyKeys: "email",
       });
       if (resp.isSuccess && resp.data) {
         setPagedResult(resp.data);
