@@ -57,9 +57,9 @@ const User: React.FC = () => {
         page: filter.page,
         pageSize: filter.pageSize,
         filters: filter.filter
-          ? JSON.stringify({ userName: filter.filter })
+          ? JSON.stringify({ email: filter.filter })
           : undefined,
-        fuzzyKeys: "userName",
+        fuzzyKeys: "email",
       });
       if (resp.isSuccess && resp.data) {
         setPagedResult(resp.data);
@@ -82,11 +82,15 @@ const User: React.FC = () => {
   const handleSave = async (user: CreateUserDto | UpdateUserDto | null) => {
     if (!user) return;
     let resp;
+    console.log(user);
     if (user.id && user.id > 0) {
-      resp = await put(`/users/${user.id}`, user);
+      const { email, ...userWithoutEmail } = user;
+      resp = await put(`/users/${user.id}`, userWithoutEmail);
+      console.log("update resp", resp);
     } else {
       resp = await post("/users", user);
     }
+    console.log("success", resp.isSuccess);
     if (resp.isSuccess) {
       toast.success(user.id ? "Updated successfully" : "Created successfully");
       setFilter((prev) => ({ ...prev, page: 1 })); // reload first page
@@ -161,27 +165,27 @@ const User: React.FC = () => {
           </Stack>
         ),
     },
-    // {
-    //   field: "createAt",
-    //   headerName: "CreateAt",
-    //   width: 180,
-    //   valueFormatter: (value) => {
-    //     if (!value) return "-";
-    //     return new Date(value).toLocaleString();
-    //   },
-    // },
-    // {
-    //   field: "updateAt",
-    //   headerName: "UpdateAt",
-    //   width: 180,
-    //   valueFormatter: (value) => {
-    //     if (!value) return "-";
-    //     return new Date(value).toLocaleString();
-    //   },
-    // },
+
     { field: "createdBy", headerName: "Created By", flex: 1 },
     { field: "updatedBy", headerName: "Updated By", flex: 1 },
-
+    {
+      field: "createdAt",
+      headerName: "CreatedAt",
+      width: 180,
+      valueFormatter: (value) => {
+        if (!value) return "-";
+        return new Date(value).toLocaleString();
+      },
+    },
+    {
+      field: "updatedAt",
+      headerName: "UpdatedAt",
+      width: 180,
+      valueFormatter: (value) => {
+        if (!value) return "-";
+        return new Date(value).toLocaleString();
+      },
+    },
     {
       field: "actions",
       headerName: "Actions",
