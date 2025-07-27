@@ -1,39 +1,28 @@
 import * as React from 'react';
-import useAutocomplete, {
-  AutocompleteGetTagProps,
-} from '@mui/material/useAutocomplete';
+import useAutocomplete from '@mui/material/useAutocomplete';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { styled } from '@mui/material/styles';
 import { autocompleteClasses } from '@mui/material/Autocomplete';
 import { FilmOptionType } from '../types/types';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-const Root = styled('div')(
-  ({ theme }) => `
-  color:rgba(0,0,0,.85);
+const Root = styled('div')`
+  color: rgba(0, 0, 0, 0.85);
   font-size: 14px;
-`,
-);
-
-const Label = styled('label')`
-  padding: 0 0 4px;
-  line-height: 1.5;
-  display: block;
 `;
 
-const InputWrapper = styled('div')(
-  ({ theme }) => `
+const InputWrapper = styled('div')`
   width: 100%;
   border: 1px solid #d9d9d9;
-  background-color:#fff;
+  background-color: #fff;
   border-radius: 4px;
   padding: 1px;
   display: flex;
   flex-wrap: wrap;
 
   &:hover {
-    border-color:#2d2d2e;
+    border-color: #2d2d2e;
   }
 
   &.focused {
@@ -42,8 +31,8 @@ const InputWrapper = styled('div')(
   }
 
   & input {
-    background-color:#fff;
-    color: rgba(38, 55, 150, 0.85)
+    background-color: #fff;
+    color: rgba(38, 55, 150, 0.85);
     height: 43px;
     box-sizing: border-box;
     padding: 4px 6px;
@@ -54,11 +43,11 @@ const InputWrapper = styled('div')(
     margin: 0;
     outline: 0;
   }
-`,
-);
+`;
 
-interface TagProps extends ReturnType<AutocompleteGetTagProps> {
+interface TagProps {
   label: string;
+  onDelete?: (event: any) => void;
 }
 
 export interface AutocompleteProps {
@@ -66,7 +55,6 @@ export interface AutocompleteProps {
   defaultValue: FilmOptionType[];
   onChange: (value: FilmOptionType[]) => void;
 }
-
 
 function Tag(props: TagProps) {
   const { label, onDelete, ...other } = props;
@@ -78,8 +66,7 @@ function Tag(props: TagProps) {
   );
 }
 
-const StyledTag = styled(Tag)<TagProps>(
-  ({ theme }) => `
+const StyledTag = styled(Tag)`
   display: flex;
   align-items: center;
   height: 30px;
@@ -94,7 +81,7 @@ const StyledTag = styled(Tag)<TagProps>(
   overflow: hidden;
 
   &:focus {
-    border-color:#40a9ff;
+    border-color: #40a9ff;
     background-color: #e6f7ff;
   }
 
@@ -109,17 +96,15 @@ const StyledTag = styled(Tag)<TagProps>(
     cursor: pointer;
     padding: 4px;
   }
-`,
-);
+`;
 
-const Listbox = styled('ul')(
-  ({ theme }) => `
+const Listbox = styled('ul')`
   width: 100%;
   margin: 2px 0 0;
   padding: 0;
   position: absolute;
   list-style: none;
-  background-color:#fff;
+  background-color: #fff;
   overflow: auto;
   max-height: 250px;
   border-radius: 4px;
@@ -156,16 +141,13 @@ const Listbox = styled('ul')(
       color: currentColor;
     }
   }
-`,
-);
+`;
 
 const AutoCheck: React.FC<AutocompleteProps> = (props) => {
-
   const [selectedValues, setSelectedValues] = useState<FilmOptionType[]>(props.defaultValue);
 
   const {
     getRootProps,
-    getInputLabelProps,
     getInputProps,
     getTagProps,
     getListboxProps,
@@ -176,39 +158,40 @@ const AutoCheck: React.FC<AutocompleteProps> = (props) => {
     setAnchorEl,
   } = useAutocomplete({
     id: 'customized-hook-demo',
-    //defaultValue: props.defaultValue,
-    //value: props.defaultValue, // Controlled value
-    value: selectedValues,// Controlled value
+    value: selectedValues,
     multiple: true,
     options: props.options,
     getOptionLabel: (option) => option.title,
     onChange: (event, newValue) => {
       setSelectedValues(newValue);
       props.onChange(newValue);
-    }
+    },
   });
 
+  // type guard: 過濾掉分組 header
+  const isFilmOption = (opt: any): opt is FilmOptionType => {
+    return opt && typeof opt.title === 'string';
+  };
 
-
-
+  const validOptions: FilmOptionType[] = (groupedOptions as any[]).filter(isFilmOption);
 
   return (
     <Root>
       <div {...getRootProps()}>
         <InputWrapper ref={setAnchorEl} className={focused ? 'focused' : ''}>
           {value.map((option: FilmOptionType, index: number) => {
-            const { key, ...tagProps } = getTagProps({ index });
-            return <StyledTag key={key} {...tagProps} label={option.title} />;
+            const tagProps = getTagProps({ index });
+            return <StyledTag {...tagProps} label={option.title} />;
           })}
           <input {...getInputProps()} />
         </InputWrapper>
       </div>
-      {groupedOptions.length > 0 ? (
+      {validOptions.length > 0 ? (
         <Listbox {...getListboxProps()}>
-          {groupedOptions.map((option, index) => {
-            const { key, ...optionProps } = getOptionProps({ option, index });
+          {validOptions.map((option, index) => {
+            const optionProps = getOptionProps({ option, index });
             return (
-              <li key={key} {...optionProps}>
+              <li key={index} {...optionProps}>
                 <span>{option.title}</span>
                 <CheckIcon fontSize="small" />
               </li>
@@ -218,6 +201,6 @@ const AutoCheck: React.FC<AutocompleteProps> = (props) => {
       ) : null}
     </Root>
   );
-}
+};
 
 export default AutoCheck;
