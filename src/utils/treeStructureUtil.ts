@@ -1,8 +1,7 @@
 import { MenuDto } from "../types/menu";
-import { TreeModule } from "../types/enum";
+import { TreeModule, ExpandState } from "../types/enum";
 import { TreeViewBaseItem } from "@mui/x-tree-view/models";
-import { TreeNode, FlatNode } from "../components/tables/TreeTable";
-import { TreeModuleDtoMap } from "../types/types";
+import { TreeNode, FlatNode, TreeModuleDtoMap } from "../types/types";
 
 // create specific Map based on module
 function createDtoMap<T extends keyof TreeModuleDtoMap>(
@@ -14,6 +13,15 @@ function createDtoData<T extends keyof TreeModuleDtoMap>(
   module: T
 ): TreeModuleDtoMap[T][] {
   return [];
+}
+
+export function convertMenuDtoToTreeNode(menus: MenuDto[]): TreeNode[] {
+  return menus.map((menu) => ({
+    id: menu.id,
+    title: menu.title,
+    parentId: menu.parentId ?? null,
+    children: convertMenuDtoToTreeNode(menu.children || []),
+  }));
 }
 
 function createTreeNode<T extends keyof TreeModuleDtoMap>(
@@ -128,8 +136,13 @@ export function flattenTree(
   const result: FlatNode[] = [];
 
   treeData.forEach((node, index) => {
+    const expand =
+      node.children && node.children.length > 0
+        ? ExpandState.Collapsed
+        : ExpandState.NonExpandable;
     const flatNode: FlatNode = {
       id: node.id,
+      expandState: expand,
       title: node.title,
       parentId: parentId,
       level: level,
