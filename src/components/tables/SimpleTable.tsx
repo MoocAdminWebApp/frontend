@@ -9,7 +9,7 @@ import { MenuType, StatusType } from "../../types/enum";
 import { convertDateFormat } from "../../utils/convertDateFormat";
 
 // Define the types for the column types
-export type ColumnType = "text" | "action" | "chip";
+export type ColumnType = "text" | "action" | "chip" | "expand";
 
 // Define the interface for the custom column
 export interface CustomColumn {
@@ -30,18 +30,6 @@ interface TableProps {
   loading?: boolean;
 }
 
-// export const convertDateFormat = (value?: string): string => {
-//   if (!value) return "-";
-//   const date = new Date(value);
-//   const day = String(date.getDate()).padStart(2, "0");
-//   const month = String(date.getMonth() + 1).padStart(2, "0");
-//   const year = date.getFullYear();
-//   const hour = String(date.getHours()).padStart(2, "0");
-//   const minute = String(date.getMinutes()).padStart(2, "0");
-//   return `${day}/${month}/${year} ${hour}:${minute}`;
-// };
-
-// Returns renderCell function based on column type
 export const renderCellByType = (
   type: ColumnType,
   field: string,

@@ -22,3 +22,8 @@ export enum StatusType {
   Draft = 3,
   Deleted = 4,
 }
+
+export enum TreeModule {
+  Menu = 1,
+  Chapter = 2,
+}

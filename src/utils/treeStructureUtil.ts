@@ -1,18 +1,47 @@
 import { MenuDto } from "../types/menu";
+import { TreeModule } from "../types/enum";
 import { TreeViewBaseItem } from "@mui/x-tree-view/models";
-import { TreeNode } from "../components/tables/TreeViewTable";
+import { TreeNode, FlatNode } from "../components/tables/TreeTable";
+import { TreeModuleDtoMap } from "../types/types";
+
+// create specific Map based on module
+function createDtoMap<T extends keyof TreeModuleDtoMap>(
+  module: T
+): Map<number, TreeModuleDtoMap[T]> {
+  return new Map<number, TreeModuleDtoMap[T]>();
+}
+function createDtoData<T extends keyof TreeModuleDtoMap>(
+  module: T
+): TreeModuleDtoMap[T][] {
+  return [];
+}
+
+function createTreeNode<T extends keyof TreeModuleDtoMap>(
+  module: T,
+  item: Partial<TreeModuleDtoMap[T]> = {}
+): TreeModuleDtoMap[T] {
+  switch (module) {
+    case TreeModule.Menu:
+      return { ...item, children: [] } as MenuDto;
+    default:
+      return { ...item, children: [] } as MenuDto;
+  }
+}
 
 export const convertFlatToTree = (flatData: MenuDto[]) => {
-  const map = new Map<number, MenuDto>(); // Create a map to hold the nodes by their ID
-  const treeData: MenuDto[] = []; // This will hold the final tree structure
+  const map = createDtoMap(TreeModule.Menu);
+  const treeData = createDtoData(TreeModule.Menu);
+  // const map = new Map<number, MenuDto>(); // Create a map to hold the nodes by their ID
+  // const treeData: MenuDto[] = []; // This will hold the final tree structure
   const expandableIds: string[] = [];
 
   // Create a map of all nodes
   flatData.forEach((item) => {
-    const node: MenuDto = {
-      ...item,
-      children: [],
-    };
+    // const node: MenuDto = {
+    //   ...item,
+    //   children: [],
+    // };
+    const node = createTreeNode(TreeModule.Menu, item);
     map.set(node.id, node); // Add the node to the map
   });
 
@@ -48,13 +77,93 @@ export const convertFlatToTree = (flatData: MenuDto[]) => {
   return { items: treeData, expandables: expandableIds };
 };
 
-export const toTreeViewItem = (node: MenuDto): TreeViewBaseItem => ({
-  id: String(node.id),
-  label: node.title,
+// export const toTreeViewItem = (node: MenuDto): TreeViewBaseItem => ({
+//   id: String(node.id),
+//   label: node.title,
+//   children: node.children?.map(toTreeViewItem),
+// });
+
+export const toTreeViewItem = (node: MenuDto): TreeNode => ({
+  id: node.id,
+  title: node.title,
+  parentId: node.parentId ? node.parentId : null,
   children: node.children?.map(toTreeViewItem),
 });
 
-export const convertMenuDtoToTreeNode = (node: MenuDto): TreeNode => ({
-  id: node.id,
-  children: node.children?.map(convertMenuDtoToTreeNode),
-});
+// export const convertMenuDtoToTreeNode = (node: MenuDto): TreeNode => ({
+//   id: node.id,
+//   children: node.children?.map(convertMenuDtoToTreeNode),
+// });
+
+export function buildTreeFromFlatData(rawData: TreeNode[]): TreeNode[] {
+  const idToNodeMap = new Map<number, TreeNode>(); // map of all the nodes
+  const roots: TreeNode[] = []; // collection of all the parent nodes
+
+  // init all the nodes and assign with empty children
+  for (const item of rawData) {
+    idToNodeMap.set(item.id, { ...item, children: [] });
+  }
+
+  // const parent-child relationships
+  for (const item of rawData) {
+    const node = idToNodeMap.get(item.id)!;
+    if (item.parentId === null) {
+      roots.push(node);
+    } else {
+      const parent = idToNodeMap.get(item.parentId);
+      if (parent) {
+        parent.children!.push(node);
+      }
+    }
+  }
+
+  return roots;
+}
+
+export function flattenTree(
+  treeData: TreeNode[],
+  parentId: number | null = null,
+  level: number = 0
+): FlatNode[] {
+  const result: FlatNode[] = [];
+
+  treeData.forEach((node, index) => {
+    const flatNode: FlatNode = {
+      id: node.id,
+      title: node.title,
+      parentId: parentId,
+      level: level,
+      orderNum: index,
+    };
+
+    result.push(flatNode);
+
+    if (node.children && node.children.length > 0) {
+      const childrenFlat = flattenTree(node.children, node.id, level + 1);
+      result.push(...childrenFlat);
+    }
+  });
+
+  return result;
+}
+
+export const parseFlatData = (flatData: any[], module: number) => {
+  const map = createDtoMap(module);
+  const treeData = createDtoData(module);
+  switch (module) {
+    case TreeModule.Menu:
+      flatData.forEach((item) => {
+        const node = createTreeNode(TreeModule.Menu, item);
+        map.set(node.id, node); // Add the node to the map
+      });
+      break;
+    default:
+      flatData.forEach((item) => {
+        const node = createTreeNode(TreeModule.Menu, item);
+        map.set(node.id, node); // Add the node to the map
+      });
+      break;
+  }
+
+  // Build the tree structure
+};

@@ -1,48 +1,57 @@
 // src/components/tables/TreeTable.tsx
-// This ant design based component will be used to render tree structure such as menus or categories in the future
-// but currently there exists several issues during implmentation, so it is not used yet.
 
-import React from "react";
-import { Table } from "antd";
-import type { ColumnsType } from "antd/es/table";
+import React, { useState } from "react";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { Typography, Chip, IconButton, Box } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { MenuType, StatusType } from "../../types/enum";
+import { ColumnType, CustomColumn, renderCellByType } from "./SimpleTable";
 
-// define the interface for the tree structure
-export interface TreeTableProps<T> {
-  data: T[]; // tree structure data
-  columns: ColumnsType<T>;
-  rowKey?: string;
-  defaultExpandAll?: boolean; // default setting for expanding all rows
-  loading?: boolean;
-  expandable?: boolean; // whether the table is expandable
+export interface TreeNode {
+  id: number;
+  title: string;
+  parentId: number | null;
+  children?: TreeNode[];
 }
 
-/**
- * TreeTable component for rendering a tree structure in a table format.
- */
-function TreeTable<T extends object>({
-  data,
-  columns,
-  rowKey = "id",
-  defaultExpandAll = false,
-  loading = false,
-  expandable = true,
-}: TreeTableProps<T>) {
+export interface FlatNode {
+  id: number;
+  title: string;
+  parentId: number | null;
+  level: number;
+  orderNum: number;
+}
+
+//Define the component props, including rows and columns and optional edit/delete handlers
+interface TreeTableProps {
+  rows: any[];
+  columns: CustomColumn[];
+  level?: number;
+  expand?: boolean;
+  onEdit?: (row: any) => void;
+  onDelete?: (row: any) => void;
+  loading?: boolean;
+}
+
+const TreeTable: React.FC<TreeTableProps> = ({ rows, columns }) => {
+  const gridColumns: GridColDef[] = columns.map((col) => ({
+    field: col.field,
+    headerName: col.headerName,
+    width: col.width || 150,
+    sortable: true,
+    renderCell: renderCellByType(col.type || "text", col.field),
+  }));
+
   return (
-    <Table
-      columns={columns}
-      dataSource={data}
-      rowKey={rowKey}
-      loading={loading}
-      pagination={false} // Disable pagination for tree table
-      expandable={
-        expandable
-          ? {
-              defaultExpandAllRows: defaultExpandAll,
-            }
-          : undefined
-      }
+    <DataGrid
+      rows={rows}
+      columns={gridColumns}
+      hideFooter
+      disableRowSelectionOnClick
+      getRowId={(row) => row.id}
     />
   );
-}
+};
 
 export default TreeTable;
