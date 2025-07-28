@@ -12,12 +12,23 @@ export interface BaseEntityDto {
   id: number;
 }
 
+export interface BaseTreeEntityDto extends BaseEntityDto {
+  parentId?: number | null;
+  orderNum: number;
+  children?: BaseTreeEntityDto[];
+}
+
 export interface ListResultDto<T> {
   items: T[];
 }
 
 export interface PagedResultDto<T> extends ListResultDto<T> {
   total: number;
+}
+
+export interface FilterResultRequestDto {
+  filter?: string;
+  sort?: string;
 }
 
 export interface FilterPagedResultRequestDto {
