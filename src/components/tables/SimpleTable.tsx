@@ -11,7 +11,7 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 // Define the types for the column types
-export type ColumnType = "text" | "action" | "chip" | "expand";
+export type ColumnType = "text" | "action" | "chip";
 
 // Define the interface for the custom column
 export interface CustomColumn {
@@ -36,24 +36,81 @@ export const renderCellByType = (
   type: ColumnType,
   field: string,
   onEdit?: (row: any) => void,
-  onDelete?: (row: any) => void
+  onDelete?: (row: any) => void,
+  expandMap?: Record<number, ExpandState>,
+  onToggleExpand?: (id: number) => void,
+  expandable?: boolean
 ): GridColDef["renderCell"] => {
   return (params) => {
-    const value = params.row[field];
-    // console.log(value);
+    const { row } = params;
+    const raw = row.raw ? row.raw : row;
+    const value = raw[field];
+    console.log("🔍 field:", field, " | value:", value, " | raw:", raw);
 
     switch (type) {
       case "text":
         /// Render permissionInfo as a Typography component (converting to string))
         if (field === "permissionInfo") {
           return (
-            <Typography>{params.row.permissionInfo?.title || "N/A"}</Typography>
+            <Typography>{params.row.permissionInfo?.title || "-"}</Typography>
           );
         }
         // Render date in a specific format(DD/MM/YYYY HH:MM) for createdAt field
         if (field === "createdAt" && value) {
           const dispDate = convertDateFormat(value);
           return <Typography>{`${dispDate}`}</Typography>;
+        }
+
+        // Render title, and expansion icons is requested from TreeTable (expandable = true)
+        if (field === "title") {
+          const row = params.row;
+          const level = row.level || 0;
+          const id = row.id;
+          const iconSize = 20;
+
+          if (expandable) {
+            const expandState: ExpandState =
+              expandMap?.[id] ?? ExpandState.NonExpandable;
+
+            const handleToggle = (e: React.MouseEvent) => {
+              e.stopPropagation();
+              onToggleExpand?.(id);
+            };
+
+            // Render expand/collapse/no icon correspondingly
+            let icon = null;
+            if (expandState === ExpandState.NonExpandable) {
+              icon = <Box sx={{ width: iconSize }} />;
+            } else {
+              if (expandState === ExpandState.Expanded) {
+                icon = (
+                  <IconButton size="small" onClick={handleToggle}>
+                    <ExpandLessIcon fontSize="small" />
+                  </IconButton>
+                );
+              } else {
+                icon = (
+                  <IconButton size="small" onClick={handleToggle}>
+                    <ChevronRightIcon fontSize="small" />
+                  </IconButton>
+                );
+              }
+            }
+
+            return (
+              <Box
+                sx={{ display: "flex", alignItems: "center", pl: level * 2 }}
+              >
+                {icon}
+                <Typography variant="body2" sx={{ ml: 1 }}>
+                  {row.title}
+                </Typography>
+              </Box>
+            );
+          }
+
+          // Render title straightly if not requested from TreeTable
+          return <Typography variant="body2">{row.title}</Typography>;
         }
 
         return <Typography>{value}</Typography>;
@@ -129,21 +186,6 @@ export const renderCellByType = (
             </IconButton>
           </Box>
         );
-
-      case "expand":
-        // console.log("expand field value:", value);
-        console.log("🔍 raw row = ", params.row);
-        console.log("📦 expand field =", field);
-        console.log("🎯 expandState value =", value);
-        const expandState: ExpandState = value;
-
-        let icon = null;
-        if (expandState === ExpandState.Expanded) {
-          icon = <ExpandLessIcon fontSize="small" />;
-        } else if (expandState === ExpandState.Collapsed) {
-          icon = <ChevronRightIcon fontSize="small" />;
-        }
-        return <Box sx={{ pl: params.row.level * 2 }}>{icon}</Box>;
 
       default:
         return value;

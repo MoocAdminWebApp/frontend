@@ -1,50 +1,42 @@
-// src/components/tables/TreeTable.tsx
-
-import React, { useState } from "react";
+import React from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { Typography, Chip, IconButton, Box } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import { MenuType, StatusType } from "../../types/enum";
-import { TreeNode, FlatNode } from "../../types/types";
+import { FlatNode } from "../../types/types";
+import { ExpandState } from "../../types/enum";
 import { ColumnType, CustomColumn, renderCellByType } from "./SimpleTable";
 
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-
-// export interface TreeNode {
-//   id: number;
-//   title: string;
-//   parentId: number | null;
-//   children?: TreeNode[];
-// }
-
-// export interface FlatNode {
-//   id: number;
-//   title: string;
-//   parentId: number | null;
-//   level: number;
-//   orderNum: number;
-// }
-
-//Define the component props, including rows and columns and optional edit/delete handlers
 interface TreeTableProps {
-  rows: any[];
+  rows: FlatNode[];
   columns: CustomColumn[];
-  level?: number;
-  expand?: boolean;
+  expandMap?: Record<number, ExpandState>;
+  onToggleExpand?: (id: number) => void;
   onEdit?: (row: any) => void;
   onDelete?: (row: any) => void;
   loading?: boolean;
 }
 
-const TreeTable: React.FC<TreeTableProps> = ({ rows, columns }) => {
+const TreeTable: React.FC<TreeTableProps> = ({
+  rows,
+  columns,
+  expandMap,
+  onToggleExpand,
+  onEdit,
+  onDelete,
+  loading,
+}) => {
   const gridColumns: GridColDef[] = columns.map((col) => ({
     field: col.field,
     headerName: col.headerName,
     width: col.width || 150,
-    sortable: true,
-    renderCell: renderCellByType(col.type || "text", col.field),
+    sortable: false,
+    renderCell: renderCellByType(
+      col.type || "text",
+      col.field,
+      onEdit,
+      onDelete,
+      expandMap,
+      onToggleExpand,
+      true
+    ),
   }));
 
   return (
@@ -54,6 +46,7 @@ const TreeTable: React.FC<TreeTableProps> = ({ rows, columns }) => {
       hideFooter
       disableRowSelectionOnClick
       getRowId={(row) => row.id}
+      loading={loading}
     />
   );
 };

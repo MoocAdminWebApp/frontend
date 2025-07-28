@@ -63,6 +63,7 @@ export interface TreeNode {
   title: string;
   parentId: number | null;
   children?: TreeNode[];
+  raw?: any; //Retain the original data
 }
 
 export interface FlatNode {
@@ -72,4 +73,5 @@ export interface FlatNode {
   level: number;
   orderNum: number;
   expandState: number;
+  raw?: any; //Retain the original data
 }

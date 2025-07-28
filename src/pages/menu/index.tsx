@@ -38,8 +38,7 @@ import {
   PagedResultDto,
 } from "../../types/types";
 import { del, get, post, put } from "../../request/axios/index";
-import { Gender } from "../../types/enum";
-import { Formik } from "formik";
+
 import { CreateMenuDto, MenuDto, UpdateMenuDto } from "../../types/menu";
 import PageLoading from "../../components/PageLoading";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
@@ -47,10 +46,8 @@ import useDebounce from "../../hooks/useDebounce";
 import PermissionControl from "../../components/PermissionControl";
 import AddUpdateDialog from "./addUpdateDialog";
 
-import PaginatedTable, {
-  ColumnType,
-  CustomColumn,
-} from "../../components/tables/PaginatedTable";
+import PaginatedTable from "../../components/tables/PaginatedTable";
+import { ColumnType, CustomColumn } from "../../components/tables/SimpleTable";
 
 const Menu: React.FC = () => {
   const [loading, setLoading] = useState(false);

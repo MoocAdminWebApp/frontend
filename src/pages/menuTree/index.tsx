@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import {
   Box,
   Button,
@@ -21,9 +21,7 @@ import {
   FormControlLabel,
 } from "@mui/material";
 
-import { GridColDef, GridPaginationModel, GridRowId } from "@mui/x-data-grid";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
+import { GridColDef, GridRowId } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 
@@ -33,6 +31,8 @@ import {
   FilmOptionType,
   ListResultDto,
   FilterResultRequestDto,
+  TreeNode,
+  FlatNode,
 } from "../../types/types";
 import { del, get, post, put } from "../../request/axios/index";
 import { CreateMenuDto, MenuDto, UpdateMenuDto } from "../../types/menu";
@@ -46,19 +46,14 @@ import SimpleTable, {
   ColumnType,
   CustomColumn,
 } from "../../components/tables/SimpleTable";
-import { TreeViewBaseItem } from "@mui/x-tree-view";
-import { RichTreeView } from "@mui/x-tree-view";
-// import TreeViewTable from "../../components/tables/TreeViewTable";
-import TreeTableMUI, { TreeNode } from "../../components/tables/TreeViewTable";
 import {
-  // toTreeViewItem,
-  convertFlatToTree,
   buildTreeFromFlatData,
-  flattenTree,
   convertMenuDtoToTreeNode,
+  flattenTreeWithExpand,
 } from "../../utils/treeStructureUtil";
 
 import TreeTable from "../../components/tables/TreeTable";
+import { MenuType, StatusType, ExpandState } from "../../types/enum";
 
 const MenuTree: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -67,11 +62,23 @@ const MenuTree: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [selectedType, setSelectedType] = useState<string>("");
-
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
   useEffect(() => {
     setFilterResultRequest((pre) => ({ ...pre, filter: searchQuery }));
   }, [searchQuery]);
+
+  /** Node expansion record (Expanded / Collapsed / NonExpandable) */
+  const [expandMap, setExpandMap] = useState<Record<number, ExpandState>>({});
+  // toggles expand state of a node with given id
+  const handleToggleExpand = (id: number) => {
+    setExpandMap((prev) => ({
+      ...prev,
+      [id]:
+        prev[id] === ExpandState.Expanded
+          ? ExpandState.Collapsed
+          : ExpandState.Expanded,
+    }));
+  };
 
   /**
    * open Dialog
@@ -118,49 +125,67 @@ const MenuTree: React.FC = () => {
     }
   };
 
-  // Remove Pagination
+  // Filter and sort conditions
   const [filterResultRequest, setFilterResultRequest] =
     useState<FilterResultRequestDto>({
       sort: "",
       filter: "",
     });
-  const [dispData, setDispData] = useState<TreeNode[]>([]);
 
+  /**
+   * @type MenuDto[] - Raw data returned from backend
+   * @type TreeNode[] - Tree structure used to manage parent-child hierarchy
+   * @type FlatNode[] - Flattened data used by frontend table for display; each node includes level, order, expandState, etc.
+   *
+   * Construct data that used to render frontend content following:
+   * 1) Retrieve raw data (MenuDto[]) from backend
+   * 2) Convert raw data into tree data (-->treeData: TreeNode[])
+   * 3) Flatten tree data to obtain display data (-->dispData: FlatNode[])
+   */
+  const [treeData, setTreeData] = useState<TreeNode[]>([]); // Raw data in tree-structure (TreeNode[] type)
+  // Calculates and obtains the data to display (i.e. expanded rows and their child nodes) using treeData and expandMap
+  // Calculation will be triggered when the raw data is updated, or when there's change in expandMap
+  const dispData = useMemo(
+    () => flattenTreeWithExpand(treeData, null, 0, expandMap),
+    [treeData, expandMap]
+  );
+
+  // Monitoring filterResultRequest and update display content
   useEffect(() => {
-    let getRawData = async () => {
-      setLoading(true);
-      try {
-        let filterResultRequestDto: FilterResultRequestDto = {
-          ...filterResultRequest,
-        };
-        let resp = await get<ListResultDto<MenuDto>>(
-          `/menus/tree?filter=${filterResultRequest.filter ?? ""}`
-        );
-
-        if (resp.isSuccess) {
-          console.log("getPageData new items:", resp.data.items);
-          const rawDataConversion = convertMenuDtoToTreeNode(resp.data.items);
-          console.log("Converted MenuDto[] to TreeNode[]:", rawDataConversion);
-          const treeData = buildTreeFromFlatData(rawDataConversion);
-          console.log("Tree-structured TreeNode[] constructed: ", treeData);
-          const flattenTreeData = flattenTree(treeData);
-          console.log("Flatten tree data: ", flattenTreeData);
-          setDispData(flattenTreeData);
-        }
-      } finally {
-        setLoading(false);
+    const getRawData = async () => {
+      const resp = await get<ListResultDto<MenuDto>>(
+        `/menus/tree?filter=${filterResultRequest.filter ?? ""}`
+      );
+      if (resp.isSuccess) {
+        const raw = convertMenuDtoToTreeNode(resp.data.items); // Convert the returned MenuDto[] into TreeNode[]
+        const builtTree = buildTreeFromFlatData(raw); // Construct tree-structure
+        setTreeData(builtTree); // Store as source data for further processing
       }
     };
     getRawData();
   }, [filterResultRequest]);
 
+  // Initialize expandMap everytime there's change in treeData
+  useEffect(() => {
+    const initialExpandMap: Record<number, ExpandState> = {};
+
+    function initExpandMap(nodes: TreeNode[]) {
+      nodes.forEach((node) => {
+        initialExpandMap[node.id] = node.children?.length
+          ? ExpandState.Collapsed
+          : ExpandState.NonExpandable;
+        if (node.children?.length) initExpandMap(node.children);
+      });
+    }
+    // Init expandMap only if treeData is not empty
+    if (treeData.length) {
+      initExpandMap(treeData);
+      setExpandMap(initialExpandMap);
+      console.log("expandMap ready:", initialExpandMap);
+    }
+  }, [treeData]);
+
   const columns: CustomColumn[] = [
-    {
-      field: "expandState",
-      headerName: "",
-      type: "expand",
-      width: 50,
-    },
     { field: "title", headerName: "Title", type: "text", width: 300 },
     { field: "status", headerName: "Status", type: "chip", width: 150 },
     { field: "type", headerName: "Type", type: "chip", width: 120 },
@@ -218,6 +243,7 @@ const MenuTree: React.FC = () => {
   const handleComfirmCancel = () => {
     setComfirmDialogOpen(false);
   };
+  console.log("Tree data: ", treeData);
 
   return (
     <Box sx={{ height: "100%", width: "95%", margin: "0 auto" }}>
@@ -267,7 +293,14 @@ const MenuTree: React.FC = () => {
           //roles={roles}
         />
 
-        <TreeTable rows={dispData} columns={columns} />
+        <TreeTable
+          rows={dispData}
+          columns={columns}
+          expandMap={expandMap}
+          onToggleExpand={handleToggleExpand}
+          onEdit={handleUpdate}
+          onDelete={handleDelete}
+        />
 
         <OperateConfirmationDialog
           open={comfirmDialogOpen}

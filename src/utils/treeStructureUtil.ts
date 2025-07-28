@@ -21,87 +21,9 @@ export function convertMenuDtoToTreeNode(menus: MenuDto[]): TreeNode[] {
     title: menu.title,
     parentId: menu.parentId ?? null,
     children: convertMenuDtoToTreeNode(menu.children || []),
+    raw: menu,
   }));
 }
-
-function createTreeNode<T extends keyof TreeModuleDtoMap>(
-  module: T,
-  item: Partial<TreeModuleDtoMap[T]> = {}
-): TreeModuleDtoMap[T] {
-  switch (module) {
-    case TreeModule.Menu:
-      return { ...item, children: [] } as MenuDto;
-    default:
-      return { ...item, children: [] } as MenuDto;
-  }
-}
-
-export const convertFlatToTree = (flatData: MenuDto[]) => {
-  const map = createDtoMap(TreeModule.Menu);
-  const treeData = createDtoData(TreeModule.Menu);
-  // const map = new Map<number, MenuDto>(); // Create a map to hold the nodes by their ID
-  // const treeData: MenuDto[] = []; // This will hold the final tree structure
-  const expandableIds: string[] = [];
-
-  // Create a map of all nodes
-  flatData.forEach((item) => {
-    // const node: MenuDto = {
-    //   ...item,
-    //   children: [],
-    // };
-    const node = createTreeNode(TreeModule.Menu, item);
-    map.set(node.id, node); // Add the node to the map
-  });
-
-  // Build the tree structure
-  flatData.forEach((item) => {
-    const node = map.get(item.id);
-    if (node) {
-      if (item.parentId === null || item.parentId === undefined) {
-        // If the node has no parent, it's a root node
-        treeData.push(node);
-      } else {
-        // If it has a parent, find the parent and add this node to its children
-        const parentNode = map.get(item.parentId);
-        if (parentNode) {
-          parentNode.children!.push(node); // Use non-null assertion since we know children is initialized
-        }
-      }
-    }
-  });
-
-  // Sort the tree data, and collect expandable IDs
-  const sortTreeAndFindExpandables = (nodes: MenuDto[]) => {
-    nodes.sort((a, b) => a.orderNum - b.orderNum);
-    nodes.forEach((node) => {
-      if (node.children && node.children.length > 0) {
-        expandableIds.push(String(node.id));
-        sortTreeAndFindExpandables(node.children);
-      }
-    });
-  };
-
-  sortTreeAndFindExpandables(treeData);
-  return { items: treeData, expandables: expandableIds };
-};
-
-// export const toTreeViewItem = (node: MenuDto): TreeViewBaseItem => ({
-//   id: String(node.id),
-//   label: node.title,
-//   children: node.children?.map(toTreeViewItem),
-// });
-
-export const toTreeViewItem = (node: MenuDto): TreeNode => ({
-  id: node.id,
-  title: node.title,
-  parentId: node.parentId ? node.parentId : null,
-  children: node.children?.map(toTreeViewItem),
-});
-
-// export const convertMenuDtoToTreeNode = (node: MenuDto): TreeNode => ({
-//   id: node.id,
-//   children: node.children?.map(convertMenuDtoToTreeNode),
-// });
 
 export function buildTreeFromFlatData(rawData: TreeNode[]): TreeNode[] {
   const idToNodeMap = new Map<number, TreeNode>(); // map of all the nodes
@@ -160,23 +82,49 @@ export function flattenTree(
   return result;
 }
 
-export const parseFlatData = (flatData: any[], module: number) => {
-  const map = createDtoMap(module);
-  const treeData = createDtoData(module);
-  switch (module) {
-    case TreeModule.Menu:
-      flatData.forEach((item) => {
-        const node = createTreeNode(TreeModule.Menu, item);
-        map.set(node.id, node); // Add the node to the map
-      });
-      break;
-    default:
-      flatData.forEach((item) => {
-        const node = createTreeNode(TreeModule.Menu, item);
-        map.set(node.id, node); // Add the node to the map
-      });
-      break;
-  }
+export function flattenTreeWithExpand(
+  nodes: TreeNode[],
+  parentId: number | null = null,
+  level: number = 0,
+  expandMap: Record<number, ExpandState>
+): FlatNode[] {
+  const result: FlatNode[] = [];
 
-  // Build the tree structure
-};
+  nodes.forEach((node, index) => {
+    // Determine current node's expand state: If node has children, default to Collapsed; else NonExpandable (default)
+    const hasChildren = node.children && node.children.length > 0;
+    const state =
+      expandMap[node.id] ??
+      (hasChildren ? ExpandState.Collapsed : ExpandState.NonExpandable);
+
+    const flatNode: FlatNode = {
+      id: node.id,
+      title: node.title,
+      parentId,
+      level,
+      orderNum: index,
+      expandState: state,
+      raw: node.raw,
+    };
+
+    result.push(flatNode);
+
+    /**
+     * Recursively flatten children only if: The node is in Expanded state, and the node has children.
+     * This part of code won't be executed when initializing the page (as all the nodes are defaultly set to Collapsed).
+     * When the onToggleExpand(_id) is triggered, expandMap will be updated and then flattenTreeWithExpand() will be executed again,
+     * and then the the child nodes of node(_id) will be flattened and rendered
+     */
+    if (state === ExpandState.Expanded && hasChildren) {
+      const children = flattenTreeWithExpand(
+        node.children!,
+        node.id,
+        level + 1,
+        expandMap
+      );
+      result.push(...children);
+    }
+  });
+
+  return result;
+}
