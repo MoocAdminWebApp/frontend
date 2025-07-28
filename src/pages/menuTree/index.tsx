@@ -49,7 +49,10 @@ import SimpleTable, {
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import { RichTreeView } from "@mui/x-tree-view";
 import TreeViewTable from "../../components/tables/TreeViewTable";
-import { toTreeViewItem } from "../../utils/treeStructureUtil";
+import {
+  toTreeViewItem,
+  convertFlatToTree,
+} from "../../utils/treeStructureUtil";
 
 const Menu: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -231,7 +234,10 @@ const Menu: React.FC = () => {
     setComfirmDialogOpen(false);
   };
 
-  const treeItems = dispData.map(toTreeViewItem);
+  const { items: treeData, expandables: expandableIds } =
+    convertFlatToTree(dispData);
+  console.log("treeData", treeData);
+  const treeItems = treeData.map(toTreeViewItem);
 
   return (
     <Box sx={{ height: "100%", width: "95%", margin: "0 auto" }}>
