@@ -38,16 +38,15 @@ import {
   PagedResultDto,
 } from "../../types/types";
 import { del, get, post, put } from "../../request/axios/index";
-
-import { CreateMenuDto, MenuDto, UpdateMenuDto } from "../../types/menu";
 import PageLoading from "../../components/PageLoading";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
 import useDebounce from "../../hooks/useDebounce";
 import PermissionControl from "../../components/PermissionControl";
 import AddUpdateDialog from "./addUpdateDialog";
 
-import PaginatedTable from "../../components/tables/PaginatedTable";
+import { CreateMenuDto, MenuDto, UpdateMenuDto } from "../../types/menu";
 import { ColumnType, CustomColumn } from "../../components/tables/SimpleTable";
+import PaginatedTable from "../../components/tables/PaginatedTable";
 
 const Menu: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -246,7 +245,6 @@ const Menu: React.FC = () => {
 
         <PaginatedTable
           columns={columns}
-          // rows={pageData.items ?? []}
           rows={pageData.items ?? []}
           totalCount={pageData.total}
           loading={loading}
