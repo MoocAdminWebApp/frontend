@@ -26,6 +26,8 @@ import AddUpdateRoleDialog from "./AddUpdateRoleDialog";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
 import { RoleDto, CreateRoleDto, UpdateRoleDto } from "../../types/role";
 import { FilterPagedResultRequestDto, PagedResultDto } from "../../types/types";
+import { formatDateValue } from "../../utils/formatDate";
+import UserNameCell from "../../components/UserNameCell";
 
 const Role: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
@@ -137,25 +139,29 @@ const Role: React.FC = () => {
           </Stack>
         ),
     },
-    { field: "createdBy", headerName: "Created By", flex: 1 },
-    { field: "updatedBy", headerName: "Updated By", flex: 1 },
+    {
+  field: "createdBy",
+  headerName: "Created By",
+  flex: 1,
+  renderCell: ({ row }) => <UserNameCell user={row.creator} />,
+},
+{
+  field: "updatedBy",
+  headerName: "Updated By",
+  flex: 1,
+  renderCell: ({ row }) => <UserNameCell user={row.updater} />,
+},
     {
     field: 'createdAt',
     headerName: 'Created At',
     flex: 1,
-    valueFormatter: (params) => {
-    if (!params) return "";
-    return new Date(params).toISOString().split("T")[0];
-  },
+    valueFormatter: formatDateValue
   },
   {
     field: 'updatedAt',
     headerName: 'Updated At',
     flex: 1,
-    valueFormatter: (params) => {
-    if (!params) return "";
-    return new Date(params).toISOString().split("T")[0];
-  },
+    valueFormatter:formatDateValue
     },
     {
       field: "actions",
