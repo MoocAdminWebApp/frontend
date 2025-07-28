@@ -57,3 +57,19 @@ export type TreeModuleDtoMap = {
   [TreeModule.Menu]: MenuDto;
   // [TreeModule.Chapter]: ChapterDto;
 };
+
+export interface TreeNode {
+  id: number;
+  title: string;
+  parentId: number | null;
+  children?: TreeNode[];
+}
+
+export interface FlatNode {
+  id: number;
+  title: string;
+  parentId: number | null;
+  level: number;
+  orderNum: number;
+  expandState: number;
+}

@@ -27,3 +27,9 @@ export enum TreeModule {
   Menu = 1,
   Chapter = 2,
 }
+
+export enum ExpandState {
+  Collapsed = 1,
+  Expanded = 2,
+  NonExpandable = 3,
+}

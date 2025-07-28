@@ -55,6 +55,7 @@ import {
   convertFlatToTree,
   buildTreeFromFlatData,
   flattenTree,
+  convertMenuDtoToTreeNode,
 } from "../../utils/treeStructureUtil";
 
 import TreeTable from "../../components/tables/TreeTable";
@@ -138,12 +139,13 @@ const MenuTree: React.FC = () => {
 
         if (resp.isSuccess) {
           console.log("getPageData new items:", resp.data.items);
-          // const { items: treeData, expandables: expandableIds } =
-          //   convertFlatToTree(resp.data.items);
-          // console.log("treeData", treeData);
-          // const treeItems = treeData.map(toTreeViewItem);
-          setDispData(resp.data.items);
-          // const treeData = buildTreeFromFlatData()
+          const rawDataConversion = convertMenuDtoToTreeNode(resp.data.items);
+          console.log("Converted MenuDto[] to TreeNode[]:", rawDataConversion);
+          const treeData = buildTreeFromFlatData(rawDataConversion);
+          console.log("Tree-structured TreeNode[] constructed: ", treeData);
+          const flattenTreeData = flattenTree(treeData);
+          console.log("Flatten tree data: ", flattenTreeData);
+          setDispData(flattenTreeData);
         }
       } finally {
         setLoading(false);
@@ -153,6 +155,12 @@ const MenuTree: React.FC = () => {
   }, [filterResultRequest]);
 
   const columns: CustomColumn[] = [
+    {
+      field: "expandState",
+      headerName: "",
+      type: "expand",
+      width: 50,
+    },
     { field: "title", headerName: "Title", type: "text", width: 300 },
     { field: "status", headerName: "Status", type: "chip", width: 150 },
     { field: "type", headerName: "Type", type: "chip", width: 120 },

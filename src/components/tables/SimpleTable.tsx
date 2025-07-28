@@ -5,8 +5,10 @@ import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { Typography, Chip, IconButton, Box } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { MenuType, StatusType } from "../../types/enum";
+import { MenuType, StatusType, ExpandState } from "../../types/enum";
 import { convertDateFormat } from "../../utils/convertDateFormat";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 // Define the types for the column types
 export type ColumnType = "text" | "action" | "chip" | "expand";
@@ -38,6 +40,7 @@ export const renderCellByType = (
 ): GridColDef["renderCell"] => {
   return (params) => {
     const value = params.row[field];
+    // console.log(value);
 
     switch (type) {
       case "text":
@@ -126,6 +129,21 @@ export const renderCellByType = (
             </IconButton>
           </Box>
         );
+
+      case "expand":
+        // console.log("expand field value:", value);
+        console.log("🔍 raw row = ", params.row);
+        console.log("📦 expand field =", field);
+        console.log("🎯 expandState value =", value);
+        const expandState: ExpandState = value;
+
+        let icon = null;
+        if (expandState === ExpandState.Expanded) {
+          icon = <ExpandLessIcon fontSize="small" />;
+        } else if (expandState === ExpandState.Collapsed) {
+          icon = <ChevronRightIcon fontSize="small" />;
+        }
+        return <Box sx={{ pl: params.row.level * 2 }}>{icon}</Box>;
 
       default:
         return value;
