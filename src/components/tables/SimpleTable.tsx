@@ -3,12 +3,14 @@
 import React, { useState } from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { Typography, Chip, IconButton, Box } from "@mui/material";
+
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { MenuType, StatusType, ExpandState } from "../../types/enum";
-import { convertDateFormat } from "../../utils/convertDateFormat";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+
+import { MenuType, StatusType, ExpandState } from "../../types/enum";
+import { convertDateFormat } from "../../utils/convertDateFormat";
 
 // Define the types for the column types
 export type ColumnType = "text" | "action" | "chip";
@@ -134,6 +136,7 @@ export const renderCellByType = (
             />
           );
         }
+
         if (field === "status") {
           switch (value) {
             case StatusType.Active:

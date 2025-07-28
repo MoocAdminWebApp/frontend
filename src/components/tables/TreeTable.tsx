@@ -1,3 +1,5 @@
+// src/components/tables/TreeTable.tsx
+
 import React from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { FlatNode } from "../../types/types";

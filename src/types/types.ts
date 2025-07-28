@@ -1,5 +1,4 @@
 import { Gender, TreeModule } from "./enum";
-import { MenuDto } from "./menu";
 
 export interface ApiResponseResult<T = any> {
   isSuccess: boolean;
@@ -52,11 +51,6 @@ export interface FilmOptionType {
   id: number;
   title: string;
 }
-
-export type TreeModuleDtoMap = {
-  [TreeModule.Menu]: MenuDto;
-  // [TreeModule.Chapter]: ChapterDto;
-};
 
 export interface TreeNode {
   id: number;
