@@ -1,20 +1,9 @@
 import { MenuDto } from "../types/menu";
 import { TreeModule, ExpandState } from "../types/enum";
-import { TreeViewBaseItem } from "@mui/x-tree-view/models";
-import { TreeNode, FlatNode, TreeModuleDtoMap } from "../types/types";
+import { TreeNode, FlatNode } from "../types/types";
 
-// create specific Map based on module
-function createDtoMap<T extends keyof TreeModuleDtoMap>(
-  module: T
-): Map<number, TreeModuleDtoMap[T]> {
-  return new Map<number, TreeModuleDtoMap[T]>();
-}
-function createDtoData<T extends keyof TreeModuleDtoMap>(
-  module: T
-): TreeModuleDtoMap[T][] {
-  return [];
-}
-
+// Helper function to convert the data returned from backend into general TreeNode[] type
+// ATTENTION: Need to create separate functions for different return types correspondingly
 export function convertMenuDtoToTreeNode(menus: MenuDto[]): TreeNode[] {
   return menus.map((menu) => ({
     id: menu.id,
@@ -25,6 +14,7 @@ export function convertMenuDtoToTreeNode(menus: MenuDto[]): TreeNode[] {
   }));
 }
 
+// Helper function to construct tree structure from flat data
 export function buildTreeFromFlatData(rawData: TreeNode[]): TreeNode[] {
   const idToNodeMap = new Map<number, TreeNode>(); // map of all the nodes
   const roots: TreeNode[] = []; // collection of all the parent nodes
@@ -50,38 +40,7 @@ export function buildTreeFromFlatData(rawData: TreeNode[]): TreeNode[] {
   return roots;
 }
 
-export function flattenTree(
-  treeData: TreeNode[],
-  parentId: number | null = null,
-  level: number = 0
-): FlatNode[] {
-  const result: FlatNode[] = [];
-
-  treeData.forEach((node, index) => {
-    const expand =
-      node.children && node.children.length > 0
-        ? ExpandState.Collapsed
-        : ExpandState.NonExpandable;
-    const flatNode: FlatNode = {
-      id: node.id,
-      expandState: expand,
-      title: node.title,
-      parentId: parentId,
-      level: level,
-      orderNum: index,
-    };
-
-    result.push(flatNode);
-
-    if (node.children && node.children.length > 0) {
-      const childrenFlat = flattenTree(node.children, node.id, level + 1);
-      result.push(...childrenFlat);
-    }
-  });
-
-  return result;
-}
-
+// Helper function to flatten tree data while retaining tree-structure information
 export function flattenTreeWithExpand(
   nodes: TreeNode[],
   parentId: number | null = null,
