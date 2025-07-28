@@ -48,13 +48,18 @@ import SimpleTable, {
 } from "../../components/tables/SimpleTable";
 import { TreeViewBaseItem } from "@mui/x-tree-view";
 import { RichTreeView } from "@mui/x-tree-view";
-import TreeViewTable from "../../components/tables/TreeViewTable";
+// import TreeViewTable from "../../components/tables/TreeViewTable";
+import TreeTableMUI, { TreeNode } from "../../components/tables/TreeViewTable";
 import {
-  toTreeViewItem,
+  // toTreeViewItem,
   convertFlatToTree,
+  buildTreeFromFlatData,
+  flattenTree,
 } from "../../utils/treeStructureUtil";
 
-const Menu: React.FC = () => {
+import TreeTable from "../../components/tables/TreeTable";
+
+const MenuTree: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [currentMenu, setCurrentMenu] = useState<UpdateMenuDto | null>(null);
@@ -112,46 +117,13 @@ const Menu: React.FC = () => {
     }
   };
 
-  // const [filterPagedResultRequest, setFilterPagedResultRequest] =
-  //   useState<FilterPagedResultRequestDto>({ page: 1, pageSize: 10 });
-  // const [pageData, setPageData] = useState<PagedResultDto<MenuDto>>({
-  //   items: [],
-  //   total: 0,
-  // });
-
-  // useEffect(() => {
-  //   let getPageData = async () => {
-  //     setLoading(true);
-  //     try {
-  //       let filterPagedResultRequestDto: FilterPagedResultRequestDto = {
-  //         ...filterPagedResultRequest,
-  //       };
-  //       let resp = await get<PagedResultDto<MenuDto>>(
-  //         // `/menus/${filterPagedResultRequestDto.page}/${filterPagedResultRequestDto.pageSize}?title=${filterPagedResultRequestDto.filter}` // TODO: fix this line
-  //         `/menus?page=${filterPagedResultRequest.page}&pageSize=${
-  //           filterPagedResultRequest.pageSize
-  //         }&filter=${filterPagedResultRequest.filter ?? ""}`
-  //       );
-
-  //       if (resp.isSuccess) {
-  //         console.log("getPageData new items:", resp.data.items);
-  //         console.log("getPageData", resp.data.total);
-  //         setPageData(resp.data);
-  //       }
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   getPageData();
-  // }, [filterPagedResultRequest]);
-
   // Remove Pagination
   const [filterResultRequest, setFilterResultRequest] =
     useState<FilterResultRequestDto>({
       sort: "",
       filter: "",
     });
-  const [dispData, setDispData] = useState<MenuDto[]>([]);
+  const [dispData, setDispData] = useState<TreeNode[]>([]);
 
   useEffect(() => {
     let getRawData = async () => {
@@ -166,7 +138,12 @@ const Menu: React.FC = () => {
 
         if (resp.isSuccess) {
           console.log("getPageData new items:", resp.data.items);
+          // const { items: treeData, expandables: expandableIds } =
+          //   convertFlatToTree(resp.data.items);
+          // console.log("treeData", treeData);
+          // const treeItems = treeData.map(toTreeViewItem);
           setDispData(resp.data.items);
+          // const treeData = buildTreeFromFlatData()
         }
       } finally {
         setLoading(false);
@@ -234,11 +211,6 @@ const Menu: React.FC = () => {
     setComfirmDialogOpen(false);
   };
 
-  const { items: treeData, expandables: expandableIds } =
-    convertFlatToTree(dispData);
-  console.log("treeData", treeData);
-  const treeItems = treeData.map(toTreeViewItem);
-
   return (
     <Box sx={{ height: "100%", width: "95%", margin: "0 auto" }}>
       <h2>Menu Management</h2>
@@ -287,7 +259,7 @@ const Menu: React.FC = () => {
           //roles={roles}
         />
 
-        <TreeViewTable items={treeItems} />
+        <TreeTable rows={dispData} columns={columns} />
 
         <OperateConfirmationDialog
           open={comfirmDialogOpen}
@@ -301,4 +273,4 @@ const Menu: React.FC = () => {
   );
 };
 
-export default Menu;
+export default MenuTree;
