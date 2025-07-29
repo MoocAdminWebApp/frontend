@@ -72,6 +72,7 @@ const CourseOffering: React.FC = () => {
           filter: searchQuery ?? "",
         }
       );
+      console.log("resp",resp)
       if (resp.isSuccess&&resp.data) {
         const result = {
           items: resp.data.data.items ?? [],
@@ -128,17 +129,24 @@ const CourseOffering: React.FC = () => {
     }
   };
 
+ 
+  
   const handleDelete = async () => {
-    const resp = await del(`/courseofferings/${deleteId}`);
-    if (resp.isSuccess) {
-      toast.success("Deleted successfully");
-      await load();
-      // setFilter((prev) => ({ ...prev, page: 1 }));
-    } else {
-      toast.error(resp.message);
-    }
-    setConfirmOpen(false);
-  };
+  const resp = await del(`/courseofferings/${deleteId}`);
+
+  const isOk = (resp as any).isSuccess ?? ((resp as any).status === 200 || (resp as any).status === 204);
+
+  if (isOk) {
+    toast.success("Deleted successfully");
+    // await load();
+    setFilter((prev) => ({ ...prev, page: 1 }));
+  } else {
+    toast.error((resp as any).message || "Delete failed");
+  }
+
+  setConfirmOpen(false);
+};
+
 
   const columns: GridColDef[] = [
     { field: "courseName", headerName: "Course Name", flex: 1 },
