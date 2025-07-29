@@ -1,7 +1,9 @@
 import { MenuType, StatusType } from "./enum";
-import { BaseEntityDto } from "./types";
+import { BaseEntityDto, BaseTreeEntityDto } from "./types";
 
-export interface MenuDto extends BaseEntityDto {
+// export interface MenuDto extends BaseEntityDto {
+
+export interface MenuDto extends BaseTreeEntityDto {
   title: string;
   menuType: MenuType;
   parentId?: number | null;

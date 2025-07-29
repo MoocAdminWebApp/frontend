@@ -1,48 +1,56 @@
 // src/components/tables/TreeTable.tsx
-// This ant design based component will be used to render tree structure such as menus or categories in the future
-// but currently there exists several issues during implmentation, so it is not used yet.
 
 import React from "react";
-import { Table } from "antd";
-import type { ColumnsType } from "antd/es/table";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { FlatNode } from "../../types/types";
+import { ExpandState } from "../../types/enum";
+import { ColumnType, CustomColumn, renderCellByType } from "./SimpleTable";
 
-// define the interface for the tree structure
-export interface TreeTableProps<T> {
-  data: T[]; // tree structure data
-  columns: ColumnsType<T>;
-  rowKey?: string;
-  defaultExpandAll?: boolean; // default setting for expanding all rows
+interface TreeTableProps {
+  rows: FlatNode[];
+  columns: CustomColumn[];
+  expandMap?: Record<number, ExpandState>;
+  onToggleExpand?: (id: number) => void;
+  onEdit?: (row: any) => void;
+  onDelete?: (row: any) => void;
   loading?: boolean;
-  expandable?: boolean; // whether the table is expandable
 }
 
-/**
- * TreeTable component for rendering a tree structure in a table format.
- */
-function TreeTable<T extends object>({
-  data,
+const TreeTable: React.FC<TreeTableProps> = ({
+  rows,
   columns,
-  rowKey = "id",
-  defaultExpandAll = false,
-  loading = false,
-  expandable = true,
-}: TreeTableProps<T>) {
+  expandMap,
+  onToggleExpand,
+  onEdit,
+  onDelete,
+  loading,
+}) => {
+  const gridColumns: GridColDef[] = columns.map((col) => ({
+    field: col.field,
+    headerName: col.headerName,
+    width: col.width || 150,
+    sortable: false,
+    renderCell: renderCellByType(
+      col.type || "text",
+      col.field,
+      onEdit,
+      onDelete,
+      expandMap,
+      onToggleExpand,
+      true
+    ),
+  }));
+
   return (
-    <Table
-      columns={columns}
-      dataSource={data}
-      rowKey={rowKey}
+    <DataGrid
+      rows={rows}
+      columns={gridColumns}
+      hideFooter
+      disableRowSelectionOnClick
+      getRowId={(row) => row.id}
       loading={loading}
-      pagination={false} // Disable pagination for tree table
-      expandable={
-        expandable
-          ? {
-              defaultExpandAllRows: defaultExpandAll,
-            }
-          : undefined
-      }
     />
   );
-}
+};
 
 export default TreeTable;

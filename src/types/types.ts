@@ -1,4 +1,4 @@
-import { Gender } from "./enum";
+import { Gender, TreeModule } from "./enum";
 
 export interface ApiResponseResult<T = any> {
   isSuccess: boolean;
@@ -12,12 +12,23 @@ export interface BaseEntityDto {
   id: number;
 }
 
+export interface BaseTreeEntityDto extends BaseEntityDto {
+  parentId?: number | null;
+  orderNum: number;
+  children?: BaseTreeEntityDto[];
+}
+
 export interface ListResultDto<T> {
   items: T[];
 }
 
 export interface PagedResultDto<T> extends ListResultDto<T> {
   total: number;
+}
+
+export interface FilterResultRequestDto {
+  filter?: string;
+  sort?: string;
 }
 
 export interface FilterPagedResultRequestDto {
@@ -39,4 +50,22 @@ export const genders = [
 export interface FilmOptionType {
   id: number;
   title: string;
+}
+
+export interface TreeNode {
+  id: number;
+  title: string;
+  parentId: number | null;
+  children?: TreeNode[];
+  raw?: any; //Retain the original data
+}
+
+export interface FlatNode {
+  id: number;
+  title: string;
+  parentId: number | null;
+  level: number;
+  orderNum: number;
+  expandState: number;
+  raw?: any; //Retain the original data
 }
