@@ -22,6 +22,11 @@ import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/en-au";
 
+interface Course {
+  id: number;
+  courseName: string;
+}
+
 interface AddUpdateDialogProps {
   open: boolean;
   onClose: () => void;
@@ -85,11 +90,18 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({ open, onClose, data, 
 
   useEffect(() => {
     const loadCourses = async () => {
-      const resp = await get<any[]>("/courses");
-      if (resp.isSuccess && resp.data) {
-        setCourseOptions(resp.data.map((c) => ({ id: c.id, courseName: c.courseName })));
-      }
-    };
+  const resp = await get<Course[]>("/courses");
+  console.log("resp", resp);
+
+  if (resp.isSuccess && Array.isArray(resp.data)) {
+    setCourseOptions(
+      resp.data.map((c) => ({
+        id: c.id,
+        courseName: c.courseName,
+      }))
+    );
+  }
+};
 
     const loadTeachers = async () => {
       const resp = await get<any[]>("/users");
