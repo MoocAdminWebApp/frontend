@@ -23,6 +23,7 @@ import AddUpdateDialog from "./addUpdateDialog";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
 import { UserDto, CreateUserDto, UpdateUserDto } from "../../types/user";
 import { FilterPagedResultRequestDto, PagedResultDto } from "../../types/types";
+import { formatDateTime } from "../../utils/formatDateTime";
 
 const User: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
@@ -171,19 +172,13 @@ const User: React.FC = () => {
       field: "createdAt",
       headerName: "CreatedAt",
       width: 180,
-      valueFormatter: (value) => {
-        if (!value) return "-";
-        return new Date(value).toLocaleString();
-      },
+      valueFormatter: formatDateTime,
     },
     {
       field: "updatedAt",
       headerName: "UpdatedAt",
       width: 180,
-      valueFormatter: (value) => {
-        if (!value) return "-";
-        return new Date(value).toLocaleString();
-      },
+      valueFormatter: formatDateTime,
     },
     {
       field: "actions",
