@@ -122,7 +122,6 @@ const User: React.FC = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: "id", headerName: "Id", width: 80 },
     { field: "email", headerName: "Email", width: 240 },
     { field: "firstName", headerName: "First Name", width: 180 },
     { field: "lastName", headerName: "Last Name", width: 180 },
