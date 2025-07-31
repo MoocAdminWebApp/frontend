@@ -124,14 +124,14 @@ const User: React.FC = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: "email", headerName: "Email", width: 240 },
-    { field: "firstName", headerName: "First Name", width: 180 },
-    { field: "lastName", headerName: "Last Name", width: 180 },
-    { field: "access", headerName: "Access", flex: 1 },
+    { field: "email", headerName: "Email", width: 160 },
+    { field: "firstName", headerName: "First Name", width: 120 },
+    { field: "lastName", headerName: "Last Name", width: 120 },
+    { field: "access", headerName: "Access", width: 100 },
     {
       field: "active",
       headerName: "Active",
-      flex: 1,
+      width: 100,
       renderCell: ({ value }) =>
         value ? (
           <Stack
@@ -166,31 +166,28 @@ const User: React.FC = () => {
           </Stack>
         ),
     },
-
-    // { field: "createdBy", headerName: "Created By", flex: 1 },
-    // { field: "updatedBy", headerName: "Updated By", flex: 1 },
     {
       field: "createdBy",
       headerName: "Created By",
-      flex: 1,
+      width: 120,
       renderCell: ({ row }) => <UserNameCell user={row.creator} />,
     },
     {
       field: "updatedBy",
       headerName: "Updated By",
-      flex: 1,
+      width: 120,
       renderCell: ({ row }) => <UserNameCell user={row.updater} />,
     },
     {
       field: "createdAt",
       headerName: "CreatedAt",
-      width: 180,
+      width: 160,
       valueFormatter: formatDateTime,
     },
     {
       field: "updatedAt",
       headerName: "UpdatedAt",
-      width: 180,
+      width: 160,
       valueFormatter: formatDateTime,
     },
     {
