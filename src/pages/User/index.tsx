@@ -24,6 +24,7 @@ import OperateConfirmationDialog from "../../components/OperateConfirmationDialo
 import { UserDto, CreateUserDto, UpdateUserDto } from "../../types/user";
 import { FilterPagedResultRequestDto, PagedResultDto } from "../../types/types";
 import { formatDateTime } from "../../utils/formatDateTime";
+import UserNameCell from "../../components/UserNameCell";
 
 const User: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
@@ -166,8 +167,20 @@ const User: React.FC = () => {
         ),
     },
 
-    { field: "createdBy", headerName: "Created By", flex: 1 },
-    { field: "updatedBy", headerName: "Updated By", flex: 1 },
+    // { field: "createdBy", headerName: "Created By", flex: 1 },
+    // { field: "updatedBy", headerName: "Updated By", flex: 1 },
+    {
+      field: "createdBy",
+      headerName: "Created By",
+      flex: 1,
+      renderCell: ({ row }) => <UserNameCell user={row.creator} />,
+    },
+    {
+      field: "updatedBy",
+      headerName: "Updated By",
+      flex: 1,
+      renderCell: ({ row }) => <UserNameCell user={row.updater} />,
+    },
     {
       field: "createdAt",
       headerName: "CreatedAt",
