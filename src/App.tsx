@@ -23,10 +23,9 @@ import SendResetEmailSuccess from "./pages/SendResetEmailSuccess";
 import User from "./pages/User";
 import Role from "./pages/role";
 import Menu from "./pages/menu";
-import Course from "./pages/course";
+import Course from "./pages/course/index";
 import CourseOffering from "./pages/courseOffering";
 import QuestionBank from "./pages/QuestionBank";
-import CoursePage from "./pages/course";
 import MenuTree from "./pages/menuTree";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -85,7 +84,6 @@ const App: React.FC = () => {
               <Route path="/CourseOffering" element={<CourseOffering />} />
               <Route path="/Course" element={<Course />} />
               <Route path="/QuestionBank" element={<QuestionBank />} />
-              <Route path="/CoursePage" element={<CoursePage />} />
               <Route path="/MenuTree" element={<MenuTree />} />
             </Route>
             <Route path="*" element={<Page404 />} />

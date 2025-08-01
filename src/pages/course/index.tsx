@@ -18,36 +18,22 @@ import toast from "react-hot-toast";
 import { get, post, put, del } from "../../request/axios";
 import useDebounce from "../../hooks/useDebounce";
 import CourseList from "./courseList";
-import AddUpdateDialog from "./addUpdateCourseDialog";
+import AddUpdateCourseDialog from "./addUpdateCourseDialog";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
 import {
   CreateCourseDto,
   UpdateCourseDto,
 } from "../../types/course";
 import {
-  ApiResponseResult,
   FilterPagedResultRequestDto,
   PagedResultDto,
 } from "../../types/types";
+import { formatDateValue } from "../../utils/formatDate"; // 如果你需要格式化时间列
 
 const isUpdateDto = (
   dto: CreateCourseDto | UpdateCourseDto | null
 ): dto is UpdateCourseDto =>
   dto !== null && "id" in dto && typeof dto.id === "number" && dto.id > 0;
-
-function formatErrorMessage(msg: any): string {
-  if (!msg) return "Unknown error";
-  if (Array.isArray(msg)) {
-    return msg
-      .map((e) => (typeof e === "object" && "msg" in e ? e.msg : JSON.stringify(e)))
-      .join(", ");
-  }
-  if (typeof msg === "object") {
-    if ("msg" in msg) return msg.msg;
-    return JSON.stringify(msg);
-  }
-  return String(msg);
-}
 
 const Course: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
@@ -67,38 +53,38 @@ const Course: React.FC = () => {
 
   const searchQuery = useDebounce(searchText, 500);
 
-  const load = async () => {
-  setLoading(true);
-
-  const params: any = {
-    page: filter.page,
-    pageSize: filter.pageSize,
-    fuzzyKeys: "courseName",
-  };
-
-  if (searchQuery?.trim()) {
-    params.filters = JSON.stringify({ filter: searchQuery.trim() });
-  }
-
-  const resp = await get<ApiResponseResult<PagedResultDto<UpdateCourseDto>>>(
-    "/courses/page",
-    params
-  );
-
-  if (resp.isSuccess && resp.data) {
-    setPagedResult({
-      items: resp.data.data.items ?? [],
-      total: resp.data.data.total ?? 0,
-    });
-  }
-
-  setLoading(false);
-};
-
+  React.useEffect(() => {
+    setFilter((prev) => ({ ...prev, filter: searchQuery }));
+  }, [searchQuery]);
 
   React.useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+
+      const params: any = {
+        page: filter.page,
+        pageSize: filter.pageSize,
+        // 你后端接口参数中使用的是courseName作为模糊搜索关键字
+        fuzzyKeys: "courseName",
+      };
+
+      if (filter.filter && filter.filter.trim()) {
+        params.filters = JSON.stringify({ courseName: filter.filter.trim() });
+      }
+
+      const resp = await get<PagedResultDto<UpdateCourseDto>>("/courses/page", params);
+
+      if (resp.isSuccess && resp.data) {
+        setPagedResult(resp.data);
+      } else {
+        toast.error(resp.message || "Failed to load courses");
+      }
+
+      setLoading(false);
+    };
+
     load();
-  }, [filter, searchQuery]);
+  }, [filter]);
 
   const handlePaginationChange = (model: GridPaginationModel) => {
     setFilter((prev) => ({
@@ -110,26 +96,27 @@ const Course: React.FC = () => {
 
   const handleSave = async (data: CreateCourseDto | UpdateCourseDto | null) => {
     if (!data) return;
+
     const resp = isUpdateDto(data)
       ? await put(`/courses/${data.id}`, data)
       : await post("/courses", data);
 
     if (resp.isSuccess) {
       toast.success(isUpdateDto(data) ? "Updated successfully" : "Created successfully");
-      setFilter((prev) => ({ ...prev, page: 1 })); // 保存后跳回第一页重新加载
+      setFilter((prev) => ({ ...prev, page: 1 }));
       setOpenDialog(false);
     } else {
-      toast.error(formatErrorMessage(resp.message));
+      toast.error(resp.message || "Operation failed");
     }
   };
 
   const handleEdit = async (row: UpdateCourseDto) => {
     const resp = await get<UpdateCourseDto>(`/courses/${row.id}`);
-    if (resp.isSuccess) {
+    if (resp.isSuccess && resp.data) {
       setCurrentItem(resp.data);
       setOpenDialog(true);
     } else {
-      toast.error(formatErrorMessage(resp.message));
+      toast.error(resp.message || "Failed to load course");
     }
   };
 
@@ -137,9 +124,9 @@ const Course: React.FC = () => {
     const resp = await del(`/courses/${deleteId}`);
     if (resp.isSuccess) {
       toast.success("Deleted successfully");
-      await load();
+      setFilter((prev) => ({ ...prev, page: 1 }));
     } else {
-      toast.error(formatErrorMessage(resp.message));
+      toast.error(resp.message || "Delete failed");
     }
     setConfirmOpen(false);
   };
@@ -147,6 +134,18 @@ const Course: React.FC = () => {
   const columns: GridColDef[] = [
     { field: "name", headerName: "Name", flex: 1 },
     { field: "description", headerName: "Description", flex: 2 },
+    {
+      field: "createdAt",
+      headerName: "Created At",
+      flex: 1,
+      valueFormatter: formatDateValue,
+    },
+    {
+      field: "updatedAt",
+      headerName: "Updated At",
+      flex: 1,
+      valueFormatter: formatDateValue,
+    },
     {
       field: "actions",
       headerName: "Actions",
@@ -177,7 +176,9 @@ const Course: React.FC = () => {
           placeholder="Search courses..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1 }} /> }}
+          InputProps={{
+            startAdornment: <SearchIcon sx={{ mr: 1 }} />,
+          }}
           sx={{ width: 300 }}
         />
         <Button
@@ -192,7 +193,7 @@ const Course: React.FC = () => {
         </Button>
       </Box>
 
-      <CourseList<UpdateCourseDto>
+      <CourseList
         loading={loading}
         columns={columns}
         pagedResult={pagedResult}
@@ -201,7 +202,7 @@ const Course: React.FC = () => {
         onPaginationModelChange={handlePaginationChange}
       />
 
-      <AddUpdateDialog
+      <AddUpdateCourseDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         data={currentItem}

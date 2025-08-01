@@ -6,10 +6,11 @@ export interface CourseDto {
   instructorId: number;
   instructor?: {
     id: number;
-    name: string;
+    firstName: string;
+    lastName: string;
     email?: string;
   };
-  createdAt: string; // 或 Date，根据你的使用习惯
+  createdAt: string; 
   updatedAt: string;
 }
 
