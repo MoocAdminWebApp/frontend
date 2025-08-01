@@ -84,7 +84,11 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.courseName && Boolean(errors.courseName)}
-                    helperText={touched.courseName && errors.courseName}
+                    helperText={
+  touched.courseName && typeof errors.courseName === "string"
+    ? errors.courseName
+    : ""
+}
                     fullWidth
                   />
                 </Grid>
@@ -101,8 +105,10 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
                       Boolean(errors.courseDescription)
                     }
                     helperText={
-                      touched.courseDescription && errors.courseDescription
-                    }
+  touched.courseDescription && typeof errors.courseDescription === "string"
+    ? errors.courseDescription
+    : ""
+}
                     fullWidth
                     multiline
                     rows={3}
@@ -118,7 +124,14 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.instructorId && Boolean(errors.instructorId)}
-                    helperText={touched.instructorId && errors.instructorId}
+helperText={
+  touched.instructorId &&
+  typeof errors.instructorId === "string"
+    ? errors.instructorId
+    : typeof errors.instructorId === "object" && "msg" in errors.instructorId
+    ? errors.instructorId
+    : ""
+}
                     fullWidth
                   >
                     {/* 这里你需要替换成你的真实教师数据 */}
@@ -138,7 +151,11 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.status && Boolean(errors.status)}
-                    helperText={touched.status && errors.status}
+                    helperText={
+  touched.status && typeof errors.status === "string"
+    ? errors.status
+    : ""
+}
                     fullWidth
                   >
                     {statusOptions.map((option) => (
