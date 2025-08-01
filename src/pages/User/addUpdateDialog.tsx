@@ -13,15 +13,18 @@ import {
   Switch,
   TextField,
   MenuItem,
+  Autocomplete,
+  Chip,
 } from "@mui/material";
 import { Formik } from "formik";
-
+import { RoleDto } from "../../types/role";
 //User pop-up component Prop
 interface AddUpdateDialogProps {
   open: boolean;
   onClose: () => void;
   user: UpdateUserDto | null;
   onSave: (user: CreateUserDto | UpdateUserDto | null) => void;
+  roles: RoleDto[];
 }
 const accessOptions = [
   { value: "ADMIN", label: "Admin" },
@@ -33,6 +36,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
   onClose,
   user,
   onSave,
+  roles,
 }) => {
   const validationSchema = Yup.object({
     email: Yup.string().required("email is required"),
@@ -42,6 +46,9 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
       .oneOf(["ADMIN", "TEACHER", "STUDENT"], "Invalid access type")
       .required("access is required"),
     active: Yup.boolean().required("access is required"),
+    roleIds: Yup.array()
+      .of(Yup.number())
+      .min(1, "At least one role is required"),
   });
 
   const initialValues = {
@@ -51,6 +58,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
     lastName: user ? user.lastName : "",
     access: user ? user.access : EAccessType.Teacher,
     active: user ? user.active : false,
+    roleIds: user ? user.roleIds || [] : [],
   };
 
   const formikRef = useRef<any>(null);
@@ -154,6 +162,38 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
                   </MenuItem>
                 ))}
               </TextField>
+              <Autocomplete
+                multiple
+                options={roles}
+                getOptionLabel={(option) => option.roleName}
+                value={roles.filter((role) => values.roleIds.includes(role.id))}
+                onChange={(event, newValue) => {
+                  setFieldValue(
+                    "roleIds",
+                    newValue.map((role) => role.id)
+                  );
+                }}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => (
+                    <Chip
+                      variant="outlined"
+                      label={option.roleName}
+                      {...getTagProps({ index })}
+                      key={option.id}
+                    />
+                  ))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Roles"
+                    margin="normal"
+                    variant="outlined"
+                    error={touched.roleIds && Boolean(errors.roleIds)}
+                    helperText={touched.roleIds && errors.roleIds}
+                  />
+                )}
+              />
               <FormControlLabel
                 control={
                   <Switch

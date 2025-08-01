@@ -25,8 +25,10 @@ import { UserDto, CreateUserDto, UpdateUserDto } from "../../types/user";
 import { FilterPagedResultRequestDto, PagedResultDto } from "../../types/types";
 import { formatDateTime } from "../../utils/formatDateTime";
 import UserNameCell from "../../components/UserNameCell";
+import { RoleDto } from "../../types/role";
 
 const User: React.FC = () => {
+  const [roles, setRoles] = React.useState<RoleDto[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [openDialog, setOpenDialog] = React.useState(false);
   const [currentUser, setCurrentUser] = React.useState<UpdateUserDto | null>(
@@ -47,6 +49,21 @@ const User: React.FC = () => {
   );
 
   const searchQuery = useDebounce(searchText, 500);
+
+  // load roles from backend
+  const loadRoles = async () => {
+    const resp = await get<RoleDto[]>("/roles");
+    if (resp.isSuccess && resp.data) {
+      setRoles(resp.data);
+    } else {
+      toast.error(resp.message || "Failed to load roles");
+    }
+  };
+
+  // load roles
+  React.useEffect(() => {
+    loadRoles();
+  }, []);
 
   React.useEffect(() => {
     setFilter((prev) => ({ ...prev, filter: searchQuery }));
@@ -84,15 +101,12 @@ const User: React.FC = () => {
   const handleSave = async (user: CreateUserDto | UpdateUserDto | null) => {
     if (!user) return;
     let resp;
-    console.log(user);
     if (user.id && user.id > 0) {
       const { email, ...userWithoutEmail } = user;
       resp = await put(`/users/${user.id}`, userWithoutEmail);
-      console.log("update resp", resp);
     } else {
       resp = await post("/users", user);
     }
-    console.log("success", resp.isSuccess);
     if (resp.isSuccess) {
       toast.success(user.id ? "Updated successfully" : "Created successfully");
       setFilter((prev) => ({ ...prev, page: 1 })); // reload first page
@@ -105,7 +119,12 @@ const User: React.FC = () => {
   const handleEdit = async (row: UserDto) => {
     const resp = await get<UserDto>(`/users/${row.id}`);
     if (resp.isSuccess && resp.data) {
-      setCurrentUser(resp.data);
+      // Convert the roles array returned by the backend into a roleIds array
+      const userWithRoleIds = {
+        ...resp.data,
+        roleIds: resp.data.roles ? resp.data.roles.map((role) => role.id) : [],
+      };
+      setCurrentUser(userWithRoleIds);
       setOpenDialog(true);
     } else {
       toast.error(resp.message || "Failed to load user");
@@ -165,6 +184,17 @@ const User: React.FC = () => {
             <Typography variant="body2">Inactive</Typography>
           </Stack>
         ),
+    },
+    {
+      field: "roles",
+      headerName: "Roles",
+      width: 200,
+      renderCell: ({ row }) => (
+        <Typography variant="body2">
+          {row.roles?.map((role: RoleDto) => role.roleName).join(", ") ||
+            "No roles"}
+        </Typography>
+      ),
     },
     {
       field: "createdBy",
@@ -251,6 +281,7 @@ const User: React.FC = () => {
         onClose={() => setOpenDialog(false)}
         user={currentUser}
         onSave={handleSave}
+        roles={roles}
       />
 
       <OperateConfirmationDialog
