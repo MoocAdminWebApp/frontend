@@ -196,7 +196,7 @@ const getInitialState = (): PermissionState => {
             status: StatusType.Active,
             level: 2,
             parentId: 1,
-            route: "", // "Category" is a placeholder, adjust as needed
+            route: "Category", // "Category" is a placeholder, adjust as needed
             componentPath: "../pages/category/index.tsx",
             orderNum: 0,
             children: [],
@@ -212,7 +212,7 @@ const getInitialState = (): PermissionState => {
             level: 2,
             parentId: 1,
             route: "Course", // "Course" is a placeholder, adjust as needed
-            componentPath: "./pages/course/index.tsx",
+            componentPath: "../pages/course/index.tsx",
             orderNum: 1,
             children: [],
             icon: MenuBookIcon,

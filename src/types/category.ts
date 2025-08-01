@@ -12,4 +12,12 @@ export interface Category extends BaseEntityDto {
   deletedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  hasChildren?: boolean;
+  parentName?: string;
+  creator?: string;
+  updater?: string;
+}
+
+export interface CategoryNode extends Category {
+  children: CategoryNode[];
 }
