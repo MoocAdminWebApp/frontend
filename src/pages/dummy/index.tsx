@@ -253,7 +253,7 @@ const Dummy: React.FC = () => {
 
   return (
     <Box sx={{ height: "100%", width: "95%", margin: "0 auto" }}>
-      <h2>Menu Tree Testing</h2>
+      <h2>Dummy Testing Page</h2>
       <Box sx={{ height: 700, width: "100%", p: 3 }}>
         {/* Load animation components */}
         {/* <PageLoading
