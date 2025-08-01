@@ -2,21 +2,17 @@ export interface CourseDto {
   id: number;
   courseName: string;
   courseDescription?: string;
+  courseCode?:string;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
   instructorId: number;
-  instructor?: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    email?: string;
-  };
-  createdAt: string; 
+  createdAt: string; // 或 Date，根据你的使用习惯
   updatedAt: string;
 }
 
 export interface CreateCourseDto {
   courseName: string;
   courseDescription?: string;
+  courseCode?:string;
   instructorId: number;
   status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
 }

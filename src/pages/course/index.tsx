@@ -4,6 +4,8 @@ import {
   Button,
   TextField,
   IconButton,
+  Stack,
+  Typography,
 } from "@mui/material";
 import {
   GridColDef,
@@ -12,6 +14,8 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
 import SearchIcon from "@mui/icons-material/Search";
 import toast from "react-hot-toast";
 
@@ -20,25 +24,15 @@ import useDebounce from "../../hooks/useDebounce";
 import CourseList from "./courseList";
 import AddUpdateCourseDialog from "./addUpdateCourseDialog";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
-import {
-  CreateCourseDto,
-  UpdateCourseDto,
-} from "../../types/course";
-import {
-  FilterPagedResultRequestDto,
-  PagedResultDto,
-} from "../../types/types";
-import { formatDateValue } from "../../utils/formatDate"; // 如果你需要格式化时间列
+import { CourseDto, CreateCourseDto, UpdateCourseDto } from "../../types/course";
+import { FilterPagedResultRequestDto, PagedResultDto } from "../../types/types";
+import { formatDateValue } from "../../utils/formatDate";
+import UserNameCell from "../../components/UserNameCell";
 
-const isUpdateDto = (
-  dto: CreateCourseDto | UpdateCourseDto | null
-): dto is UpdateCourseDto =>
-  dto !== null && "id" in dto && typeof dto.id === "number" && dto.id > 0;
-
-const Course: React.FC = () => {
+const CoursePage: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
   const [openDialog, setOpenDialog] = React.useState(false);
-  const [currentItem, setCurrentItem] = React.useState<UpdateCourseDto | null>(null);
+  const [currentCourse, setCurrentCourse] = React.useState<UpdateCourseDto | null>(null);
   const [searchText, setSearchText] = React.useState("");
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [deleteId, setDeleteId] = React.useState<number>(0);
@@ -46,7 +40,7 @@ const Course: React.FC = () => {
     page: 1,
     pageSize: 10,
   });
-  const [pagedResult, setPagedResult] = React.useState<PagedResultDto<UpdateCourseDto>>({
+  const [pagedResult, setPagedResult] = React.useState<PagedResultDto<CourseDto>>({
     items: [],
     total: 0,
   });
@@ -60,31 +54,26 @@ const Course: React.FC = () => {
   React.useEffect(() => {
     const load = async () => {
       setLoading(true);
-
-      const params: any = {
-        page: filter.page,
-        pageSize: filter.pageSize,
-        // 你后端接口参数中使用的是courseName作为模糊搜索关键字
-        fuzzyKeys: "courseName",
-      };
-
-      if (filter.filter && filter.filter.trim()) {
-        params.filters = JSON.stringify({ courseName: filter.filter.trim() });
-      }
-
-      const resp = await get<PagedResultDto<UpdateCourseDto>>("/courses/page", params);
-
-      if (resp.isSuccess && resp.data) {
-        setPagedResult(resp.data);
-      } else {
-        toast.error(resp.message || "Failed to load courses");
-      }
-
+      const resp = await get<PagedResultDto<CourseDto>>(
+        `/courses/page`,
+        {
+          page: filter.page,
+          pageSize: filter.pageSize,
+          filters: filter.filter ? JSON.stringify({ courseName: filter.filter }) : undefined,
+          fuzzyKeys: "courseName",
+        }
+      );
+      if (resp.isSuccess && resp.data && resp.data) {
+  setPagedResult(resp.data);
+} else {
+  toast.error(resp.message || "Failed to load courses");
+}
       setLoading(false);
     };
-
     load();
   }, [filter]);
+
+  console.log(pagedResult);
 
   const handlePaginationChange = (model: GridPaginationModel) => {
     setFilter((prev) => ({
@@ -94,15 +83,16 @@ const Course: React.FC = () => {
     }));
   };
 
-  const handleSave = async (data: CreateCourseDto | UpdateCourseDto | null) => {
-    if (!data) return;
-
-    const resp = isUpdateDto(data)
-      ? await put(`/courses/${data.id}`, data)
-      : await post("/courses", data);
-
+  const handleSave = async (course: CreateCourseDto | UpdateCourseDto | null) => {
+    if (!course) return;
+    let resp;
+    if ((course as UpdateCourseDto).id) {
+      resp = await put(`/courses/${(course as UpdateCourseDto).id}`, course);
+    } else {
+      resp = await post("/courses", course);
+    }
     if (resp.isSuccess) {
-      toast.success(isUpdateDto(data) ? "Updated successfully" : "Created successfully");
+      toast.success((course as UpdateCourseDto).id ? "Updated successfully" : "Created successfully");
       setFilter((prev) => ({ ...prev, page: 1 }));
       setOpenDialog(false);
     } else {
@@ -110,10 +100,15 @@ const Course: React.FC = () => {
     }
   };
 
-  const handleEdit = async (row: UpdateCourseDto) => {
-    const resp = await get<UpdateCourseDto>(`/courses/${row.id}`);
+  const handleEdit = async (row: CourseDto) => {
+    const resp = await get<CourseDto>(`/courses/${row.id}`);
     if (resp.isSuccess && resp.data) {
-      setCurrentItem(resp.data);
+      const courseData: UpdateCourseDto = {
+        ...resp.data,
+        id: resp.data.id,
+        instructorId: resp.data.instructorId,
+      };
+      setCurrentCourse(courseData);
       setOpenDialog(true);
     } else {
       toast.error(resp.message || "Failed to load course");
@@ -132,19 +127,49 @@ const Course: React.FC = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: "name", headerName: "Name", flex: 1 },
-    { field: "description", headerName: "Description", flex: 2 },
+    { field: "courseName", headerName: "Course Name", flex: 1 },
+    { field: "courseDescription", headerName: "Description", flex: 1 },
+    { field: "courseCode", headerName: "Course Code", flex: 1 },
     {
-      field: "createdAt",
-      headerName: "Created At",
-      flex: 1,
-      valueFormatter: formatDateValue,
+      field: "status",
+      headerName: "Status",
+      width: 120,
+      renderCell: ({ value }) =>
+        value === "PUBLISHED" ? (
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <CheckCircleIcon color="success" fontSize="small" />
+            <Typography variant="body2">Published</Typography>
+          </Stack>
+        ) : value === "DRAFT" ? (
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <CancelIcon color="warning" fontSize="small" />
+            <Typography variant="body2">Draft</Typography>
+          </Stack>
+        ) : (
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <CancelIcon color="error" fontSize="small" />
+            <Typography variant="body2">Archived</Typography>
+          </Stack>
+        ),
     },
     {
-      field: "updatedAt",
-      headerName: "Updated At",
+      field: "instructor",
+      headerName: "Instructor",
       flex: 1,
-      valueFormatter: formatDateValue,
+      renderCell: ({ row }) => <UserNameCell user={row.instructor?.firstName || "N/A"} />,
+
+    },
+    {
+      field: 'createdAt',
+      headerName: 'Created At',
+      flex: 1,
+      valueFormatter: formatDateValue
+    },
+    {
+      field: 'updatedAt',
+      headerName: 'Updated At',
+      flex: 1,
+      valueFormatter: formatDateValue
     },
     {
       field: "actions",
@@ -185,7 +210,7 @@ const Course: React.FC = () => {
           startIcon={<AddIcon />}
           variant="contained"
           onClick={() => {
-            setCurrentItem(null);
+            setCurrentCourse(null);
             setOpenDialog(true);
           }}
         >
@@ -205,7 +230,7 @@ const Course: React.FC = () => {
       <AddUpdateCourseDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
-        data={currentItem}
+        data={currentCourse}
         onSave={handleSave}
       />
 
@@ -220,4 +245,4 @@ const Course: React.FC = () => {
   );
 };
 
-export default Course;
+export default CoursePage;
