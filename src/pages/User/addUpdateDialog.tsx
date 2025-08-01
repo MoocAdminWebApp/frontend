@@ -163,18 +163,20 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
                 ))}
               </TextField>
               <Autocomplete
-                multiple
-                options={roles}
-                getOptionLabel={(option) => option.roleName}
-                value={roles.filter((role) => values.roleIds.includes(role.id))}
+                multiple // multiple selection
+                options={roles || []} // verify roles is not null
+                getOptionLabel={(option) => option.roleName || ""} // avoid undefined
+                isOptionEqualToValue={(option, value) => option.id === value.id} // compare logic
+                value={roles.filter((role) => values.roleIds.includes(role.id))} // selected roles
                 onChange={(event, newValue) => {
+                  // update roleIds based on selected roles
                   setFieldValue(
                     "roleIds",
                     newValue.map((role) => role.id)
                   );
                 }}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
+                renderTags={(selectedRoles, getTagProps) =>
+                  selectedRoles.map((option, index) => (
                     <Chip
                       variant="outlined"
                       label={option.roleName}
@@ -191,8 +193,27 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
                     variant="outlined"
                     error={touched.roleIds && Boolean(errors.roleIds)}
                     helperText={touched.roleIds && errors.roleIds}
+                    placeholder="Select roles..."
                   />
                 )}
+                renderOption={(props, option, { selected }) => (
+                  <li {...props} key={option.id}>
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      style={{ marginRight: 8 }}
+                      readOnly
+                    />
+                    {option.roleName}
+                  </li>
+                )}
+                disableCloseOnSelect
+                limitTags={5} // Limit the number of displayed tags
+                sx={{
+                  "& .MuiAutocomplete-tag": {
+                    margin: "2px",
+                  },
+                }}
               />
               <FormControlLabel
                 control={
