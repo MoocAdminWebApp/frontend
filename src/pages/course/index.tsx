@@ -73,8 +73,6 @@ const CoursePage: React.FC = () => {
     load();
   }, [filter]);
 
-  console.log(pagedResult);
-
   const handlePaginationChange = (model: GridPaginationModel) => {
     setFilter((prev) => ({
       ...prev,
@@ -156,7 +154,7 @@ const CoursePage: React.FC = () => {
       field: "instructor",
       headerName: "Instructor",
       flex: 1,
-      renderCell: ({ row }) => <UserNameCell user={row.instructor?.firstName || "N/A"} />,
+      renderCell: ({ row }) => <UserNameCell user={row.instructor || "N/A"} />,
 
     },
     {
