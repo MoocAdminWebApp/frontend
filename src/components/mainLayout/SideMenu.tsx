@@ -1,6 +1,8 @@
 import * as React from "react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import setActiveMenuId from "../../store/PermissionSlice";
 import {
   List,
   ListItem,
@@ -47,9 +49,8 @@ const renderMenu = (
             component={item.route ? Link : "div"}
             to={item.route}
             onClick={() => {
-              if (children.length > 0) {
-                toggleOpen(item.id);
-              }
+              localStorage.setItem("activeMenuId", String(item.id));
+              if (children.length > 0) toggleOpen(item.id);
             }}
             sx={{
               backgroundColor:

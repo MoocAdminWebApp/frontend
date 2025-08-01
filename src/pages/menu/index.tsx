@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import {
   Box,
   Button,
@@ -21,32 +21,40 @@ import {
   FormControlLabel,
 } from "@mui/material";
 
-import { GridColDef, GridPaginationModel, GridRowId } from "@mui/x-data-grid";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
+import { GridColDef, GridRowId } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
 
 import toast from "react-hot-toast";
 import MenuList from "./menuList";
 import {
   FilmOptionType,
-  FilterPagedResultRequestDto,
   ListResultDto,
-  PagedResultDto,
+  FilterResultRequestDto,
+  TreeNode,
+  FlatNode,
 } from "../../types/types";
 import { del, get, post, put } from "../../request/axios/index";
+import { CreateMenuDto, MenuDto, UpdateMenuDto } from "../../types/menu";
 import PageLoading from "../../components/PageLoading";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
 import useDebounce from "../../hooks/useDebounce";
 import PermissionControl from "../../components/PermissionControl";
 import AddUpdateDialog from "./addUpdateDialog";
 
-import { CreateMenuDto, MenuDto, UpdateMenuDto } from "../../types/menu";
-import { ColumnType, CustomColumn } from "../../components/tables/SimpleTable";
-import PaginatedTable from "../../components/tables/PaginatedTable";
+import SimpleTable, {
+  ColumnType,
+  CustomColumn,
+} from "../../components/tables/SimpleTable";
+import {
+  buildTreeFromFlatData,
+  convertMenuDtoToTreeNode,
+  flattenTreeWithExpand,
+} from "../../utils/treeStructureUtil";
+
+import TreeTable from "../../components/tables/TreeTable";
+import { MenuType, StatusType, ExpandState } from "../../types/enum";
+import useActiveMenuId from "../../hooks/useActiveMenuId";
 
 const Menu: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -55,11 +63,31 @@ const Menu: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [selectedType, setSelectedType] = useState<string>("");
-
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
+  const activeMenuId = useActiveMenuId(); // ✅ 加在函数组件体内顶部
+
   useEffect(() => {
-    setFilterPagedResultRequest((pre) => ({ ...pre, filter: searchQuery }));
+    if (activeMenuId !== null) {
+      console.log("Current Active ID: ", activeMenuId);
+    }
+  }, [activeMenuId]);
+
+  useEffect(() => {
+    setFilterResultRequest((pre) => ({ ...pre, filter: searchQuery }));
   }, [searchQuery]);
+
+  /** Node expansion record (Expanded / Collapsed / NonExpandable) */
+  const [expandMap, setExpandMap] = useState<Record<number, ExpandState>>({});
+  // toggles expand state of a node with given id
+  const handleToggleExpand = (id: number) => {
+    setExpandMap((prev) => ({
+      ...prev,
+      [id]:
+        prev[id] === ExpandState.Expanded
+          ? ExpandState.Collapsed
+          : ExpandState.Expanded,
+    }));
+  };
 
   /**
    * open Dialog
@@ -88,7 +116,7 @@ const Menu: React.FC = () => {
         let resp = await put<boolean>("/menus", menu);
         if (resp.isSuccess) {
           toast.success("update success");
-          setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
+          setFilterResultRequest((pre) => ({ ...pre, page: 1 }));
           handleCloseDialog();
         } else {
           toast.error(resp.message);
@@ -97,7 +125,7 @@ const Menu: React.FC = () => {
         let resp = await post<boolean>("/menus", menu);
         if (resp.isSuccess) {
           toast.success("add success");
-          setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
+          setFilterResultRequest((pre) => ({ ...pre, page: 1 }));
           handleCloseDialog();
         } else {
           toast.error(resp.message);
@@ -106,43 +134,71 @@ const Menu: React.FC = () => {
     }
   };
 
-  const [filterPagedResultRequest, setFilterPagedResultRequest] =
-    useState<FilterPagedResultRequestDto>({ page: 1, pageSize: 10 });
-  const [pageData, setPageData] = useState<PagedResultDto<MenuDto>>({
-    items: [],
-    total: 0,
-  });
+  // Filter and sort conditions
+  const [filterResultRequest, setFilterResultRequest] =
+    useState<FilterResultRequestDto>({
+      sort: "",
+      filter: "",
+    });
 
+  /**
+   * @type MenuDto[] - Raw data returned from backend
+   * @type TreeNode[] - Tree structure used to manage parent-child hierarchy
+   * @type FlatNode[] - Flattened data used by frontend table for display; each node includes level, order, expandState, etc.
+   *
+   * Construct data that used to render frontend content following:
+   * 1) Retrieve raw data (MenuDto[]) from backend
+   * 2) Convert raw data into tree data (-->treeData: TreeNode[])
+   * 3) Flatten tree data to obtain display data (-->dispData: FlatNode[])
+   */
+  const [treeData, setTreeData] = useState<TreeNode[]>([]); // Raw data in tree-structure (TreeNode[] type)
+  // Calculates and obtains the data to display (i.e. expanded rows and their child nodes) using treeData and expandMap
+  // Calculation will be triggered when the raw data is updated, or when there's change in expandMap
+  const dispData = useMemo(
+    () => flattenTreeWithExpand(treeData, null, 0, expandMap),
+    [treeData, expandMap]
+  );
+
+  // Monitoring filterResultRequest and update display content
   useEffect(() => {
-    let getPageData = async () => {
-      setLoading(true);
-      try {
-        let filterPagedResultRequestDto: FilterPagedResultRequestDto = {
-          ...filterPagedResultRequest,
-        };
-        let resp = await get<PagedResultDto<MenuDto>>(
-          // `/menus/${filterPagedResultRequestDto.page}/${filterPagedResultRequestDto.pageSize}?title=${filterPagedResultRequestDto.filter}` // TODO: fix this line
-          `/menus?page=${filterPagedResultRequest.page}&pageSize=${
-            filterPagedResultRequest.pageSize
-          }&filter=${filterPagedResultRequest.filter ?? ""}`
-        );
-
-        if (resp.isSuccess) {
-          console.log("getPageData new items:", resp.data.items);
-          console.log("getPageData", resp.data.total);
-          setPageData(resp.data);
-        }
-      } finally {
-        setLoading(false);
+    const getRawData = async () => {
+      const resp = await get<ListResultDto<MenuDto>>(
+        `/menus/tree?filter=${filterResultRequest.filter ?? ""}`
+      );
+      if (resp.isSuccess) {
+        const raw = convertMenuDtoToTreeNode(resp.data.items); // Convert the returned MenuDto[] into TreeNode[]
+        const builtTree = buildTreeFromFlatData(raw); // Construct tree-structure
+        setTreeData(builtTree); // Store as source data for further processing
       }
     };
-    getPageData();
-  }, [filterPagedResultRequest]);
+    getRawData();
+    // console.log("retrieved raw data", rawdara);
+  }, [filterResultRequest]);
+
+  // Initialize expandMap everytime there's change in treeData
+  useEffect(() => {
+    const initialExpandMap: Record<number, ExpandState> = {};
+
+    function initExpandMap(nodes: TreeNode[]) {
+      nodes.forEach((node) => {
+        initialExpandMap[node.id] = node.children?.length
+          ? ExpandState.Collapsed
+          : ExpandState.NonExpandable;
+        if (node.children?.length) initExpandMap(node.children);
+      });
+    }
+    // Init expandMap only if treeData is not empty
+    if (treeData.length) {
+      initExpandMap(treeData);
+      setExpandMap(initialExpandMap);
+      // console.log("expandMap ready:", initialExpandMap);
+    }
+  }, [treeData]);
 
   const columns: CustomColumn[] = [
     { field: "title", headerName: "Title", type: "text", width: 300 },
     { field: "status", headerName: "Status", type: "chip", width: 150 },
-    { field: "type", headerName: "Type", type: "chip", width: 120 },
+    { field: "menuType", headerName: "Type", type: "chip", width: 120 },
     {
       field: "permissionInfo",
       headerName: "Permission",
@@ -185,7 +241,7 @@ const Menu: React.FC = () => {
   const handleComfirmDelete = async () => {
     let resp = await del<boolean>(`menus/${deData}`);
     if (resp.isSuccess) {
-      setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
+      setFilterResultRequest((pre) => ({ ...pre, page: 1 }));
       toast.success("delete success");
     } else {
       toast.error(resp.message);
@@ -197,20 +253,11 @@ const Menu: React.FC = () => {
   const handleComfirmCancel = () => {
     setComfirmDialogOpen(false);
   };
-
-  const onPaginationModelChange = (newModel: GridPaginationModel) => {
-    setFilterPagedResultRequest((preState) => {
-      return {
-        ...preState,
-        page: newModel.page + 1,
-        pageSize: newModel.pageSize,
-      };
-    });
-  };
+  // console.log("Tree data: ", treeData);
 
   return (
     <Box sx={{ height: "100%", width: "95%", margin: "0 auto" }}>
-      <h2>Menu Management</h2>
+      <h2>Menu Tree Testing</h2>
       <Box sx={{ height: 700, width: "100%", p: 3 }}>
         {/* Load animation components */}
         {/* <PageLoading
@@ -243,26 +290,6 @@ const Menu: React.FC = () => {
           </Button>
         </Box>
 
-        <PaginatedTable
-          columns={columns}
-          rows={pageData.items ?? []}
-          totalCount={pageData.total}
-          loading={loading}
-          paginationModel={{
-            page: filterPagedResultRequest.page - 1,
-            pageSize: filterPagedResultRequest.pageSize,
-          }}
-          onPaginationModelChange={(newModel) => {
-            setFilterPagedResultRequest((prev) => ({
-              ...prev,
-              page: newModel.page + 1,
-              pageSize: newModel.pageSize,
-            }));
-          }}
-          onEdit={handleUpdate}
-          onDelete={(row) => handleDelete(row.id)}
-        />
-
         <AddUpdateDialog
           open={openDialog}
           onClose={handleCloseDialog as () => void}
@@ -274,6 +301,15 @@ const Menu: React.FC = () => {
           }
           //errors={errors}
           //roles={roles}
+        />
+
+        <TreeTable
+          rows={dispData}
+          columns={columns}
+          expandMap={expandMap}
+          onToggleExpand={handleToggleExpand}
+          onEdit={handleUpdate}
+          onDelete={handleDelete}
         />
 
         <OperateConfirmationDialog

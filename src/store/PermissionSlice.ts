@@ -1,32 +1,50 @@
+import store from "./store";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { useEffect, useRef, useState, useMemo } from "react";
+
+import { del, get, post, put } from "../request/axios/index";
 import { MenuDto } from "../types/menu";
 import { MenuType, StatusType } from "../types/enum";
-import {
-  Home as HomeIcon,
-  People as PeopleIcon,
-  SupervisorAccount as RoleIcon,
-  School as CourseOfferingIcon,
-  Quiz as QuizIcon,
-} from "@mui/icons-material";
+import { ListResultDto } from "../types/types";
+import { buildSidebarStructure } from "../utils/treeStructureUtil";
 
 // Importing icons for the sidebar menu
-// System Management
-import SettingsIcon from "@mui/icons-material/Settings";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import WidgetsIcon from "@mui/icons-material/Widgets";
-import PersonIcon from "@mui/icons-material/Person";
-import SecurityIcon from "@mui/icons-material/Security";
+import {
+  // System Management
+  Settings as SystemMgmtIcon,
+  AdminPanelSettings as RoleIcon,
+  Widgets as MenuIcon,
+  Person as UserIcon,
+  Security as PermissionIcon,
 
-// Course Management
-import SchoolIcon from "@mui/icons-material/School";
-import CategoryIcon from "@mui/icons-material/Category";
-import MenuBookIcon from "@mui/icons-material/MenuBook";
-import ImportContactsIcon from "@mui/icons-material/ImportContacts";
-import ViewCarouselIcon from "@mui/icons-material/ViewCarousel";
+  // Course Management
+  MenuBook as CourseMgmtIcon,
+  School as CourseIcon,
+  EventAvailable as CourseOfferingIcon,
+  ViewModule as ChapterIcon,
+  Category as CategoryIcon,
+  ViewCarousel as CarouselIcon,
 
-// Exam Management
-// import QuizIcon from "@mui/icons-material/Quiz";
-import AssignmentIcon from "@mui/icons-material/Assignment";
+  // Exam Management
+  Assignment as ExamMgmtIcon,
+  Quiz as QuestionBankIcon,
+
+  // Default
+  HelpOutline as DefaultIcon,
+} from "@mui/icons-material";
+
+export const initSidebarMenu = async () => {
+  const resp = await get<MenuDto[]>("/menus");
+  if (resp.isSuccess) {
+    const structured = buildSidebarStructure(resp.data);
+    store.dispatch(
+      setPermissions({
+        menuItems: structured,
+        permissions: [],
+      })
+    );
+  }
+};
 
 interface PermissionState {
   menuItems: Array<MenuDto> | null;
@@ -34,8 +52,20 @@ interface PermissionState {
 }
 
 const getInitialState = (): PermissionState => {
+  // let sidebardata;
+  const getsidebardata = async () => {
+    const resp = await get<MenuDto[]>(`/menus`);
+    if (resp.isSuccess) {
+      const convertedSidebarData = buildSidebarStructure(resp.data);
+      console.log("sidebar construction data:", convertedSidebarData);
+      // sidebardata = convertedSidebarData;
+    }
+  };
+  getsidebardata();
+
   return {
     permissions: null,
+    // Attention: The sidebar is set to dynamically loading based on the DB data (menu table), but the following hardcoded data is kept before all the functions are settle down
     menuItems: [
       {
         id: 0,
@@ -49,7 +79,7 @@ const getInitialState = (): PermissionState => {
         permission: "",
         status: StatusType.Active,
         comment: "",
-        icon: HomeIcon,
+        icon: DefaultIcon,
       },
       {
         id: 1,
@@ -63,7 +93,7 @@ const getInitialState = (): PermissionState => {
         status: StatusType.Active,
         menuType: MenuType.Dir,
         level: 2,
-        icon: HomeIcon,
+        icon: DefaultIcon,
         children: [
           {
             id: 2,
@@ -78,7 +108,22 @@ const getInitialState = (): PermissionState => {
             componentPath: "./pages/demo/index.jsx",
             orderNum: 0,
             children: [],
-            icon: HomeIcon,
+            icon: DefaultIcon,
+          },
+          {
+            id: 3,
+            title: "Custom Component Demo",
+            permission: "",
+            comment: "",
+            menuType: MenuType.Menu,
+            status: StatusType.Active,
+            level: 2,
+            parentId: 1,
+            route: "CustomDemo",
+            componentPath: "./pages/customDemo/index.jsx",
+            orderNum: 0,
+            children: [],
+            icon: DefaultIcon,
           },
         ],
       },
@@ -108,7 +153,7 @@ const getInitialState = (): PermissionState => {
             componentPath: "./pages/role/index.jsx",
             orderNum: 0,
             children: [],
-            icon: AdminPanelSettingsIcon,
+            icon: DefaultIcon,
           },
           {
             id: 12,
@@ -123,7 +168,7 @@ const getInitialState = (): PermissionState => {
             componentPath: "./pages/user/index.jsx",
             orderNum: 0,
             children: [],
-            icon: PersonIcon,
+            icon: DefaultIcon,
           },
           {
             id: 13,
@@ -138,7 +183,7 @@ const getInitialState = (): PermissionState => {
             componentPath: "../pages/menu/index.tsx",
             orderNum: 2,
             children: [],
-            icon: WidgetsIcon,
+            icon: DefaultIcon,
           },
           {
             id: 14,
@@ -153,7 +198,7 @@ const getInitialState = (): PermissionState => {
             componentPath: "../pages/permission/index.tsx",
             orderNum: 3,
             children: [],
-            icon: SecurityIcon,
+            icon: DefaultIcon,
           },
           {
             id: 15,
@@ -168,12 +213,12 @@ const getInitialState = (): PermissionState => {
             componentPath: "../pages/menuTree/index.tsx",
             orderNum: 2,
             children: [],
-            icon: WidgetsIcon,
+            icon: DefaultIcon,
           },
         ],
         permission: "",
         comment: "",
-        icon: SettingsIcon,
+        icon: DefaultIcon,
       },
 
       {
@@ -215,7 +260,7 @@ const getInitialState = (): PermissionState => {
             componentPath: "../pages/course/index.tsx",
             orderNum: 1,
             children: [],
-            icon: MenuBookIcon,
+            icon: DefaultIcon,
           },
           {
             id: 23,
@@ -230,7 +275,7 @@ const getInitialState = (): PermissionState => {
             componentPath: "../pages/chapter/index.tsx",
             orderNum: 2,
             children: [],
-            icon: ImportContactsIcon,
+            icon: DefaultIcon,
           },
           {
             id: 24,
@@ -260,12 +305,12 @@ const getInitialState = (): PermissionState => {
             componentPath: "./pages/carousel/index.jsx",
             orderNum: 4,
             children: [],
-            icon: ViewCarouselIcon,
+            icon: DefaultIcon,
           },
         ],
         permission: "",
         comment: "",
-        icon: SchoolIcon,
+        icon: DefaultIcon,
       },
 
       {
@@ -292,12 +337,12 @@ const getInitialState = (): PermissionState => {
             componentPath: "./pages/QuestionBank/index.tsx",
             orderNum: 0,
             children: [],
-            icon: QuizIcon,
+            icon: DefaultIcon,
           },
         ],
         permission: "",
         comment: "",
-        icon: AssignmentIcon,
+        icon: DefaultIcon,
       },
     ],
   };

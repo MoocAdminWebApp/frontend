@@ -24,10 +24,12 @@ import User from "./pages/User";
 import Role from "./pages/role";
 import Menu from "./pages/menu";
 import Course from "./pages/course";
-import CourseOffering from "./pages/courseOffering";
+// import CourseOffering from "./pages/courseOffering";
 import QuestionBank from "./pages/QuestionBank";
 import CoursePage from "./pages/course";
-import MenuTree from "./pages/menuTree";
+import Dummy from "./pages/dummy";
+
+import { initSidebarMenu } from "./store/PermissionSlice";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
@@ -43,6 +45,7 @@ const App: React.FC = () => {
   };
 
   const dispatch = useDispatch();
+  initSidebarMenu();
 
   return (
     <Provider store={store}>
@@ -82,11 +85,11 @@ const App: React.FC = () => {
               <Route path="/User" element={<User />} />
               <Route path="/Role" element={<Role />} />
               <Route path="/Menu" element={<Menu />} />
-              <Route path="/CourseOffering" element={<CourseOffering />} />
+              {/* <Route path="/CourseOffering" element={<CourseOffering />} /> */}
               <Route path="/Course" element={<Course />} />
               <Route path="/QuestionBank" element={<QuestionBank />} />
               <Route path="/CoursePage" element={<CoursePage />} />
-              <Route path="/MenuTree" element={<MenuTree />} />
+              <Route path="/Dummy" element={<Dummy />} />
             </Route>
             <Route path="*" element={<Page404 />} />
           </Routes>

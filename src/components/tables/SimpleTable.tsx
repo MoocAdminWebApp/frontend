@@ -47,7 +47,7 @@ export const renderCellByType = (
     const { row } = params;
     const raw = row.raw ? row.raw : row;
     const value = raw[field];
-    console.log("🔍 field:", field, " | value:", value, " | raw:", raw);
+    // console.log("🔍 field:", field, " | value:", value, " | raw:", raw);
 
     switch (type) {
       case "text":
@@ -120,7 +120,7 @@ export const renderCellByType = (
       case "chip":
         let chipColor: "primary" | "success" | "error";
         // Render a Chip component for chip type
-        if (field === "type") {
+        if (field === "menuType") {
           return (
             <Chip
               label={MenuType[value] || value}

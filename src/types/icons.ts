@@ -1,0 +1,36 @@
+// src/types/icons
+import {
+  Settings as SystemMgmtIcon,
+  AdminPanelSettings as RoleIcon,
+  Widgets as MenuIcon,
+  Person as UserIcon,
+  Security as PermissionIcon,
+  MenuBook as CourseMgmtIcon,
+  School as CourseIcon,
+  EventAvailable as CourseOfferingIcon,
+  ViewModule as ChapterIcon,
+  Category as CategoryIcon,
+  ViewCarousel as CarouselIcon,
+  Assignment as ExamMgmtIcon,
+  Quiz as QuestionBankIcon,
+  HelpOutline as DefaultIcon,
+  Home as DashboardIcon,
+} from "@mui/icons-material";
+
+export const iconMap: Record<string, React.ElementType> = {
+  SystemMgmtIcon,
+  RoleIcon,
+  MenuIcon,
+  UserIcon,
+  PermissionIcon,
+  CourseMgmtIcon,
+  CourseIcon,
+  CourseOfferingIcon,
+  ChapterIcon,
+  CategoryIcon,
+  CarouselIcon,
+  ExamMgmtIcon,
+  QuestionBankIcon,
+  DefaultIcon,
+  DashboardIcon,
+};

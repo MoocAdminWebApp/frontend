@@ -26,13 +26,10 @@ import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 
 import toast from "react-hot-toast";
-import MenuList from "./menuList";
 import {
-  FilmOptionType,
   ListResultDto,
   FilterResultRequestDto,
   TreeNode,
-  FlatNode,
 } from "../../types/types";
 import { del, get, post, put } from "../../request/axios/index";
 import { CreateMenuDto, MenuDto, UpdateMenuDto } from "../../types/menu";
@@ -42,20 +39,20 @@ import useDebounce from "../../hooks/useDebounce";
 import PermissionControl from "../../components/PermissionControl";
 import AddUpdateDialog from "./addUpdateDialog";
 
-import SimpleTable, {
-  ColumnType,
-  CustomColumn,
-} from "../../components/tables/SimpleTable";
+// Table Structure
+import SimpleTable, { CustomColumn } from "../../components/tables/SimpleTable";
+import TreeTable from "../../components/tables/TreeTable";
 import {
   buildTreeFromFlatData,
   convertMenuDtoToTreeNode,
   flattenTreeWithExpand,
 } from "../../utils/treeStructureUtil";
-
-import TreeTable from "../../components/tables/TreeTable";
 import { MenuType, StatusType, ExpandState } from "../../types/enum";
 
-const MenuTree: React.FC = () => {
+// Attention: This line is added for passing clicked menu id
+import useActiveMenuId from "../../hooks/useActiveMenuId";
+
+const Dummy: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [currentMenu, setCurrentMenu] = useState<UpdateMenuDto | null>(null);
@@ -63,6 +60,15 @@ const MenuTree: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [selectedType, setSelectedType] = useState<string>("");
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
+
+  // Attention: The following code block is added for passing clicked menu id
+  const activeMenuId = useActiveMenuId(); // Make sure you import the function on line53
+  useEffect(() => {
+    if (activeMenuId !== null) {
+      console.log("Current Active ID: ", activeMenuId);
+    }
+  }, [activeMenuId]);
+
   useEffect(() => {
     setFilterResultRequest((pre) => ({ ...pre, filter: searchQuery }));
   }, [searchQuery]);
@@ -181,14 +187,14 @@ const MenuTree: React.FC = () => {
     if (treeData.length) {
       initExpandMap(treeData);
       setExpandMap(initialExpandMap);
-      console.log("expandMap ready:", initialExpandMap);
+      // console.log("expandMap ready:", initialExpandMap);
     }
   }, [treeData]);
 
   const columns: CustomColumn[] = [
     { field: "title", headerName: "Title", type: "text", width: 300 },
     { field: "status", headerName: "Status", type: "chip", width: 150 },
-    { field: "type", headerName: "Type", type: "chip", width: 120 },
+    { field: "menuType", headerName: "Type", type: "chip", width: 120 },
     {
       field: "permissionInfo",
       headerName: "Permission",
@@ -243,7 +249,7 @@ const MenuTree: React.FC = () => {
   const handleComfirmCancel = () => {
     setComfirmDialogOpen(false);
   };
-  console.log("Tree data: ", treeData);
+  // console.log("Tree data: ", treeData);
 
   return (
     <Box sx={{ height: "100%", width: "95%", margin: "0 auto" }}>
@@ -314,4 +320,4 @@ const MenuTree: React.FC = () => {
   );
 };
 
-export default MenuTree;
+export default Dummy;
