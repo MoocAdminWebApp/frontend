@@ -8,7 +8,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
   FormControlLabel,
   Switch,
   TextField,
@@ -110,7 +109,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
             <form>
               <TextField
                 name="email"
-                label="email"
+                label="Email"
                 value={values.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -123,7 +122,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
               />
               <TextField
                 name="firstName"
-                label="firstName"
+                label="FirstName"
                 value={values.firstName}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -135,7 +134,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
               />
               <TextField
                 name="lastName"
-                label="lastName"
+                label="LastName"
                 value={values.lastName}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -147,7 +146,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
               />
               <TextField
                 name="access"
-                label="access"
+                label="Access"
                 value={values.access}
                 onChange={handleChange}
                 onBlur={handleBlur}
