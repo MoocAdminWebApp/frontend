@@ -1,10 +1,8 @@
-import internal from "stream";
-
-export const formatDateValue = (params: any): string => {
-  if (!params) return "";
+export const formatDateValue = (value: any): string => {
+  if (!value) return "-";
   try {
-    return new Date(params).toISOString().split("T")[0]; // yyyy-mm-dd
+    return new Date(value).toLocaleString(); 
   } catch (e) {
-    return "";
+    return "-";
   }
 };
