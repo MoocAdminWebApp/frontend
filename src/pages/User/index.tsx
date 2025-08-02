@@ -173,8 +173,8 @@ const User: React.FC = () => {
       setCurrentProfile(resp.data);
       setOpenProfileDialog(true);
     } else {
-      setCurrentProfile(null);
-      setOpenProfileDialog(true);
+      // setCurrentProfile(null);
+      // setOpenProfileDialog(true);
       toast.error(resp.message || "Failed to load user");
     }
   };
