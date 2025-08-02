@@ -14,6 +14,7 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import { CreateCourseDto, UpdateCourseDto } from "../../types/course";
 
+
 interface AddUpdateCourseDialogProps {
   open: boolean;
   onClose: () => void;
@@ -35,10 +36,11 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
 }) => {
   const formikRef = useRef<any>(null);
 
-  const initialValues: CreateCourseDto & { id?: number } = {
+  const initialValues: CreateCourseDto & { id?: number; courseCode?: string } = {
     id: data?.id ?? 0,
     courseName: data?.courseName ?? "",
     courseDescription: data?.courseDescription ?? "",
+    courseCode: data?.courseCode ?? "",
     instructorId: data?.instructorId ?? 0,
     status: data?.status ?? "DRAFT",
   };
@@ -46,6 +48,7 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
   const validationSchema = Yup.object({
     courseName: Yup.string().required("Course name is required"),
     courseDescription: Yup.string(),
+    courseCode: Yup.string().required("Course code is required"),
     instructorId: Yup.number()
       .required("Instructor is required")
       .min(1, "Please select an instructor"),
@@ -84,7 +87,11 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.courseName && Boolean(errors.courseName)}
-                    helperText={touched.courseName && errors.courseName}
+                    helperText={
+                      touched.courseName && typeof errors.courseName === "string"
+                        ? errors.courseName
+                        : ""
+                    }
                     fullWidth
                   />
                 </Grid>
@@ -101,33 +108,48 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
                       Boolean(errors.courseDescription)
                     }
                     helperText={
-                      touched.courseDescription && errors.courseDescription
+                      touched.courseDescription &&
+                      typeof errors.courseDescription === "string"
+                        ? errors.courseDescription
+                        : ""
                     }
                     fullWidth
-                    multiline
-                    rows={3}
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12}>
                   <TextField
-                    select
-                    label="Instructor"
+                    label="Course Code"
+                    name="courseCode"
+                    value={values.courseCode}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={touched.courseCode && Boolean(errors.courseCode)}
+                    helperText={
+                      touched.courseCode && typeof errors.courseCode === "string"
+                        ? errors.courseCode
+                        : ""
+                    }
+                    fullWidth
+                  />
+                </Grid>
+              <Grid item xs={12}>
+                  <TextField
+                    label="instructorId"
                     name="instructorId"
                     value={values.instructorId}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.instructorId && Boolean(errors.instructorId)}
-                    helperText={touched.instructorId && errors.instructorId}
+                    helperText={
+                      touched.instructorId && typeof errors.instructorId === "string"
+                        ? errors.instructorId
+                        : ""
+                    }
                     fullWidth
-                  >
-                    {/* 这里你需要替换成你的真实教师数据 */}
-                    <MenuItem value={0}>Select Instructor</MenuItem>
-                    <MenuItem value={1}>Alice</MenuItem>
-                    <MenuItem value={2}>Bob</MenuItem>
-                    <MenuItem value={3}>Carol</MenuItem>
-                  </TextField>
+                  />
                 </Grid>
+
 
                 <Grid item xs={12} sm={6}>
                   <TextField
@@ -138,7 +160,11 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.status && Boolean(errors.status)}
-                    helperText={touched.status && errors.status}
+                    helperText={
+                      touched.status && typeof errors.status === "string"
+                        ? errors.status
+                        : ""
+                    }
                     fullWidth
                   >
                     {statusOptions.map((option) => (
