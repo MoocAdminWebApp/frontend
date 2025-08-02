@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import {
   Button,
   Dialog,
@@ -9,17 +9,15 @@ import {
   Grid,
   MenuItem,
 } from "@mui/material";
-
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { CreateCourseDto, UpdateCourseDto } from "../../types/course";
-
 
 interface AddUpdateCourseDialogProps {
   open: boolean;
   onClose: () => void;
   data: UpdateCourseDto | null;
-  onSave: (data: CreateCourseDto | UpdateCourseDto | null) => void;
+  onSave: (data: CreateCourseDto | UpdateCourseDto) => void;
 }
 
 const statusOptions = [
@@ -34,20 +32,18 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
   data,
   onSave,
 }) => {
-  const formikRef = useRef<any>(null);
-
-  const initialValues: CreateCourseDto & { id?: number; courseCode?: string } = {
-    id: data?.id ?? 0,
-    courseName: data?.courseName ?? "",
-    courseDescription: data?.courseDescription ?? "",
-    courseCode: data?.courseCode ?? "",
-    instructorId: data?.instructorId ?? 0,
-    status: data?.status ?? "DRAFT",
-  };
+  console.log("Dialog data prop:", data?.courseCode);
+ const initialValues = {
+  id: data?.id ?? 0,
+  courseName: data?.courseName || "",
+  courseDescription: data?.courseDescription || "",
+  courseCode: data?.courseCode || "",
+  instructorId: data?.instructorId || 0,
+  status: data?.status || "DRAFT",
+};
 
   const validationSchema = Yup.object({
     courseName: Yup.string().required("Course name is required"),
-    courseDescription: Yup.string(),
     courseCode: Yup.string().required("Course code is required"),
     instructorId: Yup.number()
       .required("Instructor is required")
@@ -61,12 +57,10 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>{data ? "Edit Course" : "Add Course"}</DialogTitle>
       <Formik
-        innerRef={formikRef}
+        enableReinitialize
         initialValues={initialValues}
         validationSchema={validationSchema}
-        onSubmit={(values) => {
-          onSave(values);
-        }}
+        onSubmit={onSave}
       >
         {({
           values,
@@ -75,31 +69,31 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
           handleSubmit,
           touched,
           errors,
-        }) => (
-          <>
+        }) => {
+           console.log("Formik initialValues:",initialValues);
+          return(
+          <form onSubmit={handleSubmit} noValidate>
             <DialogContent>
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <TextField
                     label="Course Name"
                     name="courseName"
+                    fullWidth
                     value={values.courseName}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.courseName && Boolean(errors.courseName)}
-                    helperText={
-                      touched.courseName && typeof errors.courseName === "string"
-                        ? errors.courseName
-                        : ""
-                    }
-                    fullWidth
+                    helperText={touched.courseName && errors.courseName}
                   />
                 </Grid>
-
                 <Grid item xs={12}>
                   <TextField
                     label="Course Description"
                     name="courseDescription"
+                    fullWidth
+                    multiline
+                    minRows={2}
                     value={values.courseDescription}
                     onChange={handleChange}
                     onBlur={handleBlur}
@@ -108,64 +102,48 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
                       Boolean(errors.courseDescription)
                     }
                     helperText={
-                      touched.courseDescription &&
-                      typeof errors.courseDescription === "string"
-                        ? errors.courseDescription
-                        : ""
+                      touched.courseDescription && errors.courseDescription
                     }
-                    fullWidth
                   />
                 </Grid>
-
                 <Grid item xs={12}>
                   <TextField
                     label="Course Code"
                     name="courseCode"
+                    fullWidth
                     value={values.courseCode}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.courseCode && Boolean(errors.courseCode)}
-                    helperText={
-                      touched.courseCode && typeof errors.courseCode === "string"
-                        ? errors.courseCode
-                        : ""
-                    }
-                    fullWidth
+                    helperText={touched.courseCode && errors.courseCode}
                   />
                 </Grid>
-              <Grid item xs={12}>
+                <Grid item xs={12}>
                   <TextField
-                    label="instructorId"
+                    label="Instructor ID"
                     name="instructorId"
+                    type="number"
+                    fullWidth
                     value={values.instructorId}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    error={touched.instructorId && Boolean(errors.instructorId)}
-                    helperText={
-                      touched.instructorId && typeof errors.instructorId === "string"
-                        ? errors.instructorId
-                        : ""
+                    error={
+                      touched.instructorId && Boolean(errors.instructorId)
                     }
-                    fullWidth
+                    helperText={touched.instructorId && errors.instructorId}
                   />
                 </Grid>
-
-
                 <Grid item xs={12} sm={6}>
                   <TextField
                     select
                     label="Status"
                     name="status"
+                    fullWidth
                     value={values.status}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.status && Boolean(errors.status)}
-                    helperText={
-                      touched.status && typeof errors.status === "string"
-                        ? errors.status
-                        : ""
-                    }
-                    fullWidth
+                    helperText={touched.status && errors.status}
                   >
                     {statusOptions.map((option) => (
                       <MenuItem key={option.value} value={option.value}>
@@ -178,12 +156,12 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
             </DialogContent>
             <DialogActions>
               <Button onClick={onClose}>Cancel</Button>
-              <Button onClick={() => handleSubmit()} variant="contained">
+              <Button type="submit" variant="contained" color="primary">
                 Save
               </Button>
             </DialogActions>
-          </>
-        )}
+          </form>
+        )}}
       </Formik>
     </Dialog>
   );

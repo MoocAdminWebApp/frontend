@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import {
   Box,
   Button,
@@ -63,11 +63,11 @@ const CoursePage: React.FC = () => {
           fuzzyKeys: "courseName",
         }
       );
-      if (resp.isSuccess && resp.data && resp.data) {
-  setPagedResult(resp.data);
-} else {
-  toast.error(resp.message || "Failed to load courses");
-}
+      if (resp.isSuccess && resp.data) {
+        setPagedResult(resp.data);
+      } else {
+        toast.error(resp.message || "Failed to load courses");
+      }
       setLoading(false);
     };
     load();
@@ -81,16 +81,20 @@ const CoursePage: React.FC = () => {
     }));
   };
 
-  const handleSave = async (course: CreateCourseDto | UpdateCourseDto | null) => {
+  const handleSave = async (course: CreateCourseDto | UpdateCourseDto) => {
     if (!course) return;
+
     let resp;
-    if ((course as UpdateCourseDto).id) {
-      resp = await put(`/courses/${(course as UpdateCourseDto).id}`, course);
+    const isUpdate = "id" in course && typeof course.id === "number" && course.id > 0;
+
+    if (isUpdate) {
+      resp = await put(`/courses/${course.id}`, course);
     } else {
       resp = await post("/courses", course);
     }
+
     if (resp.isSuccess) {
-      toast.success((course as UpdateCourseDto).id ? "Updated successfully" : "Created successfully");
+      toast.success(isUpdate ? "Updated successfully" : "Created successfully");
       setFilter((prev) => ({ ...prev, page: 1 }));
       setOpenDialog(false);
     } else {
@@ -99,14 +103,9 @@ const CoursePage: React.FC = () => {
   };
 
   const handleEdit = async (row: CourseDto) => {
-    const resp = await get<CourseDto>(`/courses/${row.id}`);
+    const resp = await get<any>(`/courses/${row.id}`);
     if (resp.isSuccess && resp.data) {
-      const courseData: UpdateCourseDto = {
-        ...resp.data,
-        id: resp.data.id,
-        instructorId: resp.data.instructorId,
-      };
-      setCurrentCourse(courseData);
+      setCurrentCourse(resp.data.data);
       setOpenDialog(true);
     } else {
       toast.error(resp.message || "Failed to load course");
@@ -131,7 +130,7 @@ const CoursePage: React.FC = () => {
     {
       field: "status",
       headerName: "Status",
-      width: 120,
+      width: 130,
       renderCell: ({ value }) =>
         value === "PUBLISHED" ? (
           <Stack direction="row" alignItems="center" spacing={1}>
@@ -155,19 +154,18 @@ const CoursePage: React.FC = () => {
       headerName: "Instructor",
       flex: 1,
       renderCell: ({ row }) => <UserNameCell user={row.instructor || "N/A"} />,
-
     },
     {
-      field: 'createdAt',
-      headerName: 'Created At',
+      field: "createdAt",
+      headerName: "Created At",
       flex: 1,
-      valueFormatter: formatDateValue
+      valueFormatter: formatDateValue,
     },
     {
-      field: 'updatedAt',
-      headerName: 'Updated At',
+      field: "updatedAt",
+      headerName: "Updated At",
       flex: 1,
-      valueFormatter: formatDateValue
+      valueFormatter: formatDateValue,
     },
     {
       field: "actions",
@@ -191,6 +189,7 @@ const CoursePage: React.FC = () => {
     },
   ];
 
+  console.log("currentCourse:", currentCourse);
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
@@ -226,6 +225,7 @@ const CoursePage: React.FC = () => {
       />
 
       <AddUpdateCourseDialog
+      key={currentCourse?.id ?? "new"}
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         data={currentCourse}
