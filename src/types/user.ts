@@ -1,5 +1,6 @@
 import { BaseEntityDto } from "./types";
 import { EAccessType } from "./enum";
+import { RoleDto } from "./role";
 
 /******
  ** The following interfaces are used for login
@@ -29,6 +30,8 @@ export interface UserDto extends BaseEntityDto {
   lastName: string;
   access: EAccessType;
   active: boolean;
+  roleIds?: number[]; // Add this field for form processing
+  roles?: RoleDto[]; // Complete role information returned by the backend
 }
 
 export interface CreateOrUpdateUserBaseDto {
@@ -38,6 +41,7 @@ export interface CreateOrUpdateUserBaseDto {
   lastName: string;
   access: EAccessType;
   active: boolean;
+  roleIds: number[]; // Array of role IDs submitted to the backend
 }
 
 export interface CreateUserDto extends CreateOrUpdateUserBaseDto {}

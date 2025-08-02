@@ -28,6 +28,8 @@ import Chapter from "./pages/chapter/index";
 import CourseOffering from "./pages/courseOffering";
 import QuestionBank from "./pages/QuestionBank";
 import MenuTree from "./pages/menuTree";
+import CategoryPage from "./pages/category";
+import CategoryList from "./pages/category/categoryList";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
@@ -58,18 +60,12 @@ const App: React.FC = () => {
             <Route path="/resetPwd" element={<ResetPwd />} />
             <Route path="/resetPwdSuccess" element={<ResetPwdSuccess />} />
             <Route path="/forgotPwd" element={<ForgotPwd />} />
-            <Route
-              path="/sendResetEmailSuccess"
-              element={<SendResetEmailSuccess />}
-            />
+            <Route path="/sendResetEmailSuccess" element={<SendResetEmailSuccess />} />
             {/* Other pages require Layout */}
             <Route
               element={
                 <>
-                  <CustomAppBar
-                    open={open}
-                    handleDrawerOpen={handleDrawerOpen}
-                  />
+                  <CustomAppBar open={open} handleDrawerOpen={handleDrawerOpen} />
                   <Layout open={open} handleDrawerClose={handleDrawerClose}>
                     <ProtectedRoute />
                   </Layout>
@@ -87,6 +83,10 @@ const App: React.FC = () => {
               <Route path="/Chapter" element={<Chapter courseId={1}/>} />
               <Route path="/QuestionBank" element={<QuestionBank />} />
               <Route path="/MenuTree" element={<MenuTree />} />
+              <Route path="/Category" element={<CategoryPage />}>
+                <Route index element={<CategoryList />} />
+                <Route path=":id/children" element={<CategoryList />} />
+              </Route>
             </Route>
             <Route path="*" element={<Page404 />} />
           </Routes>

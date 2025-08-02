@@ -9,7 +9,10 @@ interface UserNameCellProps {
   fallback?: string;
 }
 
-const UserNameCell: React.FC<UserNameCellProps> = ({ user, fallback = "Unknown" }) => {
+const UserNameCell: React.FC<UserNameCellProps> = ({
+  user,
+  fallback = "Unknown",
+}) => {
   if (!user) return <Typography>{fallback}</Typography>;
 
   const fullName = `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();

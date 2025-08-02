@@ -8,31 +8,34 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
   FormControlLabel,
   Switch,
   TextField,
   MenuItem,
+  Autocomplete,
+  Chip,
 } from "@mui/material";
 import { Formik } from "formik";
-
+import { RoleDto } from "../../types/role";
 //User pop-up component Prop
 interface AddUpdateDialogProps {
   open: boolean;
   onClose: () => void;
   user: UpdateUserDto | null;
   onSave: (user: CreateUserDto | UpdateUserDto | null) => void;
+  roles: RoleDto[];
 }
 const accessOptions = [
-  { value: "ADMIN", label: "Admin" },
-  { value: "TEACHER", label: "Teacher" },
-  { value: "STUDENT", label: "Student" },
+  { value: "ADMIN", label: "ADMIN" },
+  { value: "TEACHER", label: "TEACHER" },
+  { value: "STUDENT", label: "STUDENT" },
 ];
 const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
   open,
   onClose,
   user,
   onSave,
+  roles,
 }) => {
   const validationSchema = Yup.object({
     email: Yup.string().required("email is required"),
@@ -42,6 +45,9 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
       .oneOf(["ADMIN", "TEACHER", "STUDENT"], "Invalid access type")
       .required("access is required"),
     active: Yup.boolean().required("access is required"),
+    roleIds: Yup.array()
+      .of(Yup.number())
+      .min(1, "At least one role is required"),
   });
 
   const initialValues = {
@@ -49,8 +55,9 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
     email: user ? user.email : "",
     firstName: user ? user.firstName : "",
     lastName: user ? user.lastName : "",
-    access: user ? user.access : EAccessType.Teacher,
+    access: user ? user.access : EAccessType.Admin,
     active: user ? user.active : false,
+    roleIds: user ? user.roleIds || [] : [],
   };
 
   const formikRef = useRef<any>(null);
@@ -102,7 +109,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
             <form>
               <TextField
                 name="email"
-                label="email"
+                label="Email"
                 value={values.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -115,7 +122,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
               />
               <TextField
                 name="firstName"
-                label="firstName"
+                label="FirstName"
                 value={values.firstName}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -127,7 +134,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
               />
               <TextField
                 name="lastName"
-                label="lastName"
+                label="LastName"
                 value={values.lastName}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -139,7 +146,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
               />
               <TextField
                 name="access"
-                label="access"
+                label="Access"
                 value={values.access}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -147,6 +154,8 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
                 fullWidth
                 margin="normal"
                 variant="outlined"
+                error={touched.access && Boolean(errors.access)}
+                helperText={touched.access && errors.access}
               >
                 {accessOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
@@ -154,6 +163,59 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
                   </MenuItem>
                 ))}
               </TextField>
+              <Autocomplete
+                multiple // multiple selection
+                options={roles || []} // verify roles is not null
+                getOptionLabel={(option) => option.roleName || ""} // avoid undefined
+                isOptionEqualToValue={(option, value) => option.id === value.id} // compare logic
+                value={roles.filter((role) => values.roleIds.includes(role.id))} // selected roles
+                onChange={(event, newValue) => {
+                  // update roleIds based on selected roles
+                  setFieldValue(
+                    "roleIds",
+                    newValue.map((role) => role.id)
+                  );
+                }}
+                renderTags={(selectedRoles, getTagProps) =>
+                  selectedRoles.map((option, index) => (
+                    <Chip
+                      variant="outlined"
+                      label={option.roleName}
+                      {...getTagProps({ index })}
+                      key={option.id}
+                    />
+                  ))
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Roles"
+                    margin="normal"
+                    variant="outlined"
+                    error={touched.roleIds && Boolean(errors.roleIds)}
+                    helperText={touched.roleIds && errors.roleIds}
+                    placeholder="Select roles..."
+                  />
+                )}
+                renderOption={(props, option, { selected }) => (
+                  <li {...props} key={option.id}>
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      style={{ marginRight: 8 }}
+                      readOnly
+                    />
+                    {option.roleName}
+                  </li>
+                )}
+                disableCloseOnSelect
+                limitTags={5} // Limit the number of displayed tags
+                sx={{
+                  "& .MuiAutocomplete-tag": {
+                    margin: "2px",
+                  },
+                }}
+              />
               <FormControlLabel
                 control={
                   <Switch
