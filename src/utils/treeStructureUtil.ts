@@ -1,6 +1,7 @@
 import { MenuDto } from "../types/menu";
 import { TreeModule, ExpandState } from "../types/enum";
 import { TreeNode, FlatNode } from "../types/types";
+import { iconMap } from "../types/icons";
 
 // Helper function to convert the data returned from backend into general TreeNode[] type
 // ATTENTION: Need to create separate functions for different return types correspondingly
@@ -86,4 +87,38 @@ export function flattenTreeWithExpand(
   });
 
   return result;
+}
+
+// Helper function to construct tree structure from flat data for the sidebar
+function assignIcon(iconKey: string | undefined): React.ElementType {
+  if (iconKey && iconMap[iconKey]) return iconMap[iconKey];
+  return iconMap["DefaultIcon"];
+}
+
+export function buildSidebarStructure(rawData: MenuDto[]): MenuDto[] {
+  const idToNodeMap = new Map<number, MenuDto>(); // map of all the nodes
+  const roots: MenuDto[] = []; // collection of all the parent nodes
+
+  // init all the nodes and assign with empty children
+  for (const item of rawData) {
+    idToNodeMap.set(item.id, {
+      ...item,
+      children: [],
+      icon: assignIcon(item.icon as string),
+    });
+  }
+
+  // const parent-child relationships
+  for (const item of rawData) {
+    const node = idToNodeMap.get(item.id)!;
+    if (!item.parentId || item.parentId === null) {
+      roots.push(node);
+    } else {
+      const parent = idToNodeMap.get(item.parentId);
+      if (parent) {
+        parent.children!.push(node);
+      }
+    }
+  }
+  return roots;
 }

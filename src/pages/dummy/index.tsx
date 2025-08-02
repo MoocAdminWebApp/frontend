@@ -26,13 +26,10 @@ import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 
 import toast from "react-hot-toast";
-import MenuList from "./menuList";
 import {
-  FilmOptionType,
   ListResultDto,
   FilterResultRequestDto,
   TreeNode,
-  FlatNode,
 } from "../../types/types";
 import { del, get, post, put } from "../../request/axios/index";
 import { CreateMenuDto, MenuDto, UpdateMenuDto } from "../../types/menu";
@@ -42,21 +39,20 @@ import useDebounce from "../../hooks/useDebounce";
 import PermissionControl from "../../components/PermissionControl";
 import AddUpdateDialog from "./addUpdateDialog";
 
-import SimpleTable, {
-  ColumnType,
-  CustomColumn,
-} from "../../components/tables/SimpleTable";
+// Table Structure
+import SimpleTable, { CustomColumn } from "../../components/tables/SimpleTable";
+import TreeTable from "../../components/tables/TreeTable";
 import {
   buildTreeFromFlatData,
   convertMenuDtoToTreeNode,
   flattenTreeWithExpand,
 } from "../../utils/treeStructureUtil";
-
-import TreeTable from "../../components/tables/TreeTable";
 import { MenuType, StatusType, ExpandState } from "../../types/enum";
+
+// Attention: This line is added for passing clicked menu id
 import useActiveMenuId from "../../hooks/useActiveMenuId";
 
-const Menu: React.FC = () => {
+const Dummy: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [currentMenu, setCurrentMenu] = useState<UpdateMenuDto | null>(null);
@@ -64,8 +60,9 @@ const Menu: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [selectedType, setSelectedType] = useState<string>("");
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
-  const activeMenuId = useActiveMenuId(); // ✅ 加在函数组件体内顶部
 
+  // Attention: The following code block is added for passing clicked menu id
+  const activeMenuId = useActiveMenuId(); // Make sure you import the function on line53
   useEffect(() => {
     if (activeMenuId !== null) {
       console.log("Current Active ID: ", activeMenuId);
@@ -172,7 +169,6 @@ const Menu: React.FC = () => {
       }
     };
     getRawData();
-    // console.log("retrieved raw data", rawdara);
   }, [filterResultRequest]);
 
   // Initialize expandMap everytime there's change in treeData
@@ -257,7 +253,7 @@ const Menu: React.FC = () => {
 
   return (
     <Box sx={{ height: "100%", width: "95%", margin: "0 auto" }}>
-      <h2>Menu Tree Testing</h2>
+      <h2>Dummy Testing Page</h2>
       <Box sx={{ height: 700, width: "100%", p: 3 }}>
         {/* Load animation components */}
         {/* <PageLoading
@@ -324,4 +320,4 @@ const Menu: React.FC = () => {
   );
 };
 
-export default Menu;
+export default Dummy;
