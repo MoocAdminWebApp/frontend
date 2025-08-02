@@ -78,32 +78,17 @@ const CategoryPage: React.FC = () => {
 
   const [highlightId, setHighlightId] = useState<number | null>(null);
 
-  // const handleTreeSelect = useCallback(
-  //   (category: Category) => {
-  //     setHighlightId(category.id);
-
-  //     if (category.parentId === null) {
-  //       navigate("/category");
-  //     } else {
-  //       navigate(`/category/${category.parentId}/children`);
-  //     }
-  //   },
-  //   [navigate]
-  // );
-
   const handleTreeSelect = useCallback(
     async (category: Category) => {
       try {
-        const pageSize = 10; // 和 CategoryList 默认保持一致
+        const pageSize = 10;
         const page = await getCategoryPageById(category.id, pageSize);
         console.log("Page index fetched:", page);
 
         setHighlightId(category.id);
 
-        // 父类路径（顶级或子类）
         const parentPath = category.parentId === null ? "/category" : `/category/${category.parentId}/children`;
 
-        // 拼接参数：?page=2&pageSize=10&id=12
         navigate(`${parentPath}?page=${page}&pageSize=${pageSize}&id=${category.id}`);
       } catch (err: any) {
         console.error("Failed to navigate to selected category:", err);

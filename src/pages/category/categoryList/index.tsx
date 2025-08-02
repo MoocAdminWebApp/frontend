@@ -4,7 +4,12 @@ import { useState, useEffect, useMemo } from "react";
 import { GridColDef } from "@mui/x-data-grid";
 import CategoryTable from "./categoryTable";
 import CategoryDetailDialog from "./categoryDetailsDialog";
-import { fetchRootCategories, fetchChildrenCategories, restoreCategoryById } from "../../../request/category";
+import {
+  fetchRootCategories,
+  fetchChildrenCategories,
+  restoreCategoryById,
+  fetchAllCategories,
+} from "../../../request/category";
 import { Category } from "../../../types/category";
 import { Box, Chip, IconButton, Typography } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -127,14 +132,20 @@ const CategoryList: React.FC<CategoryListProps> = ({
       try {
         const pageParam = searchParams.get("page");
         const pageSizeParam = searchParams.get("pageSize");
+        const filter = keyword?.trim() || "";
 
         const page = pageParam ? parseInt(pageParam, 10) : 1;
         const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10;
-        const filter = keyword || "";
 
-        const resp = id
-          ? await fetchChildrenCategories(Number(id), page, pageSize, filter)
-          : await fetchRootCategories(page, pageSize, filter);
+        let resp;
+
+        if (filter !== "") {
+          resp = await fetchAllCategories(page, pageSize, filter);
+        } else {
+          resp = id
+            ? await fetchChildrenCategories(Number(id), page, pageSize, filter)
+            : await fetchRootCategories(page, pageSize, filter);
+        }
 
         setPageData({
           items: resp.categories,
