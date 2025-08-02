@@ -149,7 +149,7 @@ const getInitialState = (): PermissionState => {
             status: StatusType.Active,
             level: 2,
             parentId: 1,
-            route: "", // "Permission" is a placeholder, adjust as needed
+            route: "Permission", // "Permission" is a placeholder, adjust as needed
             componentPath: "../pages/permission/index.tsx",
             orderNum: 3,
             children: [],

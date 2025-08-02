@@ -30,6 +30,7 @@ import QuestionBank from "./pages/QuestionBank";
 import MenuTree from "./pages/menuTree";
 import CategoryPage from "./pages/category";
 import CategoryList from "./pages/category/categoryList";
+import Permission from "./pages/permission";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
@@ -89,6 +90,7 @@ const App: React.FC = () => {
               <Route path="/Chapter" element={<Chapter courseId={1} />} />
               <Route path="/QuestionBank" element={<QuestionBank />} />
               <Route path="/MenuTree" element={<MenuTree />} />
+              <Route path="/Permission" element={<Permission />} />
               <Route path="/Category" element={<CategoryPage />}>
                 <Route index element={<CategoryList />} />
                 <Route path=":id/children" element={<CategoryList />} />
