@@ -14,6 +14,8 @@ import {
   TextField,
   Typography,
   useTheme,
+ FormControl,
+   InputLabel,
 } from '@mui/material';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
@@ -34,11 +36,39 @@ import { useNavigate } from 'react-router-dom';
 
 // Form Validation Rules
 const validationSchema = Yup.object().shape({
+  userId: Yup.number()
+    .typeError("Invalid user ID")
+    .required("User ID is required"),
+  firstName: Yup.string()
+    .required("First name is required")
+    .max(50, "First name cannot exceed 50 characters"),
+  lastName: Yup.string()
+    .required("Last name is required")
+    .max(50, "Last name cannot exceed 50 characters"),
+  avatar: Yup.string()
+    .nullable(),
   email: Yup.string()
     .email('Please enter a valid email address')
     .required('Email address cannot be empty'),
-  address: Yup.string()
+  phoneNumber: Yup.string()
+    .required("Phone number is required")
+    .matches(
+      /^[0-9+\-() ]+$/,
+      "Phone number format is invalid"
+    ),
+  birthdate: Yup.string()
+    .required("Birthdate is required")
+    .matches(
+      /^\d{4}-\d{2}-\d{2}$/,
+      "Birthdate must be in YYYY-MM-DD format"
+    ),
+  streetAddress: Yup.string()
     .max(100, 'The address cannot exceed 100 characters'),
+  gender: Yup.number()
+    .oneOf([0, 1, 2], "Invalid gender value")
+    .required("Gender is required")
+   
+  
 });
 
 // Form data type
@@ -49,9 +79,9 @@ interface FormValues {
   avatar?: string | null | undefined;
   email: string | ""| undefined;
   phoneNumber: string | ""| undefined;
-  birthdate: "" | "" |undefined;
+  birthdate: string | "" | undefined;
   streetAddress: string | ""| undefined;
-  gender: Gender;
+  gender: number;
 }
 
 
@@ -74,10 +104,11 @@ const ProfileForm = () => {
   const navigate = useNavigate();
   
   const { user } = useSelector((state:RootState) => state.auth);
-
+  console.log("from selector user gender is-----------", user?.gender);
+  console.log("from selector user gender string to enum -----------", mapGenderStringToEnum(user?.gender));
   useEffect(()=>{
     setInitialValues({userId:user?.userId, firstName:user?.firstName, lastName: user?.lastName, avatar:'', email:user?.email, phoneNumber:user?.phone, birthdate:user?.birthdate, streetAddress:user?.address, gender:mapGenderStringToEnum(user?.gender) });
-  },[])
+  },[user])
 
   return (
     <Box sx={{ padding: 3 }}>
@@ -113,6 +144,8 @@ const ProfileForm = () => {
                           "lastName": values.lastName, 
                         }
                       )
+                      console.log("gender before API enum to string is:---------", values.gender);
+                      console.log("gender before send API enum to gender is:---------", mapGenderEnumToString(values.gender));
                       let respFromProfileTable = await put<FormValues>(`/profiles/${user?.profileId}`, 
                          {
                            ...rest,
@@ -135,7 +168,7 @@ const ProfileForm = () => {
           
                 }}
               >
-                {({ values, handleChange, handleBlur, errors, touched, isSubmitting }) => (
+                {({ values, handleChange, handleBlur, errors, touched, isSubmitting,setFieldValue }) => (
                   <Form>
                     <Grid container spacing={2}>              
                     <Grid item xs={12}>
@@ -225,20 +258,23 @@ const ProfileForm = () => {
                         />
                       </Grid>
                       <Grid item xs={12}>
+                      <FormControl fullWidth error={touched.gender && Boolean(errors.gender)}>
+                      <InputLabel id="gender-label">Gender</InputLabel>
                         <Select
+                          labelId='gender-label'
                           name="gender"
                           value={values.gender}
-                          onChange={handleChange}
+                          onChange={(e) => setFieldValue("gender", Number(e.target.value))}
                           onBlur={handleBlur}
                           fullWidth
                           label="Gender"
                         >
-                          <MenuItem value={0}>Other</MenuItem>
                           <MenuItem value={1}>Male</MenuItem>
                           <MenuItem value={2}>Female</MenuItem>
-
+                          <MenuItem value={0}>Other</MenuItem>
                         </Select>
                         {touched.gender && errors.gender && <FormHelperText>{errors.gender}</FormHelperText>}
+                      </FormControl>
                       </Grid>
 
                       <Grid item xs={12}>

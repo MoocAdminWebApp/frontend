@@ -1,10 +1,9 @@
 import { Gender } from "../types/enum";
 
-export const mapGenderStringToEnum = (genderStr: string | ""| undefined): Gender => {
+export const mapGenderStringToEnum = (genderStr: string | ""| undefined): number => {
   if(!genderStr)
   return Gender.Other
-    
-  switch (genderStr.toLowerCase()) {
+  switch (genderStr) {
     case "MALE":
       return Gender.Male;
     case "FEMALE":
@@ -15,7 +14,7 @@ export const mapGenderStringToEnum = (genderStr: string | ""| undefined): Gender
   }
 };
 
-export const mapGenderEnumToString = (gender: Gender): string => {
+export const mapGenderEnumToString = (gender: number): string => {
   switch (gender) {
     case Gender.Male:
       return "MALE";
