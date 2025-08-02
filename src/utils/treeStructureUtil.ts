@@ -95,6 +95,20 @@ function assignIcon(iconKey: string | undefined): React.ElementType {
   return iconMap["DefaultIcon"];
 }
 
+function updateMenuNodeInfo(nodes: MenuDto[], level = 0): MenuDto[] {
+  return nodes.map((node) => {
+    const newNode: MenuDto = {
+      ...node,
+      level,
+      icon: level > 1 ? undefined : node.icon,
+      children: node.children
+        ? updateMenuNodeInfo(node.children, level + 1)
+        : [],
+    };
+    return newNode;
+  });
+}
+
 export function buildSidebarStructure(rawData: MenuDto[]): MenuDto[] {
   const idToNodeMap = new Map<number, MenuDto>(); // map of all the nodes
   const roots: MenuDto[] = []; // collection of all the parent nodes
@@ -104,6 +118,7 @@ export function buildSidebarStructure(rawData: MenuDto[]): MenuDto[] {
     idToNodeMap.set(item.id, {
       ...item,
       children: [],
+      level: 0,
       icon: assignIcon(item.icon as string),
     });
   }
@@ -120,5 +135,7 @@ export function buildSidebarStructure(rawData: MenuDto[]): MenuDto[] {
       }
     }
   }
-  return roots;
+  const treeWithLevels = updateMenuNodeInfo(roots);
+  console.log("Root: ", treeWithLevels);
+  return treeWithLevels;
 }
