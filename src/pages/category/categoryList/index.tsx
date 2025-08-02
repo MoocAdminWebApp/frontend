@@ -86,6 +86,8 @@ const CategoryList: React.FC<CategoryListProps> = ({
   const [editOpen, setEditOpen] = useState(false);
   const [editCategory, setEditCategory] = useState<Category | null>(null);
 
+  const [internalReloadTrigger, setInternalReloadTrigger] = useState(0);
+
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
 
@@ -149,7 +151,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
     };
 
     getPageData();
-  }, [searchParams, id, keyword, reloadTrigger]);
+  }, [searchParams, id, keyword, reloadTrigger, internalReloadTrigger]);
 
   const baseColumns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 50 },
@@ -336,9 +338,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
         onSaveSuccess={() => {
           setEditOpen(false);
           setEditCategory(null);
-          setFilterPagedResultRequest((prev) => ({
-            ...prev,
-          }));
+          setInternalReloadTrigger((v) => v + 1);
         }}
       />
 
