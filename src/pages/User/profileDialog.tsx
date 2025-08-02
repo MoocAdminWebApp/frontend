@@ -73,11 +73,11 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
     onSave(values);
   };
 
-  const btnSave = () => {
-    if (formikRef.current) {
-      formikRef.current.submitForm();
-    }
-  };
+  // const btnSave = () => {
+  //   if (formikRef.current) {
+  //     formikRef.current.submitForm();
+  //   }
+  // };
 
   const handleClose = (event: React.SyntheticEvent<{}>, reason: string) => {
     if (reason !== "backdropClick") {
@@ -109,6 +109,7 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
                 margin="normal"
                 error={touched.countryCode && Boolean(errors.countryCode)}
                 helperText={touched.countryCode && errors.countryCode}
+                disabled={true}
               />
               <TextField
                 name="phoneNumber"
@@ -120,6 +121,7 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
                 margin="normal"
                 error={touched.phoneNumber && Boolean(errors.phoneNumber)}
                 helperText={touched.phoneNumber && errors.phoneNumber}
+                disabled={true}
               />
               <TextField
                 name="country"
@@ -129,6 +131,7 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
                 onBlur={handleBlur}
                 fullWidth
                 margin="normal"
+                disabled={true}
               />
               <TextField
                 name="state"
@@ -138,6 +141,7 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
                 onBlur={handleBlur}
                 fullWidth
                 margin="normal"
+                disabled={true}
               />
               <TextField
                 name="city"
@@ -147,6 +151,7 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
                 onBlur={handleBlur}
                 fullWidth
                 margin="normal"
+                disabled={true}
               />
               <TextField
                 name="streetAddress"
@@ -156,6 +161,7 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
                 onBlur={handleBlur}
                 fullWidth
                 margin="normal"
+                disabled={true}
               />
               <TextField
                 name="postalCode"
@@ -165,6 +171,7 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
                 onBlur={handleBlur}
                 fullWidth
                 margin="normal"
+                disabled={true}
               />
               <TextField
                 name="birthdate"
@@ -176,6 +183,7 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
                 fullWidth
                 margin="normal"
                 InputLabelProps={{ shrink: true }}
+                disabled={true}
               />
               <TextField
                 name="gender"
@@ -188,6 +196,7 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
                 margin="normal"
                 error={touched.gender && Boolean(errors.gender)}
                 helperText={touched.gender && errors.gender}
+                disabled={true}
               >
                 {genderOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
@@ -203,6 +212,7 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
                 onBlur={handleBlur}
                 fullWidth
                 margin="normal"
+                disabled={true}
               />
               <TextField
                 name="bio"
@@ -214,6 +224,7 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
                 rows={3}
                 fullWidth
                 margin="normal"
+                disabled={true}
               />
             </form>
           )}
@@ -221,9 +232,9 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={btnSave} variant="contained">
+        {/* <Button onClick={btnSave} variant="contained">
           Save
-        </Button>
+        </Button> */}
       </DialogActions>
     </Dialog>
   );
