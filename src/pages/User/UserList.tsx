@@ -1,10 +1,5 @@
 import * as React from "react";
-import {
-  DataGrid,
-  GridColDef,
-  GridPaginationModel,
-  GridRowId,
-} from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import { PagedResultDto } from "../../types/types";
 import { UserDto } from "../../types/user";
 
