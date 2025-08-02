@@ -15,6 +15,7 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
 import {post } from "../request/axios/index";
+import { useTheme } from '@mui/material/styles';
 //Define the type of form value
 interface SignupFormValues {
   email: string;
@@ -55,6 +56,7 @@ const Signup: React.FC = () => {
   const accessOptions = [{ value: "STUDENT", label: "Student" },
   { value: "TEACHER", label: "Teacher" },
   { value: "ADMIN", label: "Admin" },];
+  const theme = useTheme();
 
   const handleSignup = async (
     values: SignupFormValues,
@@ -99,6 +101,7 @@ const Signup: React.FC = () => {
         height: "100vh",
         backgroundColor: "background.default",
         p: 3,
+        background:`linear-gradient(45deg, #1976d2  0%, ${theme.palette.secondary.main}  50%, ${theme.palette.primary.main} 100%)`
       }}
     >
       <Typography

@@ -2,9 +2,10 @@
 import React from "react";
 import { Box, Typography, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-
+import { useTheme } from '@mui/material/styles';
 const ResetPwdSuccess: React.FC = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -16,6 +17,7 @@ const ResetPwdSuccess: React.FC = () => {
         alignItems: "center",
         backgroundColor: "#fff",
         p: 3,
+       background:`linear-gradient(45deg, #1976d2  0%, ${theme.palette.secondary.main}  50%, ${theme.palette.primary.main} 100%)`
       }}
     >
     <Box

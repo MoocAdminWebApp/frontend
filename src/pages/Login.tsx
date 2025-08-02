@@ -17,9 +17,9 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
-
 import {post } from "../request/axios/index";
 import { jwtDecode } from "jwt-decode";
+import { useTheme } from '@mui/material/styles';
 //Define the type of form value
 interface LoginFormValues {
   email: string;
@@ -65,6 +65,7 @@ const Login: React.FC = () => {
   const [error, setError] = React.useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const theme = useTheme();
 
   const handleLogin = async (
     values: LoginFormValues,
@@ -125,6 +126,7 @@ const Login: React.FC = () => {
         height: "100vh",
         backgroundColor: "background.default",
         p: 3,
+        background:`linear-gradient(45deg, #1976d2  0%, ${theme.palette.secondary.main}  50%, ${theme.palette.primary.main} 100%)`
       }}
     >
       <Typography
