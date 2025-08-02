@@ -19,7 +19,7 @@ import toast from "react-hot-toast";
 
 import { get, post, put, del } from "../../request/axios";
 import useDebounce from "../../hooks/useDebounce";
-import UserList from "./userList";
+import UserList from "./UserList";
 import AddUpdateDialog from "./addUpdateDialog";
 import ProfileDialog from "./profileDialog";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";

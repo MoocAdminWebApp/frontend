@@ -20,7 +20,7 @@ import ResetPwdSuccess from "./pages/ResetPwdSuccess";
 import ResetPwd from "./pages/ResetPwd";
 import ForgotPwd from "./pages/ForgotPwd";
 import SendResetEmailSuccess from "./pages/SendResetEmailSuccess";
-import User from "./pages/user";
+import User from "./pages/User";
 import Role from "./pages/role";
 import Menu from "./pages/menu";
 import Course from "./pages/course/index";
@@ -60,12 +60,18 @@ const App: React.FC = () => {
             <Route path="/resetPwd" element={<ResetPwd />} />
             <Route path="/resetPwdSuccess" element={<ResetPwdSuccess />} />
             <Route path="/forgotPwd" element={<ForgotPwd />} />
-            <Route path="/sendResetEmailSuccess" element={<SendResetEmailSuccess />} />
+            <Route
+              path="/sendResetEmailSuccess"
+              element={<SendResetEmailSuccess />}
+            />
             {/* Other pages require Layout */}
             <Route
               element={
                 <>
-                  <CustomAppBar open={open} handleDrawerOpen={handleDrawerOpen} />
+                  <CustomAppBar
+                    open={open}
+                    handleDrawerOpen={handleDrawerOpen}
+                  />
                   <Layout open={open} handleDrawerClose={handleDrawerClose}>
                     <ProtectedRoute />
                   </Layout>
@@ -80,7 +86,7 @@ const App: React.FC = () => {
               <Route path="/Menu" element={<Menu />} />
               <Route path="/CourseOffering" element={<CourseOffering />} />
               <Route path="/Course" element={<Course />} />
-              <Route path="/Chapter" element={<Chapter courseId={1}/>} />
+              <Route path="/Chapter" element={<Chapter courseId={1} />} />
               <Route path="/QuestionBank" element={<QuestionBank />} />
               <Route path="/MenuTree" element={<MenuTree />} />
               <Route path="/Category" element={<CategoryPage />}>
