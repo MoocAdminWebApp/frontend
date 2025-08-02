@@ -85,6 +85,7 @@ const CategoryPage: React.FC = () => {
         const page = await getCategoryPageById(category.id, pageSize);
         console.log("Page index fetched:", page);
 
+        setSearchText("");
         setHighlightId(category.id);
 
         const parentPath = category.parentId === null ? "/category" : `/category/${category.parentId}/children`;
