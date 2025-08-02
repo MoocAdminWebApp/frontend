@@ -11,7 +11,6 @@ import Page404 from "./pages/page404";
 import { Provider } from "react-redux";
 import store from "./store/store";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { useDispatch } from "react-redux";
 //import menuItems, { MenuItem } from './menuItems';
 import ProfileForm from "./pages/ProfileForm";
 import Demos from "./pages/demo";
@@ -30,6 +29,9 @@ import MenuTree from "./pages/menuTree";
 import Dummy from "./pages/dummy";
 
 import { initSidebarMenu } from "./store/PermissionSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUserPermissions } from "./thunks/fetchRolePermission";
+import { RootState, AppDispatch } from "./store/store";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
@@ -45,6 +47,11 @@ const App: React.FC = () => {
   };
 
   const dispatch = useDispatch();
+
+  // TODO: connect this part with permission api
+  const user = useSelector((state: RootState) => state.auth.user);
+  const permissions = useSelector((state: RootState) => state.auth.permissions);
+
   initSidebarMenu();
 
   return (
