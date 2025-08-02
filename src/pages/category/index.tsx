@@ -55,7 +55,7 @@ const useUserRoles = (): RoleInfo[] => {
 
 const CategoryPage: React.FC = () => {
   const roles = useUserRoles();
-  const isAdmin = roles.some((r) => r.roleName === "admin");
+  const isAdmin = roles.some((r) => r.roleName.toLowerCase() === "admin");
 
   const [loading, setLoading] = useState<boolean>(false);
 

@@ -80,7 +80,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
   highlightId,
 }) => {
   const roles = useUserRoles();
-  const isAdmin = roles.some((r) => r.roleName === "admin");
+  const isAdmin = roles.some((r) => r.roleName.toLowerCase() === "admin");
 
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
