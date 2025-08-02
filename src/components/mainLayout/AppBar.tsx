@@ -65,6 +65,8 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
     setAnchorEl(null);
   };
 
+  console.log("Current User: ", loginUser);
+
   // if (isBase64DataURL(resp.data.avatar)) {
   //   setPreview(resp.data.avatar);
   // } else {

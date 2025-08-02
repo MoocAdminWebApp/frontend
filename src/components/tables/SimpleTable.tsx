@@ -12,6 +12,9 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { MenuType, StatusType, ExpandState } from "../../types/enum";
 import { convertDateFormat } from "../../utils/convertDateFormat";
 
+import BtnPermissionControl from "../BtnPermissionControl";
+import { usePagePermission } from "../../hooks/usePagePermission";
+
 // Define the types for the column types
 export type ColumnType = "text" | "action" | "chip";
 
@@ -32,6 +35,7 @@ interface TableProps {
   onEdit?: (row: any) => void;
   onDelete?: (row: any) => void;
   loading?: boolean;
+  page?: string;
 }
 
 export const renderCellByType = (
@@ -181,6 +185,7 @@ export const renderCellByType = (
         // Render action buttons for edit and delete
         return (
           <Box>
+            {/* <BtnPermissionControl */}
             <IconButton onClick={() => onEdit?.(params.row)} size="small">
               <EditIcon sx={{ color: "primary.main" }} />
             </IconButton>
