@@ -84,16 +84,13 @@ const CoursePage: React.FC = () => {
   const handleSave = async (course: CreateCourseDto | UpdateCourseDto) => {
     if (!course) return;
 
+    let resp;
     const isUpdate = "id" in course && typeof course.id === "number" && course.id > 0;
 
-    let resp;
-
     if (isUpdate) {
-      const updateCourse = course as UpdateCourseDto;
-      resp = await put(`/courses/${updateCourse.id}`, updateCourse);
+      resp = await put(`/courses/${course.id}`, course);
     } else {
-      const createCourse = course as CreateCourseDto;
-      resp = await post("/courses", createCourse);
+      resp = await post("/courses", course);
     }
 
     if (resp.isSuccess) {
@@ -106,13 +103,10 @@ const CoursePage: React.FC = () => {
   };
 
   const handleEdit = async (row: CourseDto) => {
-    const resp = await get<CourseDto>(`/courses/${row.id}`);
+    const resp = await get<any>(`/courses/${row.id}`);
     if (resp.isSuccess && resp.data) {
-      // 这里把后端返回数据赋值给 currentCourse，供 dialog 初始化
-      setCurrentCourse(resp.data);
+      setCurrentCourse(resp.data.data);
       setOpenDialog(true);
-      console.log("Edit course data:", resp.data);
-
     } else {
       toast.error(resp.message || "Failed to load course");
     }
@@ -136,7 +130,7 @@ const CoursePage: React.FC = () => {
     {
       field: "status",
       headerName: "Status",
-      width: 120,
+      width: 130,
       renderCell: ({ value }) =>
         value === "PUBLISHED" ? (
           <Stack direction="row" alignItems="center" spacing={1}>
@@ -195,6 +189,7 @@ const CoursePage: React.FC = () => {
     },
   ];
 
+  console.log("currentCourse:", currentCourse);
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
@@ -230,6 +225,7 @@ const CoursePage: React.FC = () => {
       />
 
       <AddUpdateCourseDialog
+      key={currentCourse?.id ?? "new"}
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         data={currentCourse}

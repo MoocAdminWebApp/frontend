@@ -34,7 +34,6 @@ const AddUpdateRoleDialog: React.FC<AddUpdateRoleDialogProps> = ({
     status: role?.status ?? false,
   };
 
-  // 校验规则，roleName 必填，description 可选，status 布尔值
   const validationSchema = Yup.object({
     roleName: Yup.string().required("Role Name is required"),
     description: Yup.string(),

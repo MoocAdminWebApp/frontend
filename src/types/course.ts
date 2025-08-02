@@ -10,6 +10,7 @@ export interface CourseDto {
 }
 
 export interface CreateCourseDto {
+  id?: number;
   courseName: string;
   courseDescription?: string;
   courseCode?:string;
