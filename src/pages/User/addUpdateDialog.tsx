@@ -55,7 +55,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
     email: user ? user.email : "",
     firstName: user ? user.firstName : "",
     lastName: user ? user.lastName : "",
-    access: user ? user.access : EAccessType.Teacher,
+    access: user ? user.access : EAccessType.Admin,
     active: user ? user.active : false,
     roleIds: user ? user.roleIds || [] : [],
   };
