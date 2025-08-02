@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import {
+  Autocomplete,
   Button,
   Dialog,
   DialogActions,
@@ -94,22 +95,24 @@ const AddCategoryDialog: React.FC<AddCategoryDialogProps> = ({ open, onClose, on
               helperText={formik.touched.icon && formik.errors.icon}
               InputLabelProps={{ shrink: true }}
             />
-            <TextField
-              name="parentId"
-              label="Parent Category"
-              select
-              fullWidth
-              value={formik.values.parentId}
-              onChange={formik.handleChange}
-              InputLabelProps={{ shrink: true }}
-            >
-              <MenuItem value="">None (Top Level)</MenuItem>
-              {parentOptions.map((cat) => (
-                <MenuItem key={cat.id} value={cat.id}>
-                  {cat.name}
-                </MenuItem>
-              ))}
-            </TextField>
+            <Autocomplete
+              options={parentOptions}
+              getOptionLabel={(option) => option.name}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              value={parentOptions.find((c) => c.id === Number(formik.values.parentId)) || null}
+              onChange={(_, newValue) => {
+                formik.setFieldValue("parentId", newValue ? newValue.id : "");
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  name="parentId"
+                  label="Parent Category"
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                />
+              )}
+            />
 
             <FormControlLabel
               control={<Switch name="isPublic" checked={formik.values.isPublic} onChange={formik.handleChange} />}
