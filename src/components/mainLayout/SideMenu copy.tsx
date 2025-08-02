@@ -1,7 +1,7 @@
 import * as React from "react";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
 
 import {
@@ -14,38 +14,34 @@ import {
   Typography,
 } from "@mui/material";
 import {
-  Home as HomeIcon,
-  People as PeopleIcon,
-  Settings as SettingsIcon,
   ExpandMore as ExpandMoreIcon,
   ChevronRight as ChevronRightIcon,
-  List as ListIcon,
-  PersonAdd as PersonAddIcon,
-  Person as PersonIcon,
-  Security as SecurityIcon,
 } from "@mui/icons-material";
-import { useSelector } from "react-redux";
+
 import { RootState } from "../../store/store";
 import { MenuDto } from "../../types/menu";
 import { MenuType } from "../../types/enum";
-//import menuItems, { MenuItem } from '../../menuItems';
 
 const SideMenu: React.FC = () => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const [openIds, setOpenIds] = useState<number[]>([]);
   const { menuItems } = useSelector((state: RootState) => state.permission);
-  // 切换菜单项的展开状态
+
+  const [openIds, setOpenIds] = useState<number[]>([]); // Expanded/Collapsed menus
+  const [activeMenuId, setActiveMenuId] = useState<number | null>(null); // clicked menu
+
+  const { pagePrefix } = usePagePrefixFromMenuId(activeMenuId);
+
   const toggleOpen = (id: number) => {
     setOpenIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
-  const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
 
-  const { pagePrefix } = usePagePrefixFromMenuId(activeMenuId);
+  const onMenuClick = (menuId: number) => {
+    setActiveMenuId(menuId);
+  };
 
-  // 递归渲染树形菜单
   const renderMenu = (
     items: MenuDto[],
     currentPath: string,
@@ -53,9 +49,8 @@ const SideMenu: React.FC = () => {
     toggleOpen: (id: number) => void
   ) => {
     return items.map((item) => {
-      let children = item.children?.filter(
-        (child) => child.menuType !== MenuType.Btn
-      );
+      const children =
+        item.children?.filter((child) => child.menuType !== MenuType.Btn) ?? [];
 
       return (
         item.menuType !== MenuType.Btn && (
@@ -65,16 +60,12 @@ const SideMenu: React.FC = () => {
               component={item.route ? Link : "div"}
               to={item.route}
               onClick={() => {
-                // localStorage.setItem("activeMenuId", String(item.id));
-                setActiveMenuId(item.id);
-                if (children.length > 0) {
-                  toggleOpen(item.id);
-                }
+                onMenuClick(item.id); // update activeMenuId everytime clicking the item
+                if (children.length > 0) toggleOpen(item.id);
               }}
               sx={{
                 backgroundColor:
                   currentPath === item.route ? "#e0e0e0" : "transparent",
-                // borderRadius: 1,
                 mb: 1,
                 "&:hover": {
                   backgroundColor: "#f5f5f5",
@@ -118,7 +109,7 @@ const SideMenu: React.FC = () => {
                 unmountOnExit
               >
                 <List component="div" disablePadding sx={{ pl: 2 }}>
-                  {renderMenu(children, currentPath, openIds, toggleOpen)}
+                  {renderMenu(children, currentPath, openIds, toggleOpen)}{" "}
                 </List>
               </Collapse>
             )}

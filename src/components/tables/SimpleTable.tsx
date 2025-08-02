@@ -12,6 +12,9 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { MenuType, StatusType, ExpandState } from "../../types/enum";
 import { convertDateFormat } from "../../utils/convertDateFormat";
 
+import BtnPermissionControl from "../BtnPermissionControl";
+import { usePagePermission } from "../../hooks/usePagePermission";
+
 // Define the types for the column types
 export type ColumnType = "text" | "action" | "chip";
 
@@ -32,6 +35,7 @@ interface TableProps {
   onEdit?: (row: any) => void;
   onDelete?: (row: any) => void;
   loading?: boolean;
+  page?: string;
 }
 
 export const renderCellByType = (
@@ -47,7 +51,7 @@ export const renderCellByType = (
     const { row } = params;
     const raw = row.raw ? row.raw : row;
     const value = raw[field];
-    console.log("🔍 field:", field, " | value:", value, " | raw:", raw);
+    // console.log("🔍 field:", field, " | value:", value, " | raw:", raw);
 
     switch (type) {
       case "text":
@@ -120,7 +124,7 @@ export const renderCellByType = (
       case "chip":
         let chipColor: "primary" | "success" | "error";
         // Render a Chip component for chip type
-        if (field === "type") {
+        if (field === "menuType") {
           return (
             <Chip
               label={MenuType[value] || value}
@@ -181,6 +185,7 @@ export const renderCellByType = (
         // Render action buttons for edit and delete
         return (
           <Box>
+            {/* <BtnPermissionControl */}
             <IconButton onClick={() => onEdit?.(params.row)} size="small">
               <EditIcon sx={{ color: "primary.main" }} />
             </IconButton>

@@ -1,6 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./authSlice";
 import permissionSlice from "./PermissionSlice";
+import { createStore, applyMiddleware } from "redux";
+import thunk from "redux-thunk";
+
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -12,3 +15,8 @@ export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
 export default store;
+
+export type AppThunk<ReturnType = void> = (
+  dispatch: AppDispatch,
+  getState: () => RootState
+) => ReturnType;
