@@ -136,6 +136,5 @@ export function buildSidebarStructure(rawData: MenuDto[]): MenuDto[] {
     }
   }
   const treeWithLevels = updateMenuNodeInfo(roots);
-  console.log("Root: ", treeWithLevels);
   return treeWithLevels;
 }
