@@ -17,9 +17,9 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
-
 import {post } from "../request/axios/index";
 import { jwtDecode } from "jwt-decode";
+import { useTheme } from '@mui/material/styles';
 //Define the type of form value
 interface LoginFormValues {
   email: string;
@@ -38,11 +38,16 @@ interface RoleInfo {
 }
 
 interface TokenPayload {
-  id: number;
+  userId: number;
+  profileId:number;
   firstName: string;
   lastName: string;
   email: string;
   roles: RoleInfo[];
+  address:string;
+  gender: string;
+  phone: string;
+  birthdate:string;
 }
 //Define Yup validation rules
 const LoginSchema = Yup.object().shape({
@@ -60,6 +65,7 @@ const Login: React.FC = () => {
   const [error, setError] = React.useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const theme = useTheme();
 
   const handleLogin = async (
     values: LoginFormValues,
@@ -75,11 +81,16 @@ const Login: React.FC = () => {
       });
       const decodedData = jwtDecode<TokenPayload>(resp.data);
        const userForFrontEnd = {
-        userId: decodedData.id,
+        userId: decodedData.userId,
+        profileId:decodedData.profileId,
         lastName: decodedData.lastName,
         firstName: decodedData.firstName,
         email: decodedData.email,
         avatar: undefined,
+        address: decodedData.address,
+        gender: decodedData.gender,
+        phone: decodedData.phone,
+        birthdate:decodedData.birthdate,
       };
       if (resp.isSuccess) {
         dispatch(
@@ -88,7 +99,6 @@ const Login: React.FC = () => {
             user: userForFrontEnd,
           })
         ); //Update Redux status
-
         navigate("/"); //After successful login, jump to the homepage
       } else {
         setError(resp.message || "Invalid username or password");
@@ -116,6 +126,7 @@ const Login: React.FC = () => {
         height: "100vh",
         backgroundColor: "background.default",
         p: 3,
+        background:`linear-gradient(45deg, #1976d2  0%, ${theme.palette.secondary.main}  50%, ${theme.palette.primary.main} 100%)`
       }}
     >
       <Typography
