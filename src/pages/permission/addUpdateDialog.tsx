@@ -11,38 +11,37 @@ import {
 } from "@mui/material";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import { CreateRoleDto, UpdateRoleDto } from "../../types/role";
+import { CreatePermissionDto, UpdatePermissionDto } from "../../types/permission";
 
-interface AddUpdateRoleDialogProps {
+interface AddUpdatePermissionDialogProps {
   open: boolean;
   onClose: () => void;
-  role: UpdateRoleDto | null;
-  onSave: (data: CreateRoleDto | UpdateRoleDto | null) => void;
+  data: UpdatePermissionDto | null;
+  onSave: (data: CreatePermissionDto | UpdatePermissionDto | null) => void;
 }
 
-const AddUpdateRoleDialog: React.FC<AddUpdateRoleDialogProps> = ({
+const AddUpdatePermissionDialog: React.FC<AddUpdatePermissionDialogProps> = ({
   open,
   onClose,
-  role,
+  data,
   onSave,
 }) => {
   // 初始化表单值，新增时为空，编辑时带入已有数据
   const initialValues = {
-    id: role?.id ?? 0,
-    roleName: role?.roleName ?? "",
-    description: role?.description ?? "",
-    status: role?.status ?? false,
+    id: data?.id ?? 0,
+    permissionName: data?.permissionName ?? "",
+    description: data?.description ?? "",
   };
 
+  // 校验规则，permissionName 必填，description 可选，
   const validationSchema = Yup.object({
-    roleName: Yup.string().required("Role Name is required"),
+    permissionName: Yup.string().required("Permission Name is required"),
     description: Yup.string(),
-    status: Yup.boolean(),
   });
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{role ? "Edit Role" : "Add Role"}</DialogTitle>
+      <DialogTitle>{data ? "Edit Permission" : "Add Permission"}</DialogTitle>
       <DialogContent>
         <Formik
           initialValues={initialValues}
@@ -61,15 +60,15 @@ const AddUpdateRoleDialog: React.FC<AddUpdateRoleDialogProps> = ({
           }) => (
             <form onSubmit={handleSubmit} noValidate>
               <TextField
-                name="roleName"
-                label="Role Name"
+                name="permissionName"
+                label="Permission Name"
                 fullWidth
                 margin="normal"
-                value={values.roleName}
+                value={values.permissionName}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                error={touched.roleName && Boolean(errors.roleName)}
-                helperText={touched.roleName && errors.roleName}
+                error={touched.permissionName && Boolean(errors.permissionName)}
+                helperText={touched.permissionName && errors.permissionName}
                 autoFocus
               />
               <TextField
@@ -83,17 +82,7 @@ const AddUpdateRoleDialog: React.FC<AddUpdateRoleDialogProps> = ({
                 onChange={handleChange}
                 onBlur={handleBlur}
               />
-              <FormControlLabel
-                control={
-                  <Switch
-                    name="status"
-                    checked={values.status}
-                    onChange={() => setFieldValue("status", !values.status)}
-                    color="primary"
-                  />
-                }
-                label={values.status ? "Active" : "Inactive"}
-              />
+      
               <DialogActions>
                 <Button onClick={onClose}>Cancel</Button>
                 <Button type="submit" variant="contained" color="primary">
@@ -108,4 +97,4 @@ const AddUpdateRoleDialog: React.FC<AddUpdateRoleDialogProps> = ({
   );
 };
 
-export default AddUpdateRoleDialog;
+export default AddUpdatePermissionDialog;

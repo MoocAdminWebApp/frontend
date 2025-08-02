@@ -23,9 +23,13 @@ import User from "./pages/User";
 import Role from "./pages/role";
 import Menu from "./pages/menu";
 import Course from "./pages/course/index";
+import Chapter from "./pages/chapter/index";
 import CourseOffering from "./pages/courseOffering";
 import QuestionBank from "./pages/QuestionBank";
 import MenuTree from "./pages/menuTree";
+import CategoryPage from "./pages/category";
+import CategoryList from "./pages/category/categoryList";
+import Permission from "./pages/permission";
 import Dummy from "./pages/dummy";
 
 import { initSidebarMenu } from "./store/PermissionSlice";
@@ -94,9 +98,15 @@ const App: React.FC = () => {
               <Route path="/Menu" element={<Menu />} />
               <Route path="/CourseOffering" element={<CourseOffering />} />
               <Route path="/Course" element={<Course />} />
+              <Route path="/Chapter" element={<Chapter courseId={1} />} />
               <Route path="/QuestionBank" element={<QuestionBank />} />
               <Route path="/MenuTree" element={<MenuTree />} />
               <Route path="/Dummy" element={<Dummy />} />
+              <Route path="/Permission" element={<Permission />} />
+              <Route path="/Category" element={<CategoryPage />}>
+                <Route index element={<CategoryList />} />
+                <Route path=":id/children" element={<CategoryList />} />
+              </Route>
             </Route>
             <Route path="*" element={<Page404 />} />
           </Routes>

@@ -9,9 +9,10 @@ import {
   Alert,
   TextField,
 } from "@mui/material";
-
+import { useTheme } from '@mui/material/styles';
 import * as Yup from "yup";
 import {post } from "../request/axios/index";
+
 //Define the type of form value
 interface ResetEmailFormValues {
   email: string;
@@ -28,7 +29,7 @@ const ForgotPwd: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
+  const theme = useTheme();
   const handleSignup = async (
     values: ResetEmailFormValues,
     { setSubmitting }: FormikHelpers<ResetEmailFormValues>
@@ -66,6 +67,7 @@ const ForgotPwd: React.FC = () => {
         height: "100vh",
         backgroundColor: "background.default",
         p: 3,
+        background:`linear-gradient(45deg, #1976d2  0%, ${theme.palette.secondary.main}  50%, ${theme.palette.primary.main} 100%)`
       }}
     >
       <Typography

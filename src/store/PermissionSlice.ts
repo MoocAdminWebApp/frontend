@@ -194,7 +194,7 @@ const getInitialState = (): PermissionState => {
             status: StatusType.Active,
             level: 2,
             parentId: 1,
-            route: "", // "Permission" is a placeholder, adjust as needed
+            route: "Permission", // "Permission" is a placeholder, adjust as needed
             componentPath: "../pages/permission/index.tsx",
             orderNum: 3,
             children: [],
@@ -241,7 +241,7 @@ const getInitialState = (): PermissionState => {
             status: StatusType.Active,
             level: 2,
             parentId: 1,
-            route: "", // "Category" is a placeholder, adjust as needed
+            route: "Category", // "Category" is a placeholder, adjust as needed
             componentPath: "../pages/category/index.tsx",
             orderNum: 0,
             children: [],
@@ -257,7 +257,7 @@ const getInitialState = (): PermissionState => {
             level: 2,
             parentId: 1,
             route: "Course", // "Course" is a placeholder, adjust as needed
-            componentPath: "./pages/course/index.tsx",
+            componentPath: "../pages/course/index.tsx",
             orderNum: 1,
             children: [],
             icon: DefaultIcon,
@@ -271,7 +271,7 @@ const getInitialState = (): PermissionState => {
             status: StatusType.Active,
             level: 2,
             parentId: 1,
-            route: "", // "Chapter" is a placeholder, adjust as needed
+            route: "Chapter", // "Chapter" is a placeholder, adjust as needed
             componentPath: "../pages/chapter/index.tsx",
             orderNum: 2,
             children: [],
@@ -361,14 +361,8 @@ const permissionSlice = createSlice({
     ) {
       state.menuItems = action.payload.menuItems;
       state.permissions = action.payload.permissions;
-      localStorage.setItem(
-        "user_menuItems",
-        JSON.stringify(action.payload.menuItems)
-      );
-      localStorage.setItem(
-        "user_permissions",
-        JSON.stringify(action.payload.permissions)
-      );
+      localStorage.setItem("user_menuItems", JSON.stringify(action.payload.menuItems));
+      localStorage.setItem("user_permissions", JSON.stringify(action.payload.permissions));
     },
     clearPermissions(state) {
       state.menuItems = null;

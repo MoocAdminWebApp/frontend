@@ -4,6 +4,13 @@ export enum Gender {
   Female = 2,
 }
 
+export enum EGenderType {
+  MALE = "MALE",
+  FEMALE = "FEMALE",
+  OtOTHERher = "OTHER",
+  PREFER_NOT_TO_SAY = "PREFER_NOT_TO_SAY",
+}
+
 export enum MenuType {
   Dir = 1,
   Menu = 2,

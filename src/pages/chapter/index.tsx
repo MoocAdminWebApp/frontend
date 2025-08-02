@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import {
   Box,
   Button,
@@ -21,18 +21,21 @@ import toast from "react-hot-toast";
 
 import { get, post, put, del } from "../../request/axios";
 import useDebounce from "../../hooks/useDebounce";
-import CourseList from "./courseList";
-import AddUpdateCourseDialog from "./addUpdateCourseDialog";
+import ChapterList from "./chapterList";
+import AddUpdateChapterDialog from "./addUpdateChapterDialog";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
-import { CourseDto, CreateCourseDto, UpdateCourseDto } from "../../types/course";
+import { ChapterDto, CreateChapterDto, UpdateChapterDto } from "../../types/chapter";
 import { FilterPagedResultRequestDto, PagedResultDto } from "../../types/types";
 import { formatDateValue } from "../../utils/formatDate";
-import UserNameCell from "../../components/UserNameCell";
 
-const CoursePage: React.FC = () => {
+interface ChapterPageProps {
+  courseId: number; // 必须传入课程ID，章节归属于此课程
+}
+
+const ChapterPage: React.FC<ChapterPageProps> = ({ courseId }) => {
   const [loading, setLoading] = React.useState(false);
   const [openDialog, setOpenDialog] = React.useState(false);
-  const [currentCourse, setCurrentCourse] = React.useState<UpdateCourseDto | null>(null);
+  const [currentChapter, setCurrentChapter] = React.useState<UpdateChapterDto | null>(null);
   const [searchText, setSearchText] = React.useState("");
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [deleteId, setDeleteId] = React.useState<number>(0);
@@ -40,7 +43,7 @@ const CoursePage: React.FC = () => {
     page: 1,
     pageSize: 10,
   });
-  const [pagedResult, setPagedResult] = React.useState<PagedResultDto<CourseDto>>({
+  const [pagedResult, setPagedResult] = React.useState<PagedResultDto<ChapterDto>>({
     items: [],
     total: 0,
   });
@@ -54,24 +57,27 @@ const CoursePage: React.FC = () => {
   React.useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const resp = await get<PagedResultDto<CourseDto>>(
-        `/courses/page`,
+      const resp = await get<PagedResultDto<ChapterDto>>(
+        `/chapters/page`,
         {
           page: filter.page,
           pageSize: filter.pageSize,
-          filters: filter.filter ? JSON.stringify({ courseName: filter.filter }) : undefined,
-          fuzzyKeys: "courseName",
+          filters: JSON.stringify({
+            title: filter.filter || undefined,
+            courseId,
+          }),
+          fuzzyKeys: "title",
         }
       );
       if (resp.isSuccess && resp.data) {
         setPagedResult(resp.data);
       } else {
-        toast.error(resp.message || "Failed to load courses");
+        toast.error(resp.message || "Failed to load chapters");
       }
       setLoading(false);
     };
     load();
-  }, [filter]);
+  }, [filter, courseId]);
 
   const handlePaginationChange = (model: GridPaginationModel) => {
     setFilter((prev) => ({
@@ -81,20 +87,17 @@ const CoursePage: React.FC = () => {
     }));
   };
 
-  const handleSave = async (course: CreateCourseDto | UpdateCourseDto) => {
-    if (!course) return;
-
+  const handleSave = async (chapter: CreateChapterDto | UpdateChapterDto | null) => {
+    if (!chapter) return;
     let resp;
-    const isUpdate = "id" in course && typeof course.id === "number" && course.id > 0;
-
-    if (isUpdate) {
-      resp = await put(`/courses/${course.id}`, course);
+    const payload = { ...chapter, courseId };
+    if ((chapter as UpdateChapterDto).id) {
+      resp = await put(`/chapters/${(chapter as UpdateChapterDto).id}`, payload);
     } else {
-      resp = await post("/courses", course);
+      resp = await post("/chapters", payload);
     }
-
     if (resp.isSuccess) {
-      toast.success(isUpdate ? "Updated successfully" : "Created successfully");
+      toast.success((chapter as UpdateChapterDto).id ? "Updated successfully" : "Created successfully");
       setFilter((prev) => ({ ...prev, page: 1 }));
       setOpenDialog(false);
     } else {
@@ -102,18 +105,18 @@ const CoursePage: React.FC = () => {
     }
   };
 
-  const handleEdit = async (row: CourseDto) => {
-    const resp = await get<any>(`/courses/${row.id}`);
+  const handleEdit = async (row: ChapterDto) => {
+    const resp = await get<ChapterDto>(`/chapters/${row.id}`);
     if (resp.isSuccess && resp.data) {
-      setCurrentCourse(resp.data.data);
+      setCurrentChapter(resp.data);
       setOpenDialog(true);
     } else {
-      toast.error(resp.message || "Failed to load course");
+      toast.error(resp.message || "Failed to load chapter");
     }
   };
 
   const handleDelete = async () => {
-    const resp = await del(`/courses/${deleteId}`);
+    const resp = await del(`/chapters/${deleteId}`);
     if (resp.isSuccess) {
       toast.success("Deleted successfully");
       setFilter((prev) => ({ ...prev, page: 1 }));
@@ -124,13 +127,13 @@ const CoursePage: React.FC = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: "courseName", headerName: "Course Name", flex: 1 },
-    { field: "courseDescription", headerName: "Description", flex: 1 },
-    { field: "courseCode", headerName: "Course Code", flex: 1 },
+    { field: "chapterNumber", headerName: "Chapter Number", width: 130 },
+    { field: "title", headerName: "Title", flex: 1 },
+    { field: "description", headerName: "Description", flex: 1 },
     {
       field: "status",
       headerName: "Status",
-      width: 130,
+      width: 120,
       renderCell: ({ value }) =>
         value === "PUBLISHED" ? (
           <Stack direction="row" alignItems="center" spacing={1}>
@@ -145,15 +148,14 @@ const CoursePage: React.FC = () => {
         ) : (
           <Stack direction="row" alignItems="center" spacing={1}>
             <CancelIcon color="error" fontSize="small" />
-            <Typography variant="body2">Archived</Typography>
+            <Typography variant="body2">Hidden</Typography>
           </Stack>
         ),
     },
     {
-      field: "instructor",
-      headerName: "Instructor",
-      flex: 1,
-      renderCell: ({ row }) => <UserNameCell user={row.instructor || "N/A"} />,
+      field: "orderNum",
+      headerName: "Order",
+      width: 100,
     },
     {
       field: "createdAt",
@@ -189,13 +191,12 @@ const CoursePage: React.FC = () => {
     },
   ];
 
-  console.log("currentCourse:", currentCourse);
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
           variant="outlined"
-          placeholder="Search courses..."
+          placeholder="Search chapters..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           InputProps={{
@@ -207,15 +208,15 @@ const CoursePage: React.FC = () => {
           startIcon={<AddIcon />}
           variant="contained"
           onClick={() => {
-            setCurrentCourse(null);
+            setCurrentChapter(null);
             setOpenDialog(true);
           }}
         >
-          Add Course
+          Add Chapter
         </Button>
       </Box>
 
-      <CourseList
+      <ChapterList
         loading={loading}
         columns={columns}
         pagedResult={pagedResult}
@@ -224,18 +225,18 @@ const CoursePage: React.FC = () => {
         onPaginationModelChange={handlePaginationChange}
       />
 
-      <AddUpdateCourseDialog
-      key={currentCourse?.id ?? "new"}
+      <AddUpdateChapterDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
-        data={currentCourse}
+        data={currentChapter}
         onSave={handleSave}
+        courseId={courseId}
       />
 
       <OperateConfirmationDialog
         open={confirmOpen}
         title="Confirm Delete"
-        content="Are you sure you want to delete this course?"
+        content="Are you sure you want to delete this chapter?"
         onConfirm={handleDelete}
         onCancel={() => setConfirmOpen(false)}
       />
@@ -243,4 +244,4 @@ const CoursePage: React.FC = () => {
   );
 };
 
-export default CoursePage;
+export default ChapterPage;

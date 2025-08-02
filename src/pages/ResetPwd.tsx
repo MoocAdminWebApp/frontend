@@ -16,6 +16,7 @@ import * as Yup from "yup";
 import {post } from "../request/axios/index";
 import { useSearchParams } from "react-router-dom";
 //Define the type of form value
+import { useTheme } from '@mui/material/styles';
 interface ResetPwdFormValues {
   password: string;
   confirmPassword: string;
@@ -38,6 +39,7 @@ const ResetPwd: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  const theme = useTheme();
 
   const handleSignup = async (
     values: ResetPwdFormValues,
@@ -78,6 +80,7 @@ const ResetPwd: React.FC = () => {
         height: "100vh",
         backgroundColor: "background.default",
         p: 3,
+        background:`linear-gradient(45deg, #1976d2  0%, ${theme.palette.secondary.main}  50%, ${theme.palette.primary.main} 100%)`
       }}
     >
       <Typography

@@ -7,10 +7,15 @@ import { RoleDto } from "./role";
  *******/
 export interface User {
   userId: number;
+  profileId:number;
   email?: string;
   firstName: string;
   lastName: string;
   avatar?: string;
+  phone:string;
+  address:string;
+  birthdate:string;
+  gender:string;
 }
 export interface LoginResultDto {
   // userId: number;

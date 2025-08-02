@@ -1,11 +1,9 @@
-import React from "react";
+import * as React from "react";
 import {
   Box,
   Button,
   TextField,
   IconButton,
-  Stack,
-  Typography,
 } from "@mui/material";
 import {
   GridColDef,
@@ -14,25 +12,58 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
 import SearchIcon from "@mui/icons-material/Search";
 import toast from "react-hot-toast";
 
 import { get, post, put, del } from "../../request/axios";
 import useDebounce from "../../hooks/useDebounce";
-import CourseList from "./courseList";
-import AddUpdateCourseDialog from "./addUpdateCourseDialog";
+import PermissionList from "./PermissionList";
+import AddUpdatePermissionDialog from "./addUpdateDialog";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
-import { CourseDto, CreateCourseDto, UpdateCourseDto } from "../../types/course";
-import { FilterPagedResultRequestDto, PagedResultDto } from "../../types/types";
+import {
+  PermissionDto,
+  CreatePermissionDto,
+  UpdatePermissionDto,
+} from "../../types/permission";
+import {
+  FilterPagedResultRequestDto,
+  PagedResultDto,
+} from "../../types/types";
 import { formatDateValue } from "../../utils/formatDate";
 import UserNameCell from "../../components/UserNameCell";
+import GetAndStoreRolePermissions from "../../utils/UserAllPermissions";
+import { getStoredPermissions } from "../../utils/GetStoredPermissions";
 
-const CoursePage: React.FC = () => {
+import { hasPermission } from "../../utils/HasPermission";
+
+//testing
+// a valid roleId needs to be provided as a parameter after login
+const roleId = 3;
+const rolePermissions = getStoredPermissions(roleId);
+
+//store permissions of the role 
+//has to be run after login with a valid roleId
+
+// GetAndStoreRolePermissions(roleId);
+
+// optional
+// const pagePermissions = ["permission:viewall","permission:add","permission:update","permission:delete"];
+// console.log(getStoredPermissions());
+
+
+const isUpdateDto = (
+  dto: CreatePermissionDto | UpdatePermissionDto | null
+): dto is UpdatePermissionDto =>
+  dto !== null &&
+  "id" in dto &&
+  typeof dto.id === "number" &&
+  dto.id > 0;
+
+const Permission: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
   const [openDialog, setOpenDialog] = React.useState(false);
-  const [currentCourse, setCurrentCourse] = React.useState<UpdateCourseDto | null>(null);
+  const [currentItem, setCurrentItem] =
+    React.useState<UpdatePermissionDto | null>(null);
   const [searchText, setSearchText] = React.useState("");
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [deleteId, setDeleteId] = React.useState<number>(0);
@@ -40,10 +71,11 @@ const CoursePage: React.FC = () => {
     page: 1,
     pageSize: 10,
   });
-  const [pagedResult, setPagedResult] = React.useState<PagedResultDto<CourseDto>>({
-    items: [],
-    total: 0,
-  });
+  const [pagedResult, setPagedResult] =
+    React.useState<PagedResultDto<PermissionDto>>({
+      items: [],
+      total: 0,
+    });
 
   const searchQuery = useDebounce(searchText, 500);
 
@@ -51,25 +83,25 @@ const CoursePage: React.FC = () => {
     setFilter((prev) => ({ ...prev, filter: searchQuery }));
   }, [searchQuery]);
 
-  React.useEffect(() => {
-    const load = async () => {
+  const load = async () => {
       setLoading(true);
-      const resp = await get<PagedResultDto<CourseDto>>(
-        `/courses/page`,
+      const resp = await get<PagedResultDto<PermissionDto>>(
+        `/permissions/page`,
         {
           page: filter.page,
           pageSize: filter.pageSize,
-          filters: filter.filter ? JSON.stringify({ courseName: filter.filter }) : undefined,
-          fuzzyKeys: "courseName",
+          fuzzyKeys: "permissionName,description",
+          filter: searchQuery ?? "",
         }
       );
       if (resp.isSuccess && resp.data) {
         setPagedResult(resp.data);
-      } else {
-        toast.error(resp.message || "Failed to load courses");
       }
       setLoading(false);
     };
+
+  React.useEffect(() => {
+    
     load();
   }, [filter]);
 
@@ -81,90 +113,75 @@ const CoursePage: React.FC = () => {
     }));
   };
 
-  const handleSave = async (course: CreateCourseDto | UpdateCourseDto) => {
-    if (!course) return;
+  const handleSave = async (
+    data: CreatePermissionDto | UpdatePermissionDto | null
+  ) => {
+    if (!data) return;
 
-    let resp;
-    const isUpdate = "id" in course && typeof course.id === "number" && course.id > 0;
-
-    if (isUpdate) {
-      resp = await put(`/courses/${course.id}`, course);
-    } else {
-      resp = await post("/courses", course);
-    }
+    const resp = isUpdateDto(data)
+      ? await put(`/permissions/${data.id}`, data)
+      : await post("/permissions", data);
 
     if (resp.isSuccess) {
-      toast.success(isUpdate ? "Updated successfully" : "Created successfully");
+      toast.success(
+        isUpdateDto(data) ? "Updated successfully" : "Created successfully"
+      );
       setFilter((prev) => ({ ...prev, page: 1 }));
       setOpenDialog(false);
     } else {
-      toast.error(resp.message || "Operation failed");
+      toast.error(resp.message);
     }
   };
 
-  const handleEdit = async (row: CourseDto) => {
-    const resp = await get<any>(`/courses/${row.id}`);
-    if (resp.isSuccess && resp.data) {
-      setCurrentCourse(resp.data.data);
+  const handleEdit = async (row: PermissionDto) => {
+    const resp = await get<PermissionDto>(
+      `/permissions/${row.id}`
+    );
+    if (resp.isSuccess) {
+      setCurrentItem(resp.data);
       setOpenDialog(true);
     } else {
-      toast.error(resp.message || "Failed to load course");
+      toast.error(resp.message);
     }
   };
 
   const handleDelete = async () => {
-    const resp = await del(`/courses/${deleteId}`);
+    const resp = await del(`/permissions/${deleteId}`);
     if (resp.isSuccess) {
       toast.success("Deleted successfully");
-      setFilter((prev) => ({ ...prev, page: 1 }));
+      await load();
+      // setFilter((prev) => ({ ...prev, page: 1 }));
     } else {
-      toast.error(resp.message || "Delete failed");
+      toast.error(resp.message);
     }
     setConfirmOpen(false);
   };
 
   const columns: GridColDef[] = [
-    { field: "courseName", headerName: "Course Name", flex: 1 },
-    { field: "courseDescription", headerName: "Description", flex: 1 },
-    { field: "courseCode", headerName: "Course Code", flex: 1 },
+    { field: "permissionName", headerName: "Permission Name", flex: 1 },
+    { field: "description", headerName: "Description", flex: 1 },
     {
-      field: "status",
-      headerName: "Status",
-      width: 130,
-      renderCell: ({ value }) =>
-        value === "PUBLISHED" ? (
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <CheckCircleIcon color="success" fontSize="small" />
-            <Typography variant="body2">Published</Typography>
-          </Stack>
-        ) : value === "DRAFT" ? (
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <CancelIcon color="warning" fontSize="small" />
-            <Typography variant="body2">Draft</Typography>
-          </Stack>
-        ) : (
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <CancelIcon color="error" fontSize="small" />
-            <Typography variant="body2">Archived</Typography>
-          </Stack>
-        ),
+      field: "createdBy",
+      headerName: "Created By",
+      width: 120,
+      renderCell: ({ row }) => <UserNameCell user={row.creator} />,
     },
     {
-      field: "instructor",
-      headerName: "Instructor",
-      flex: 1,
-      renderCell: ({ row }) => <UserNameCell user={row.instructor || "N/A"} />,
+      field: "updatedBy",
+      headerName: "Updated By",
+      width: 120,
+      renderCell: ({ row }) => <UserNameCell user={row.updater} />,
     },
     {
       field: "createdAt",
-      headerName: "Created At",
-      flex: 1,
+      headerName: "CreatedAt",
+      width: 160,
       valueFormatter: formatDateValue,
     },
     {
       field: "updatedAt",
-      headerName: "Updated At",
-      flex: 1,
+      headerName: "UpdatedAt",
+      width: 160,
       valueFormatter: formatDateValue,
     },
     {
@@ -173,9 +190,12 @@ const CoursePage: React.FC = () => {
       width: 150,
       renderCell: ({ row }) => (
         <Box>
-          <IconButton onClick={() => handleEdit(row)}>
-            <EditIcon />
-          </IconButton>
+          {/*when role id =3,  viewall display button*/}
+        {hasPermission("permission:viewall",rolePermissions) && (
+        <IconButton onClick={() => handleEdit(row)}>
+          <EditIcon />
+        </IconButton>
+      )}
           <IconButton
             onClick={() => {
               setDeleteId(row.id);
@@ -189,13 +209,13 @@ const CoursePage: React.FC = () => {
     },
   ];
 
-  console.log("currentCourse:", currentCourse);
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
           variant="outlined"
-          placeholder="Search courses..."
+          placeholder="Search permissions..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           InputProps={{
@@ -203,19 +223,20 @@ const CoursePage: React.FC = () => {
           }}
           sx={{ width: 300 }}
         />
+
         <Button
           startIcon={<AddIcon />}
           variant="contained"
           onClick={() => {
-            setCurrentCourse(null);
+            setCurrentItem(null);
             setOpenDialog(true);
           }}
         >
-          Add Course
+          Add Permission
         </Button>
       </Box>
 
-      <CourseList
+      <PermissionList
         loading={loading}
         columns={columns}
         pagedResult={pagedResult}
@@ -224,23 +245,26 @@ const CoursePage: React.FC = () => {
         onPaginationModelChange={handlePaginationChange}
       />
 
-      <AddUpdateCourseDialog
-      key={currentCourse?.id ?? "new"}
+      <AddUpdatePermissionDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
-        data={currentCourse}
+        data={currentItem}
         onSave={handleSave}
       />
 
       <OperateConfirmationDialog
         open={confirmOpen}
         title="Confirm Delete"
-        content="Are you sure you want to delete this course?"
+        content="Are you sure you want to delete this permission?"
         onConfirm={handleDelete}
         onCancel={() => setConfirmOpen(false)}
       />
+
+
     </Box>
+
+    
   );
 };
 
-export default CoursePage;
+export default Permission;

@@ -1,22 +1,30 @@
 import * as React from "react";
-import { DataGrid, GridColDef, GridPaginationModel } from "@mui/x-data-grid";
-import { PagedResultDto } from "../../types/types";
-import { UserDto } from "../../types/user";
+import {
+  DataGrid,
+  GridColDef,
+  GridPaginationModel,
+} from "@mui/x-data-grid";
 
-interface UserListProps {
+interface PagedResult<T> {
+  items: T[];
+  total: number;
+}
+
+interface ChapterListProps<T> {
   loading?: boolean;
   page?: number;
   pageSize?: number;
   pageSizeOptions?: number[];
-  pagedResult: PagedResultDto<UserDto>;
+  pagedResult: PagedResult<T>;
   columns: GridColDef[];
   onPaginationModelChange?: (newModel: GridPaginationModel) => void;
 }
 
-const UserList: React.FC<UserListProps> = (props) => {
-  let pageSize = props.pageSize ?? 10;
-  let page = props.page ?? 0;
-  let ageSizeOptions = props.pageSizeOptions ?? [10, 20, 50, 100];
+function ChapterList<T>(props: ChapterListProps<T>) {
+  const pageSize = props.pageSize ?? 10;
+  const page = props.page ?? 0;
+  const pageSizeOptions = props.pageSizeOptions ?? [10, 20, 50, 100];
+
   return (
     <DataGrid
       loading={props.loading || false}
@@ -32,15 +40,17 @@ const UserList: React.FC<UserListProps> = (props) => {
         },
       }}
       paginationMode="server"
-      pageSizeOptions={ageSizeOptions}
+      pageSizeOptions={pageSizeOptions}
       onPaginationModelChange={(newModel) => {
-        props.onPaginationModelChange &&
+        if (props.onPaginationModelChange) {
           props.onPaginationModelChange(newModel);
+        }
       }}
       pagination
       disableRowSelectionOnClick
+      autoHeight
     />
   );
-};
+}
 
-export default UserList;
+export default ChapterList;
