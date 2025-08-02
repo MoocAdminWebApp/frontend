@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import {
   Box,
   Button,
@@ -63,11 +63,11 @@ const CoursePage: React.FC = () => {
           fuzzyKeys: "courseName",
         }
       );
-      if (resp.isSuccess && resp.data && resp.data) {
-  setPagedResult(resp.data);
-} else {
-  toast.error(resp.message || "Failed to load courses");
-}
+      if (resp.isSuccess && resp.data) {
+        setPagedResult(resp.data);
+      } else {
+        toast.error(resp.message || "Failed to load courses");
+      }
       setLoading(false);
     };
     load();
@@ -81,16 +81,23 @@ const CoursePage: React.FC = () => {
     }));
   };
 
-  const handleSave = async (course: CreateCourseDto | UpdateCourseDto | null) => {
+  const handleSave = async (course: CreateCourseDto | UpdateCourseDto) => {
     if (!course) return;
+
+    const isUpdate = "id" in course && typeof course.id === "number" && course.id > 0;
+
     let resp;
-    if ((course as UpdateCourseDto).id) {
-      resp = await put(`/courses/${(course as UpdateCourseDto).id}`, course);
+
+    if (isUpdate) {
+      const updateCourse = course as UpdateCourseDto;
+      resp = await put(`/courses/${updateCourse.id}`, updateCourse);
     } else {
-      resp = await post("/courses", course);
+      const createCourse = course as CreateCourseDto;
+      resp = await post("/courses", createCourse);
     }
+
     if (resp.isSuccess) {
-      toast.success((course as UpdateCourseDto).id ? "Updated successfully" : "Created successfully");
+      toast.success(isUpdate ? "Updated successfully" : "Created successfully");
       setFilter((prev) => ({ ...prev, page: 1 }));
       setOpenDialog(false);
     } else {
@@ -101,13 +108,11 @@ const CoursePage: React.FC = () => {
   const handleEdit = async (row: CourseDto) => {
     const resp = await get<CourseDto>(`/courses/${row.id}`);
     if (resp.isSuccess && resp.data) {
-      const courseData: UpdateCourseDto = {
-        ...resp.data,
-        id: resp.data.id,
-        instructorId: resp.data.instructorId,
-      };
-      setCurrentCourse(courseData);
+      // 这里把后端返回数据赋值给 currentCourse，供 dialog 初始化
+      setCurrentCourse(resp.data);
       setOpenDialog(true);
+      console.log("Edit course data:", resp.data);
+
     } else {
       toast.error(resp.message || "Failed to load course");
     }
@@ -155,19 +160,18 @@ const CoursePage: React.FC = () => {
       headerName: "Instructor",
       flex: 1,
       renderCell: ({ row }) => <UserNameCell user={row.instructor || "N/A"} />,
-
     },
     {
-      field: 'createdAt',
-      headerName: 'Created At',
+      field: "createdAt",
+      headerName: "Created At",
       flex: 1,
-      valueFormatter: formatDateValue
+      valueFormatter: formatDateValue,
     },
     {
-      field: 'updatedAt',
-      headerName: 'Updated At',
+      field: "updatedAt",
+      headerName: "Updated At",
       flex: 1,
-      valueFormatter: formatDateValue
+      valueFormatter: formatDateValue,
     },
     {
       field: "actions",

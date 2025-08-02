@@ -31,7 +31,7 @@ interface AddUpdateChapterDialogProps {
   onClose: () => void;
   data: ChapterDto | null;
   onSave: (data: ChapterDto) => void;
-  courseId: number; // 章节一定要关联课程id，外部传入
+  courseId: number;
 }
 
 function renderHelperText(error: any) {

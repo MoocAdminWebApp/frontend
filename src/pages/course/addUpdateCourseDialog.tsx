@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -9,17 +9,15 @@ import {
   Grid,
   MenuItem,
 } from "@mui/material";
-
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { CreateCourseDto, UpdateCourseDto } from "../../types/course";
 
-
 interface AddUpdateCourseDialogProps {
   open: boolean;
   onClose: () => void;
-  data: UpdateCourseDto | null;
-  onSave: (data: CreateCourseDto | UpdateCourseDto | null) => void;
+  data: UpdateCourseDto | null; // 编辑时传入，不编辑时传null
+  onSave: (data: CreateCourseDto | UpdateCourseDto) => void;
 }
 
 const statusOptions = [
@@ -34,39 +32,33 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
   data,
   onSave,
 }) => {
-  const formikRef = useRef<any>(null);
-
-  const initialValues: CreateCourseDto & { id?: number; courseCode?: string } = {
-    id: data?.id ?? 0,
-    courseName: data?.courseName ?? "",
-    courseDescription: data?.courseDescription ?? "",
-    courseCode: data?.courseCode ?? "",
-    instructorId: data?.instructorId ?? 0,
-    status: data?.status ?? "DRAFT",
+  // 这里用 useEffect 保证 data 改变时 formik 重置值
+  const initialValues: CreateCourseDto & { id?: number } = {
+    id: data?.id,
+    courseName: data?.courseName || "",
+    courseDescription: data?.courseDescription || "",
+    courseCode: data?.courseCode || "",
+    instructorId: data?.instructorId || 0,
+    status: data?.status || "DRAFT",
   };
-
-  const validationSchema = Yup.object({
-    courseName: Yup.string().required("Course name is required"),
-    courseDescription: Yup.string(),
-    courseCode: Yup.string().required("Course code is required"),
-    instructorId: Yup.number()
-      .required("Instructor is required")
-      .min(1, "Please select an instructor"),
-    status: Yup.string()
-      .oneOf(["DRAFT", "PUBLISHED", "ARCHIVED"])
-      .required("Status is required"),
-  });
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>{data ? "Edit Course" : "Add Course"}</DialogTitle>
       <Formik
-        innerRef={formikRef}
+        enableReinitialize // 关键！data变了才重置表单数据
         initialValues={initialValues}
-        validationSchema={validationSchema}
-        onSubmit={(values) => {
-          onSave(values);
-        }}
+        validationSchema={Yup.object({
+          courseName: Yup.string().required("Course name is required"),
+          courseCode: Yup.string().required("Course code is required"),
+          instructorId: Yup.number()
+            .required("Instructor is required")
+            .min(1, "Please select an instructor"),
+          status: Yup.string()
+            .oneOf(["DRAFT", "PUBLISHED", "ARCHIVED"])
+            .required("Status is required"),
+        })}
+        onSubmit={(values) => onSave(values)}
       >
         {({
           values,
@@ -87,15 +79,10 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.courseName && Boolean(errors.courseName)}
-                    helperText={
-                      touched.courseName && typeof errors.courseName === "string"
-                        ? errors.courseName
-                        : ""
-                    }
+                    helperText={touched.courseName && errors.courseName}
                     fullWidth
                   />
                 </Grid>
-
                 <Grid item xs={12}>
                   <TextField
                     label="Course Description"
@@ -107,16 +94,12 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
                       touched.courseDescription &&
                       Boolean(errors.courseDescription)
                     }
-                    helperText={
-                      touched.courseDescription &&
-                      typeof errors.courseDescription === "string"
-                        ? errors.courseDescription
-                        : ""
-                    }
+                    helperText={touched.courseDescription && errors.courseDescription}
                     fullWidth
+                    multiline
+                    minRows={2}
                   />
                 </Grid>
-
                 <Grid item xs={12}>
                   <TextField
                     label="Course Code"
@@ -125,32 +108,23 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.courseCode && Boolean(errors.courseCode)}
-                    helperText={
-                      touched.courseCode && typeof errors.courseCode === "string"
-                        ? errors.courseCode
-                        : ""
-                    }
+                    helperText={touched.courseCode && errors.courseCode}
                     fullWidth
                   />
                 </Grid>
-              <Grid item xs={12}>
+                <Grid item xs={12}>
                   <TextField
-                    label="instructorId"
+                    label="Instructor ID"
                     name="instructorId"
+                    type="number"
                     value={values.instructorId}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.instructorId && Boolean(errors.instructorId)}
-                    helperText={
-                      touched.instructorId && typeof errors.instructorId === "string"
-                        ? errors.instructorId
-                        : ""
-                    }
+                    helperText={touched.instructorId && errors.instructorId}
                     fullWidth
                   />
                 </Grid>
-
-
                 <Grid item xs={12} sm={6}>
                   <TextField
                     select
@@ -160,11 +134,7 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
                     onChange={handleChange}
                     onBlur={handleBlur}
                     error={touched.status && Boolean(errors.status)}
-                    helperText={
-                      touched.status && typeof errors.status === "string"
-                        ? errors.status
-                        : ""
-                    }
+                    helperText={touched.status && errors.status}
                     fullWidth
                   >
                     {statusOptions.map((option) => (
@@ -178,7 +148,7 @@ const AddUpdateCourseDialog: React.FC<AddUpdateCourseDialogProps> = ({
             </DialogContent>
             <DialogActions>
               <Button onClick={onClose}>Cancel</Button>
-              <Button onClick={() => handleSubmit()} variant="contained">
+              <Button variant="contained" onClick={() => handleSubmit()}>
                 Save
               </Button>
             </DialogActions>

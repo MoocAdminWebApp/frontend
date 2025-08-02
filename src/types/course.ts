@@ -5,7 +5,7 @@ export interface CourseDto {
   courseCode?:string;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
   instructorId: number;
-  createdAt: string; // 或 Date，根据你的使用习惯
+  createdAt: string;
   updatedAt: string;
 }
 
