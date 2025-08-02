@@ -11,9 +11,9 @@ export enum MenuType {
 }
 
 export enum EAccessType {
-  Admin = 1,
-  Teacher = 2,
-  Student = 3,
+  Admin = "ADMIN",
+  Teacher = "TEACHER",
+  Student = "STUDENT",
 }
 
 export enum StatusType {
