@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 
 import { get, post, put, del } from "../../request/axios";
 import useDebounce from "../../hooks/useDebounce";
-import UserList from "./UserList";
+import UserList from "./userList";
 import AddUpdateDialog from "./addUpdateDialog";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
 import { UserDto, CreateUserDto, UpdateUserDto } from "../../types/user";
