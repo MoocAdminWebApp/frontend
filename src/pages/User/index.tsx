@@ -11,6 +11,7 @@ import { GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import PageviewIcon from "@mui/icons-material/Pageview";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import SearchIcon from "@mui/icons-material/Search";
@@ -20,8 +21,14 @@ import { get, post, put, del } from "../../request/axios";
 import useDebounce from "../../hooks/useDebounce";
 import UserList from "./userList";
 import AddUpdateDialog from "./addUpdateDialog";
+import ProfileDialog from "./profileDialog";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
 import { UserDto, CreateUserDto, UpdateUserDto } from "../../types/user";
+import {
+  ProfileDto,
+  CreateProfileDto,
+  UpdateProfileDto,
+} from "../../types/profile";
 import { FilterPagedResultRequestDto, PagedResultDto } from "../../types/types";
 import { formatDateValue } from "../../utils/formatDate";
 import UserNameCell from "../../components/UserNameCell";
@@ -31,9 +38,12 @@ const User: React.FC = () => {
   const [roles, setRoles] = React.useState<RoleDto[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [openDialog, setOpenDialog] = React.useState(false);
+  const [openProfileDialog, setOpenProfileDialog] = React.useState(false);
   const [currentUser, setCurrentUser] = React.useState<UpdateUserDto | null>(
     null
   );
+  const [currentProfile, setCurrentProfile] =
+    React.useState<UpdateProfileDto | null>(null);
   const [searchText, setSearchText] = React.useState("");
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [deleteId, setDeleteId] = React.useState<number>(0);
@@ -116,10 +126,36 @@ const User: React.FC = () => {
     }
   };
 
+  const handleProfileSave = async (
+    profile: CreateProfileDto | UpdateProfileDto | null
+  ) => {
+    if (!profile) return;
+
+    let resp;
+    //for update, profile.id >0
+    if (profile.id && profile.id > 0) {
+      resp = await put(`/profiles/${profile.id}`, profile);
+    } else {
+      // add userId to profile
+      const profileWithUserId = { ...profile };
+      resp = await post("/profiles", profileWithUserId);
+    }
+
+    if (resp.isSuccess) {
+      toast.success(
+        profile.id ? "Updated successfully" : "Created successfully"
+      );
+      setFilter((prev) => ({ ...prev, page: 1 }));
+      setOpenProfileDialog(false);
+    } else {
+      toast.error(resp.message || "Operation failed");
+    }
+  };
+
   const handleEdit = async (row: UserDto) => {
     const resp = await get<UserDto>(`/users/${row.id}`);
     if (resp.isSuccess && resp.data) {
-      // Convert the roles array returned by the backend into a roleIds array
+      // Convert the roles object array returned by the backend into a roleIds array
       const userWithRoleIds = {
         ...resp.data,
         roleIds: resp.data.roles ? resp.data.roles.map((role) => role.id) : [],
@@ -127,6 +163,18 @@ const User: React.FC = () => {
       setCurrentUser(userWithRoleIds);
       setOpenDialog(true);
     } else {
+      toast.error(resp.message || "Failed to load user");
+    }
+  };
+
+  const handleProfile = async (row: ProfileDto) => {
+    const resp = await get<ProfileDto>(`/profiles/by-user/${row.id}`);
+    if (resp.isSuccess && resp.data) {
+      setCurrentProfile(resp.data);
+      setOpenProfileDialog(true);
+    } else {
+      setCurrentProfile(null);
+      setOpenProfileDialog(true);
       toast.error(resp.message || "Failed to load user");
     }
   };
@@ -237,6 +285,9 @@ const User: React.FC = () => {
           >
             <DeleteIcon />
           </IconButton>
+          <IconButton onClick={() => handleProfile(row)}>
+            <PageviewIcon />
+          </IconButton>
         </Box>
       ),
     },
@@ -282,6 +333,13 @@ const User: React.FC = () => {
         user={currentUser}
         onSave={handleSave}
         roles={roles}
+      />
+
+      <ProfileDialog
+        open={openProfileDialog}
+        onClose={() => setOpenProfileDialog(false)}
+        profile={currentProfile}
+        onSave={(profile) => handleProfileSave(profile)}
       />
 
       <OperateConfirmationDialog
