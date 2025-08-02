@@ -132,6 +132,21 @@ const restoreCategoryById = async (id: number): Promise<Category> => {
   throw new Error(res.message || `Failed to restore category ${id}`);
 };
 
+const getCategoryPageById = async (id: number, pageSize = 10, keyword = ""): Promise<number> => {
+  const res = await get<{ page: number }>(`/categories/${id}/page`, {
+    pageSize,
+    keyword,
+  });
+
+  const page = res.data?.page;
+
+  if (typeof page !== "number") {
+    throw new Error("Invalid response from getCategoryPageById");
+  }
+
+  return page;
+};
+
 export {
   createCategory,
   fetchAllTreeCategories,
@@ -143,4 +158,5 @@ export {
   deleteCategoryById,
   deleteCategories,
   restoreCategoryById,
+  getCategoryPageById,
 };

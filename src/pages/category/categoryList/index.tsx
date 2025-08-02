@@ -1,15 +1,10 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import { GridColDef } from "@mui/x-data-grid";
 import CategoryTable from "./categoryTable";
 import CategoryDetailDialog from "./categoryDetailsDialog";
-import {
-  fetchRootCategories,
-  fetchChildrenCategories,
-  restoreCategoryById,
-  fetchAllCategories,
-} from "../../../request/category";
+import { fetchRootCategories, fetchChildrenCategories, restoreCategoryById } from "../../../request/category";
 import { Category } from "../../../types/category";
 import { Box, Chip, IconButton, Typography } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -69,9 +64,16 @@ interface CategoryListProps {
   onSelectionChange?: (selectedIds: number[]) => void;
   selectedIds?: number[];
   keyword?: string;
+  highlightId?: number | null;
 }
 
-const CategoryList: React.FC<CategoryListProps> = ({ reloadTrigger, onSelectionChange, selectedIds, keyword }) => {
+const CategoryList: React.FC<CategoryListProps> = ({
+  reloadTrigger,
+  onSelectionChange,
+  selectedIds,
+  keyword,
+  highlightId,
+}) => {
   const roles = useUserRoles();
   const isAdmin = roles.some((r) => r.roleName === "admin");
 
@@ -94,13 +96,23 @@ const CategoryList: React.FC<CategoryListProps> = ({ reloadTrigger, onSelectionC
     filter: "",
   });
 
+  const [searchParams] = useSearchParams();
+
   useEffect(() => {
-    setFilterPagedResultRequest((prev) => ({
-      ...prev,
-      page: 1,
+    const pageParam = searchParams.get("page");
+    const pageSizeParam = searchParams.get("pageSize");
+    const idParam = searchParams.get("id");
+
+    setFilterPagedResultRequest({
+      page: pageParam ? parseInt(pageParam, 10) : 1,
+      pageSize: pageSizeParam ? parseInt(pageSizeParam, 10) : 10,
       filter: keyword || "",
-    }));
-  }, [keyword]);
+    });
+
+    if (idParam) {
+      setSelectedId(Number(idParam));
+    }
+  }, [searchParams, keyword]);
 
   const [pageData, setPageData] = useState<PagedResultDto<Category>>({
     items: [],
@@ -111,32 +123,33 @@ const CategoryList: React.FC<CategoryListProps> = ({ reloadTrigger, onSelectionC
     const getPageData = async () => {
       setLoading(true);
       try {
-        let filterPagedResultRequestDto: FilterPagedResultRequestDto = {
-          ...filterPagedResultRequest,
-        };
+        const pageParam = searchParams.get("page");
+        const pageSizeParam = searchParams.get("pageSize");
 
-        const { page, pageSize, filter } = filterPagedResultRequestDto;
+        const page = pageParam ? parseInt(pageParam, 10) : 1;
+        const pageSize = pageSizeParam ? parseInt(pageSizeParam, 10) : 10;
+        const filter = keyword || "";
 
-        let resp: { categories: Category[]; total: number };
-
-        if (filter?.trim()) {
-          resp = await fetchAllCategories(page, pageSize, filter);
-        } else {
-          resp = id
-            ? await fetchChildrenCategories(parseInt(id), page, pageSize, filter)
-            : await fetchRootCategories(page, pageSize, filter);
-        }
+        const resp = id
+          ? await fetchChildrenCategories(Number(id), page, pageSize, filter)
+          : await fetchRootCategories(page, pageSize, filter);
 
         setPageData({
           items: resp.categories,
           total: resp.total,
         });
+
+        const idParam = searchParams.get("id");
+        setSelectedId(idParam ? Number(idParam) : null);
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
       } finally {
         setLoading(false);
       }
     };
+
     getPageData();
-  }, [id, filterPagedResultRequest, reloadTrigger]);
+  }, [searchParams, id, keyword, reloadTrigger]);
 
   const baseColumns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 50 },
@@ -306,6 +319,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ reloadTrigger, onSelectionC
         onViewChildren={handleViewChildren}
         onSelectionChange={onSelectionChange}
         selectedIds={selectedIds}
+        getRowClassName={(params) => (params.row.id === highlightId ? "Mui-selected-category" : "")}
       />
 
       <CategoryDetailDialog

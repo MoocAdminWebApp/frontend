@@ -129,7 +129,7 @@ const CategoryDetailDialog: React.FC<CategoryDetailDialogProps> = ({ open, categ
                   <strong>Deleted At</strong>
                 </Grid>
                 <Grid item xs={6}>
-                  {data.deletedAt ? new Date(data.deletedAt as string).toLocaleString() : "-"}
+                  {data.deletedAt ? new Date(data.deletedAt as string).toLocaleString() : ""}
                 </Grid>
               </>
             )}

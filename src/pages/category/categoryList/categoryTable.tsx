@@ -1,5 +1,5 @@
 import * as React from "react";
-import { DataGrid, GridColDef, GridPaginationModel } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridPaginationModel, GridRowClassNameParams } from "@mui/x-data-grid";
 import { PagedResultDto } from "../../../types/types";
 import { Category } from "../../../types/category";
 
@@ -18,6 +18,7 @@ interface CategoryTableProps {
   onViewChildren: (row: Category) => void;
   onSelectionChange?: (selectedIds: number[]) => void;
   selectedIds?: number[];
+  getRowClassName?: (params: GridRowClassNameParams) => string;
 }
 
 const CategoryTable: React.FC<CategoryTableProps> = ({
@@ -34,6 +35,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
   onViewChildren,
   onSelectionChange,
   selectedIds,
+  getRowClassName,
 }) => {
   const rows = pagedResult.items;
   const rowCount = pagedResult.total;
@@ -58,6 +60,7 @@ const CategoryTable: React.FC<CategoryTableProps> = ({
       }}
       rowSelectionModel={selectedIds}
       autoHeight
+      getRowClassName={getRowClassName}
     />
   );
 };

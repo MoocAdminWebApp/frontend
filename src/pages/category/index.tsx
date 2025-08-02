@@ -4,7 +4,7 @@ import { Box, TextField, Button, CircularProgress } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import { Category } from "../../types/category";
-import { createCategory, deleteCategories, fetchAllTreeCategories } from "../../request/category";
+import { createCategory, deleteCategories, fetchAllTreeCategories, getCategoryPageById } from "../../request/category";
 import CategoryList from "./categoryList";
 import CategoryTree from "./categoryTree/index";
 import { useSelector } from "react-redux";
@@ -76,12 +76,38 @@ const CategoryPage: React.FC = () => {
 
   const debouncedSearchText = useDebounce(searchText, 500);
 
+  const [highlightId, setHighlightId] = useState<number | null>(null);
+
+  // const handleTreeSelect = useCallback(
+  //   (category: Category) => {
+  //     setHighlightId(category.id);
+
+  //     if (category.parentId === null) {
+  //       navigate("/category");
+  //     } else {
+  //       navigate(`/category/${category.parentId}/children`);
+  //     }
+  //   },
+  //   [navigate]
+  // );
+
   const handleTreeSelect = useCallback(
-    (category: Category) => {
-      if (category.parentId === null) {
-        navigate("/category");
-      } else {
-        navigate(`/category/${category.parentId}/children`);
+    async (category: Category) => {
+      try {
+        const pageSize = 10; // 和 CategoryList 默认保持一致
+        const page = await getCategoryPageById(category.id, pageSize);
+        console.log("Page index fetched:", page);
+
+        setHighlightId(category.id);
+
+        // 父类路径（顶级或子类）
+        const parentPath = category.parentId === null ? "/category" : `/category/${category.parentId}/children`;
+
+        // 拼接参数：?page=2&pageSize=10&id=12
+        navigate(`${parentPath}?page=${page}&pageSize=${pageSize}&id=${category.id}`);
+      } catch (err: any) {
+        console.error("Failed to navigate to selected category:", err);
+        toast.error(err?.message || "Failed to navigate");
       }
     },
     [navigate]
@@ -119,7 +145,7 @@ const CategoryPage: React.FC = () => {
         setReloadTrigger((v) => v + 1);
       } else {
         navigate(newPath);
-        setReloadTrigger((v) => v + 1); 
+        setReloadTrigger((v) => v + 1);
       }
     } catch (err: any) {
       console.error(err);
@@ -196,6 +222,7 @@ const CategoryPage: React.FC = () => {
             onSelectionChange={setSelectedIds}
             selectedIds={selectedIds}
             keyword={debouncedSearchText}
+            highlightId={highlightId}
           />
         </Box>
       </Box>
