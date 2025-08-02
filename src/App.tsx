@@ -20,7 +20,7 @@ import ResetPwdSuccess from "./pages/ResetPwdSuccess";
 import ResetPwd from "./pages/ResetPwd";
 import ForgotPwd from "./pages/ForgotPwd";
 import SendResetEmailSuccess from "./pages/SendResetEmailSuccess";
-import User from "./pages/User";
+import User from "./pages/user";
 import Role from "./pages/role";
 import Menu from "./pages/menu";
 import Course from "./pages/course/index";
