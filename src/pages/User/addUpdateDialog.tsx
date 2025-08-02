@@ -26,9 +26,9 @@ interface AddUpdateDialogProps {
   roles: RoleDto[];
 }
 const accessOptions = [
-  { value: "ADMIN", label: "Admin" },
-  { value: "TEACHER", label: "Teacher" },
-  { value: "STUDENT", label: "Student" },
+  { value: "ADMIN", label: "ADMIN" },
+  { value: "TEACHER", label: "TEACHER" },
+  { value: "STUDENT", label: "STUDENT" },
 ];
 const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
   open,
@@ -154,6 +154,8 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
                 fullWidth
                 margin="normal"
                 variant="outlined"
+                error={touched.access && Boolean(errors.access)}
+                helperText={touched.access && errors.access}
               >
                 {accessOptions.map((option) => (
                   <MenuItem key={option.value} value={option.value}>
