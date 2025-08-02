@@ -306,13 +306,21 @@ const CategoryList: React.FC<CategoryListProps> = ({
     }
   };
 
+  let prevPageSize = 10;
   const onPaginationModelChange = (newModel: GridPaginationModel) => {
-    setFilterPagedResultRequest((preState) => {
-      return {
-        ...preState,
-        page: newModel.page + 1,
-        pageSize: newModel.pageSize,
-      };
+    const newPageSize = newModel.pageSize;
+
+    const newPage = newPageSize !== prevPageSize ? 1 : newModel.page + 1;
+
+    prevPageSize = newPageSize;
+
+    const currentParams = new URLSearchParams(searchParams);
+    currentParams.set("page", newPage.toString());
+    currentParams.set("pageSize", newPageSize.toString());
+
+    navigate({
+      pathname: id ? `/category/${id}/children` : "/category",
+      search: currentParams.toString(),
     });
   };
 
