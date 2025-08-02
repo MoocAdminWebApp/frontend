@@ -38,11 +38,16 @@ interface RoleInfo {
 }
 
 interface TokenPayload {
-  id: number;
+  userId: number;
+  profileId:number;
   firstName: string;
   lastName: string;
   email: string;
   roles: RoleInfo[];
+  address:string;
+  gender: string;
+  phone: string;
+  birthdate:string;
 }
 //Define Yup validation rules
 const LoginSchema = Yup.object().shape({
@@ -75,11 +80,16 @@ const Login: React.FC = () => {
       });
       const decodedData = jwtDecode<TokenPayload>(resp.data);
        const userForFrontEnd = {
-        userId: decodedData.id,
+        userId: decodedData.userId,
+        profileId:decodedData.profileId,
         lastName: decodedData.lastName,
         firstName: decodedData.firstName,
         email: decodedData.email,
         avatar: undefined,
+        address: decodedData.address,
+        gender: decodedData.gender,
+        phone: decodedData.phone,
+        birthdate:decodedData.birthdate,
       };
       if (resp.isSuccess) {
         dispatch(
@@ -88,7 +98,6 @@ const Login: React.FC = () => {
             user: userForFrontEnd,
           })
         ); //Update Redux status
-
         navigate("/"); //After successful login, jump to the homepage
       } else {
         setError(resp.message || "Invalid username or password");

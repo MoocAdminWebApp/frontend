@@ -18,13 +18,19 @@ import {
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { Gender } from '../types/enum';
-import { get, post } from '../request/axios';
+import { get, post, put } from '../request/axios';
 import toast from 'react-hot-toast';
 import AvatarCrop from '../components/avatarCrop';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { reSetAvatar } from '../store/authSlice';
 import { ensureTrailingSlash, imageHttpUrlToBase64, isBase64DataURL } from '../utils/stringUtil';
 //import 'cropperjs/dist/cropper.min.css';
+import type { RootState } from "../store/store"; 
+import { mapGenderStringToEnum, mapGenderEnumToString } from '../utils/mapGenderAndEnum';
+import CloseIcon from '@mui/icons-material/Close';
+import IconButton from '@mui/material/IconButton';
+import { useNavigate } from 'react-router-dom'; 
+
 
 // Form Validation Rules
 const validationSchema = Yup.object().shape({
@@ -37,41 +43,50 @@ const validationSchema = Yup.object().shape({
 
 // Form data type
 interface FormValues {
-  id: number;
-  userName: string;
-  avatar?: string | null;
-  email: string;
-  phone: string;
-  age: number;
-  address: string;
-  gender: Gender
+  userId: number | "" | undefined;
+  firstName: string | "" | undefined;
+  lastName: string | "" | undefined;
+  avatar?: string | null | undefined;
+  email: string | ""| undefined;
+  phoneNumber: string | ""| undefined;
+  birthdate: "" | "" |undefined;
+  streetAddress: string | ""| undefined;
+  gender: Gender;
 }
-
-
-
-
 
 
 const ProfileForm = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [savePreview, setSavePreview] = useState<string | null>(null);
-
-
-  const [initialValues, setInitialValues] = useState<FormValues>({
-    id: 0,
-    userName: '',
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+    const [initialValues, setInitialValues] = useState<FormValues>({
+    userId: 0,
+    firstName: "",
+    lastName:"",
     avatar: '',
     email: '',
-    phone: '',
-    age: 0,
-    address: '',
+    phoneNumber: '',
+    birthdate: "",
+    streetAddress: '',
     gender: Gender.Other
   });
+  const navigate = useNavigate();
+  
+  const { user } = useSelector((state:RootState) => state.auth);
+
+  useEffect(()=>{
+    setInitialValues({userId:user?.userId, firstName:user?.firstName, lastName: user?.lastName, avatar:'', email:user?.email, phoneNumber:user?.phone, birthdate:user?.birthdate, streetAddress:user?.address, gender:mapGenderStringToEnum(user?.gender) });
+  },[])
 
   return (
     <Box sx={{ padding: 3 }}>
       <Card>
-        <CardHeader title="Profile" />
+        <CardHeader title="Profile" action={
+          <IconButton aria-label="close" onClick={() => navigate(-1)}>
+        <CloseIcon />
+      </IconButton>
+        }/>
         <Divider />
         <CardContent>
           <Grid container spacing={3}>
@@ -86,88 +101,127 @@ const ProfileForm = () => {
                 enableReinitialize={true}
                 initialValues={initialValues}
                 validationSchema={validationSchema}
-                onSubmit={async (values, { setSubmitting }) => {
-
-                  setSubmitting(false);
+                onSubmit={async (values: FormValues, { setSubmitting }) => {  
+                setIsLoading(true);
+                setError("");
+                //user data and profile data are stored in two separate tables in the backend,so need to update them both
+                const { firstName,lastName, email, gender, ...rest } = values; 
+                try {
+                      let respFromUserTable = await put<FormValues>(`/users/${user?.userId}`, 
+                        {
+                           "firstName": values.firstName,
+                          "lastName": values.lastName, 
+                        }
+                      )
+                      let respFromProfileTable = await put<FormValues>(`/profiles/${user?.profileId}`, 
+                         {
+                           ...rest,
+                          gender: mapGenderEnumToString(values.gender),        
+                         }
+                      );
+                      if (respFromUserTable.isSuccess && respFromProfileTable.isSuccess) {
+                          toast.success("User profile update success !");
+                        } else {
+                          const msg = respFromUserTable.message || respFromProfileTable.message || "Update user profile failed" !
+                         setError(msg);
+                        }
+                      } catch (err) {
+                        setError("Update user profile failed !");
+                      
+                      } finally {
+                        setIsLoading(false);
+                        setSubmitting(false);
+                      }         
+          
                 }}
               >
                 {({ values, handleChange, handleBlur, errors, touched, isSubmitting }) => (
                   <Form>
-                    <Grid container spacing={2}>
-
-                      <Grid item xs={12}>
-                        <TextField
-                          name="userName"
-                          label="userName"
-                          value={values.userName}
-                          disabled
-                          fullWidth
-                          margin="normal"
-                          variant="outlined"
-
-                        />
-
-                      </Grid>
-
-                      <Grid item xs={12}>
+                    <Grid container spacing={2}>              
+                    <Grid item xs={12}>
                         <TextField
                           name="email"
-                          label="email"
+                          label="Email"
                           value={values.email}
                           onChange={handleChange}
                           onBlur={handleBlur}
                           fullWidth
+                          disabled
                           margin="normal"
                           variant="outlined"
                           error={touched.email && Boolean(errors.email)}
                           helperText={touched.email && errors.email}
                         />
-
                       </Grid>
 
                       <Grid item xs={12}>
                         <TextField
-                          name="phone"
-                          label="phone"
-                          value={values.phone}
+                          name="firstName"
+                          label="First Name"
+                          value={values.firstName}
+                          onChange={handleChange}
+                          fullWidth
+                          type="text"
+                          margin="normal"
+                          variant="outlined"
+                        />
+                      </Grid>
+
+                        <Grid item xs={12}>
+                        <TextField
+                          name="lastName"
+                          label="Last Name"
+                          value={values.lastName}
+                         onChange={handleChange}
+                          fullWidth
+                          type="text"
+                          margin="normal"
+                          variant="outlined"
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          name="phoneNumber"
+                          label="Phone Number"
+                          value={values.phoneNumber}
                           onChange={handleChange}
                           onBlur={handleBlur}
                           fullWidth
                           margin="normal"
                           variant="outlined"
-                          error={touched.phone && Boolean(errors.phone)}
-                          helperText={touched.phone && errors.phone}
+                          error={touched.phoneNumber && Boolean(errors.phoneNumber)}
+                          helperText={touched.phoneNumber && errors.phoneNumber}
                         />
                       </Grid>
 
                       <Grid item xs={12}>
                         <TextField
-                          name="age"
-                          label="age"
-                          value={values.age}
+                          name="birthdate"
+                          label="Birthdate"
+                          value={values.birthdate}
                           onChange={handleChange}
                           onBlur={handleBlur}
-                          type="number"
+                          type="date"
                           fullWidth
                           margin="normal"
                           variant="outlined"
-                          error={touched.age && Boolean(errors.age)}
-                          helperText={touched.age && errors.age}
+                          error={touched.birthdate && Boolean(errors.birthdate)}
+                          helperText={touched.birthdate && errors.birthdate}
                         />
                       </Grid>
 
                       <Grid item xs={12}>
                         <TextField
-                          name="address"
-                          label="address"
-                          value={values.address}
+                          name="streetAddress"
+                          label="Street Address"
+                          value={values.streetAddress}
                           onChange={handleChange}
                           onBlur={handleBlur}
                           fullWidth
                           margin="normal"
                           variant="outlined"
-                          error={touched.address && Boolean(errors.address)}
-                          helperText={touched.address && errors.address}
+                          error={touched.streetAddress && Boolean(errors.streetAddress)}
+                          helperText={touched.streetAddress && errors.streetAddress}
                         />
                       </Grid>
                       <Grid item xs={12}>
