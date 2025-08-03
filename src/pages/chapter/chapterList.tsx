@@ -27,6 +27,7 @@ function ChapterList<T>(props: ChapterListProps<T>) {
 
   return (
     <DataGrid
+      sx={{ width: "100%" }} 
       loading={props.loading || false}
       rows={props.pagedResult.items}
       rowCount={props.pagedResult.total}

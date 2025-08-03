@@ -26,6 +26,8 @@ export interface ChapterDto {
   content?: string | null;
   videoUrl?: string | null;
   duration?: number | null;
+  createdBy?: number | null;
+  updatedBy?: number | null;
 }
 
 export type UpdateChapterDto = ChapterDto; // 或者直接用 ChapterDto 代替
