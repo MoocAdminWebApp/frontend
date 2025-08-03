@@ -53,8 +53,6 @@ const App: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.auth.user);
-  // const activeMenuId = useActiveMenuIdFromRoute();
-  // console.log("Current active menu id: ", activeMenuId);
   useEffect(() => {
     dispatch(fetchRouteMapping());
   }, [dispatch]);

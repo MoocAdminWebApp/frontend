@@ -1,14 +1,6 @@
 import * as React from "react";
-import {
-  Box,
-  Button,
-  TextField,
-  IconButton,
-} from "@mui/material";
-import {
-  GridColDef,
-  GridPaginationModel,
-} from "@mui/x-data-grid";
+import { Box, Button, TextField, IconButton } from "@mui/material";
+import { GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -30,13 +22,20 @@ import {
   PagedResultDto,
 } from "../../types/types";
 
+// permission control imports
+import { useEffect, useRef, useState } from "react";
+import { useActiveMenuIdFromRoute } from "../../hooks/useActiveMenuIdFromRoute";
+import BtnPermissionControl from "../../components/permissionControl/BtnPermissionControl";
+import PagePermissionControl from "../../components/permissionControl/PagePermissionControl";
+import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
+import PageLoading from "../../components/PageLoading";
+
 const isUpdateDto = (
   dto: CreateCourseOfferingDto | UpdateCourseOfferingDto | null
 ): dto is UpdateCourseOfferingDto =>
-  dto !== null &&
-  "id" in dto &&
-  typeof dto.id === "number" &&
-  dto.id > 0;
+  dto !== null && "id" in dto && typeof dto.id === "number" && dto.id > 0;
 
 const CourseOffering: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
@@ -50,44 +49,60 @@ const CourseOffering: React.FC = () => {
     page: 1,
     pageSize: 10,
   });
-  const [pagedResult, setPagedResult] =
-    React.useState<PagedResultDto<UpdateCourseOfferingDto>>({
-      items: [],
-      total: 0,
-    });
+  const [pagedResult, setPagedResult] = React.useState<
+    PagedResultDto<UpdateCourseOfferingDto>
+  >({
+    items: [],
+    total: 0,
+  });
 
   const searchQuery = useDebounce(searchText, 500);
   React.useEffect(() => {
     setFilter((prev) => ({ ...prev, filter: searchQuery }));
   }, [searchQuery]);
 
-  const load = async () => {
-      setLoading(true);
-      const resp = await get<ApiResponseResult<PagedResultDto<UpdateCourseOfferingDto>>>(
-        `/courseofferings/by-page`,
-        {
-          page: filter.page,
-          pageSize: filter.pageSize,
-          fuzzyKeys: "courseName,teacherName",
-          filter: searchQuery ?? "",
-        }
-      );
-      console.log("resp",resp)
-      if (resp.isSuccess&&resp.data) {
-        const result = {
-          items: resp.data.data.items ?? [],
-          total: resp.data.data.total ?? 0,
-        };
-        
-        setPagedResult(result);
-      }
-      setLoading(false);
-    };
-
   React.useEffect(() => {
-    
     load();
   }, [filter]);
+
+  // page permission control init
+  const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
+  const activeMenuId = useActiveMenuIdFromRoute();
+  const { pagePrefix, loading: prefixLoading } =
+    usePagePrefixFromMenuId(activeMenuId);
+  const prefix = pagePrefix ? pagePrefix : "";
+
+  const permissions = useSelector((state: RootState) => state.auth.permissions);
+  const isPermissionLoaded = useSelector(
+    (state: RootState) => state.auth.isPermissionLoaded
+  );
+
+  if (prefixLoading || !isPermissionLoaded) {
+    return <PageLoading loading={true} message="Loading page..." />;
+  }
+  const hasPermission = (p: string) => permissions.includes(p);
+
+  const load = async () => {
+    setLoading(true);
+    const resp = await get<
+      ApiResponseResult<PagedResultDto<UpdateCourseOfferingDto>>
+    >(`/courseofferings/by-page`, {
+      page: filter.page,
+      pageSize: filter.pageSize,
+      fuzzyKeys: "courseName,teacherName",
+      filter: searchQuery ?? "",
+    });
+    console.log("resp", resp);
+    if (resp.isSuccess && resp.data) {
+      const result = {
+        items: resp.data.data.items ?? [],
+        total: resp.data.data.total ?? 0,
+      };
+
+      setPagedResult(result);
+    }
+    setLoading(false);
+  };
 
   const handlePaginationChange = (model: GridPaginationModel) => {
     setFilter((prev) => ({
@@ -129,30 +144,29 @@ const CourseOffering: React.FC = () => {
     }
   };
 
- 
-  
   const handleDelete = async () => {
-  const resp = await del(`/courseofferings/${deleteId}`);
+    const resp = await del(`/courseofferings/${deleteId}`);
 
-  const isOk = (resp as any).isSuccess ?? ((resp as any).status === 200 || (resp as any).status === 204);
+    const isOk =
+      (resp as any).isSuccess ??
+      ((resp as any).status === 200 || (resp as any).status === 204);
 
-  if (isOk) {
-    toast.success("Deleted successfully");
-    // await load();
-    setFilter((prev) => ({ ...prev, page: 1 }));
-  } else {
-    toast.error((resp as any).message || "Delete failed");
-  }
+    if (isOk) {
+      toast.success("Deleted successfully");
+      // await load();
+      setFilter((prev) => ({ ...prev, page: 1 }));
+    } else {
+      toast.error((resp as any).message || "Delete failed");
+    }
 
-  setConfirmOpen(false);
-};
-
+    setConfirmOpen(false);
+  };
 
   const columns: GridColDef[] = [
     { field: "courseName", headerName: "Course Name", flex: 1 },
     { field: "teacherName", headerName: "Teacher Name", flex: 1 },
     { field: "semester", headerName: "Semester", flex: 1 },
-    { field: "capacity", headerName: "Capacity", flex:1},
+    { field: "capacity", headerName: "Capacity", flex: 1 },
     { field: "location", headerName: "Location", flex: 1 },
     { field: "schedule", headerName: "Schedule", flex: 1 },
     {
@@ -161,17 +175,22 @@ const CourseOffering: React.FC = () => {
       width: 150,
       renderCell: ({ row }) => (
         <Box>
-          <IconButton onClick={() => handleEdit(row)}>
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            onClick={() => {
-              setDeleteId(row.id);
-              setConfirmOpen(true);
-            }}
-          >
-            <DeleteIcon />
-          </IconButton>
+          {/* permission control wrapping */}
+          <BtnPermissionControl hasAccess={hasPermission(`${prefix}:update`)}>
+            <IconButton onClick={() => handleEdit(row)}>
+              <EditIcon />
+            </IconButton>
+          </BtnPermissionControl>
+          <BtnPermissionControl hasAccess={hasPermission(`${prefix}:delete`)}>
+            <IconButton
+              onClick={() => {
+                setDeleteId(row.id);
+                setConfirmOpen(true);
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </BtnPermissionControl>
         </Box>
       ),
     },
@@ -190,16 +209,19 @@ const CourseOffering: React.FC = () => {
           }}
           sx={{ width: 300 }}
         />
-        <Button
-          startIcon={<AddIcon />}
-          variant="contained"
-          onClick={() => {
-            setCurrentItem(null);
-            setOpenDialog(true);
-          }}
-        >
-          Add Course
-        </Button>
+        {/* permission control wrapping */}
+        {hasPermission(`${prefix}:create`) && (
+          <Button
+            startIcon={<AddIcon />}
+            variant="contained"
+            onClick={() => {
+              setCurrentItem(null);
+              setOpenDialog(true);
+            }}
+          >
+            Add Course
+          </Button>
+        )}
       </Box>
 
       <CourseOfferingList<UpdateCourseOfferingDto>

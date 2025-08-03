@@ -55,9 +55,10 @@ import {
 import TreeTable from "../../components/tables/TreeTable";
 import { MenuType, StatusType, ExpandState } from "../../types/enum";
 
-import useActiveMenuId from "../../hooks/useActiveMenuId";
+// permission control imports
+import { useActiveMenuIdFromRoute } from "../../hooks/useActiveMenuIdFromRoute";
 import BtnPermissionControl from "../../components/permissionControl/BtnPermissionControl";
-import { usePagePermission } from "../../hooks/usePagePermission";
+import PagePermissionControl from "../../components/permissionControl/PagePermissionControl";
 import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
@@ -70,12 +71,14 @@ const Menu: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [selectedType, setSelectedType] = useState<string>("");
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
+  const [comfirmDialogOpen, setComfirmDialogOpen] = useState(false);
+  const [deData, setDelData] = useState(0);
 
-  const activeMenuId = useActiveMenuId();
-  const { pagePrefix } = usePagePrefixFromMenuId(activeMenuId);
-  const prefix = pagePrefix ? pagePrefix : "";
-  const permissions = useSelector((state: RootState) => state.auth.permissions);
-  const hasPermission = (p: string) => permissions.includes(p);
+  // const activeMenuId = useActiveMenuId();
+  // const { pagePrefix } = usePagePrefixFromMenuId(activeMenuId);
+  // const prefix = pagePrefix ? pagePrefix : "";
+  // const permissions = useSelector((state: RootState) => state.auth.permissions);
+  // const hasPermission = (p: string) => permissions.includes(p);
 
   useEffect(() => {
     setFilterResultRequest((pre) => ({ ...pre, filter: searchQuery }));
@@ -83,61 +86,6 @@ const Menu: React.FC = () => {
 
   /** Node expansion record (Expanded / Collapsed / NonExpandable) */
   const [expandMap, setExpandMap] = useState<Record<number, ExpandState>>({});
-  // toggles expand state of a node with given id
-  const handleToggleExpand = (id: number) => {
-    setExpandMap((prev) => ({
-      ...prev,
-      [id]:
-        prev[id] === ExpandState.Expanded
-          ? ExpandState.Collapsed
-          : ExpandState.Expanded,
-    }));
-  };
-
-  /**
-   * open Dialog
-   * @param user
-   */
-  const handleOpenDialog = (menu: UpdateMenuDto | null) => {
-    setCurrentMenu(menu);
-    setOpenDialog(true);
-  };
-
-  /**
-   * Close Dialog
-   */
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setCurrentMenu(null);
-  };
-
-  /**
-   * Save menu (add or modify)
-   * @param menu
-   */
-  const handleSaveMenu = async (menu: CreateMenuDto | UpdateMenuDto | null) => {
-    if (menu) {
-      if (menu.id > 0) {
-        let resp = await put<boolean>("/menus", menu);
-        if (resp.isSuccess) {
-          toast.success("update success");
-          setFilterResultRequest((pre) => ({ ...pre, page: 1 }));
-          handleCloseDialog();
-        } else {
-          toast.error(resp.message);
-        }
-      } else {
-        let resp = await post<boolean>("/menus", menu);
-        if (resp.isSuccess) {
-          toast.success("add success");
-          setFilterResultRequest((pre) => ({ ...pre, page: 1 }));
-          handleCloseDialog();
-        } else {
-          toast.error(resp.message);
-        }
-      }
-    }
-  };
 
   // Filter and sort conditions
   const [filterResultRequest, setFilterResultRequest] =
@@ -202,6 +150,79 @@ const Menu: React.FC = () => {
     }
   }, [treeData]);
 
+  // page permission control init
+  const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
+  const activeMenuId = useActiveMenuIdFromRoute();
+  const { pagePrefix, loading: prefixLoading } =
+    usePagePrefixFromMenuId(activeMenuId);
+  const prefix = pagePrefix ? pagePrefix : "";
+
+  const permissions = useSelector((state: RootState) => state.auth.permissions);
+  const isPermissionLoaded = useSelector(
+    (state: RootState) => state.auth.isPermissionLoaded
+  );
+
+  if (prefixLoading || !isPermissionLoaded) {
+    return <PageLoading loading={true} message="Loading page..." />;
+  }
+  const hasPermission = (p: string) => permissions.includes(p);
+
+  // toggles expand state of a node with given id
+  const handleToggleExpand = (id: number) => {
+    setExpandMap((prev) => ({
+      ...prev,
+      [id]:
+        prev[id] === ExpandState.Expanded
+          ? ExpandState.Collapsed
+          : ExpandState.Expanded,
+    }));
+  };
+
+  /**
+   * open Dialog
+   * @param user
+   */
+  const handleOpenDialog = (menu: UpdateMenuDto | null) => {
+    setCurrentMenu(menu);
+    setOpenDialog(true);
+  };
+
+  /**
+   * Close Dialog
+   */
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setCurrentMenu(null);
+  };
+
+  /**
+   * Save menu (add or modify)
+   * @param menu
+   */
+  const handleSaveMenu = async (menu: CreateMenuDto | UpdateMenuDto | null) => {
+    if (menu) {
+      if (menu.id > 0) {
+        let resp = await put<boolean>("/menus", menu);
+        if (resp.isSuccess) {
+          toast.success("update success");
+          setFilterResultRequest((pre) => ({ ...pre, page: 1 }));
+          handleCloseDialog();
+        } else {
+          toast.error(resp.message);
+        }
+      } else {
+        let resp = await post<boolean>("/menus", menu);
+        if (resp.isSuccess) {
+          toast.success("add success");
+          setFilterResultRequest((pre) => ({ ...pre, page: 1 }));
+          handleCloseDialog();
+        } else {
+          toast.error(resp.message);
+        }
+      }
+    }
+  };
+
   const columns: CustomColumn[] = [
     { field: "title", headerName: "Title", type: "text", width: 300 },
     { field: "status", headerName: "Status", type: "chip", width: 150 },
@@ -238,8 +259,6 @@ const Menu: React.FC = () => {
     }
   };
 
-  const [comfirmDialogOpen, setComfirmDialogOpen] = useState(false);
-  const [deData, setDelData] = useState(0);
   const handleDelete = async (id: GridRowId) => {
     setDelData(id as number);
     setComfirmDialogOpen(true);
@@ -260,19 +279,11 @@ const Menu: React.FC = () => {
   const handleComfirmCancel = () => {
     setComfirmDialogOpen(false);
   };
-  // console.log("Tree data: ", treeData);
 
   return (
     <Box sx={{ height: "100%", width: "95%", margin: "0 auto" }}>
       <h2>Menu Management</h2>
       <Box sx={{ height: 700, width: "100%", p: 3 }}>
-        {/* Load animation components */}
-        {/* <PageLoading
-                loading={loading}
-                size={50}
-                color="primary"
-                message="Loading menus, please wait..."
-            /> */}
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
           <TextField
             variant="outlined"

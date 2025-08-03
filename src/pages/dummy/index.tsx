@@ -3,22 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   IconButton,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
   Tooltip,
   Stack,
   Typography,
-  Switch,
-  FormControlLabel,
 } from "@mui/material";
 
 import { GridColDef, GridPaginationModel, GridRowId } from "@mui/x-data-grid";
@@ -49,12 +38,16 @@ import PermissionControl from "../../components/PermissionControl";
 import AddUpdateDialog from "./addUpdateDialog";
 
 // TODO: Copy and paste the following code block
+// permission control imports
+// import { useEffect, useRef, useState } from "react";
 import { useActiveMenuIdFromRoute } from "../../hooks/useActiveMenuIdFromRoute";
 import BtnPermissionControl from "../../components/permissionControl/BtnPermissionControl";
 import PagePermissionControl from "../../components/permissionControl/PagePermissionControl";
 import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
+// import PageLoading from "../../components/PageLoading";
+
 // TODO: End of copy and paste
 
 const Demos: React.FC = () => {
@@ -103,6 +96,7 @@ const Demos: React.FC = () => {
   };
 
   // TODO: Copy and paste the following code block
+  // page permission control init
   const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
   const activeMenuId = useActiveMenuIdFromRoute();
   const { pagePrefix, loading: prefixLoading } =
@@ -221,6 +215,7 @@ const Demos: React.FC = () => {
       renderCell: (params) => (
         <Box>
           {/* TODO: Wrap your button component with <BtnPermissionControl> like the following */}
+          {/* permission control wrapping */}
           <BtnPermissionControl hasAccess={hasPermission(`${prefix}:view`)}>
             <IconButton>
               <VisibilityIcon />
@@ -296,7 +291,7 @@ const Demos: React.FC = () => {
                 message="Loading demos, please wait..."
             /> */}
       <h2>Button Permission Control Demonstration Page</h2>
-      {/* <div>
+      <div>
         <h3>
           具体应添加的代码请参见
           src/pages/dummy/index.tsx，所有新增代码均有TODO注释
@@ -324,11 +319,34 @@ const Demos: React.FC = () => {
             TODO），不需修改其他文件
             <br></br>
             <ul>
-              已完成添加模块的PermissionControl：
-              <ul>
-                System Management
-                <li>Menu</li>
-              </ul>
+              ✅已完成添加以下模块的PermissionControl，可以直接在对应的module/index.tsx搜索：permission
+              control
+              <li>
+                <b>Dashboard</b>
+              </li>
+              <li>
+                <b>System Management</b>
+                <ul>✅Role</ul>
+                <ul>✅User</ul>
+                <ul>✅Menu</ul>
+                <ul>Permission</ul>
+              </li>
+              <li>
+                <b>Course Management</b>
+                <ul>✅Course</ul>
+                <ul>✅Chapter</ul>
+                <ul>🤔Category -- 已自带permissionion control，未新增</ul>
+                <ul>✅Course Offering</ul>
+                <ul>⌛️Carousel -- 暂无</ul>
+              </li>
+              <li>
+                <b>Exam Management</b>
+                <ul>⌛️Question Bank -- 等待最终版</ul>
+              </li>
+              <li>
+                <b>Dummy Testing</b>
+                <ul>✅Button Level Permission Control</ul>
+              </li>
             </ul>
           </li>
           <li>
@@ -339,7 +357,7 @@ const Demos: React.FC = () => {
             </b>
           </li>
         </ul>
-      </div> */}
+      </div>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
           variant="outlined"
@@ -354,6 +372,7 @@ const Demos: React.FC = () => {
           sx={{ width: 300 }}
         />
         {/* TODO: Wrap your button component like the following, and change the "create" to the action you want to wrap, e.g. "assign" */}
+        {/* permission control wrapping */}
         {hasPermission(`${prefix}:create`) && (
           <Button
             disabled={loading}

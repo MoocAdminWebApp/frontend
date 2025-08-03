@@ -7,10 +7,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import {
-  GridColDef,
-  GridPaginationModel,
-} from "@mui/x-data-grid";
+import { GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -24,15 +21,30 @@ import useDebounce from "../../hooks/useDebounce";
 import CourseList from "./courseList";
 import AddUpdateCourseDialog from "./addUpdateCourseDialog";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
-import { CourseDto, CreateCourseDto, UpdateCourseDto } from "../../types/course";
+import {
+  CourseDto,
+  CreateCourseDto,
+  UpdateCourseDto,
+} from "../../types/course";
 import { FilterPagedResultRequestDto, PagedResultDto } from "../../types/types";
 import { formatDateValue } from "../../utils/formatDate";
 import UserNameCell from "../../components/UserNameCell";
 
+// permission control imports
+import { useEffect, useRef, useState } from "react";
+import { useActiveMenuIdFromRoute } from "../../hooks/useActiveMenuIdFromRoute";
+import BtnPermissionControl from "../../components/permissionControl/BtnPermissionControl";
+import PagePermissionControl from "../../components/permissionControl/PagePermissionControl";
+import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
+import PageLoading from "../../components/PageLoading";
+
 const CoursePage: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
   const [openDialog, setOpenDialog] = React.useState(false);
-  const [currentCourse, setCurrentCourse] = React.useState<UpdateCourseDto | null>(null);
+  const [currentCourse, setCurrentCourse] =
+    React.useState<UpdateCourseDto | null>(null);
   const [searchText, setSearchText] = React.useState("");
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [deleteId, setDeleteId] = React.useState<number>(0);
@@ -40,7 +52,9 @@ const CoursePage: React.FC = () => {
     page: 1,
     pageSize: 10,
   });
-  const [pagedResult, setPagedResult] = React.useState<PagedResultDto<CourseDto>>({
+  const [pagedResult, setPagedResult] = React.useState<
+    PagedResultDto<CourseDto>
+  >({
     items: [],
     total: 0,
   });
@@ -54,15 +68,14 @@ const CoursePage: React.FC = () => {
   React.useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const resp = await get<PagedResultDto<CourseDto>>(
-        `/courses/page`,
-        {
-          page: filter.page,
-          pageSize: filter.pageSize,
-          filters: filter.filter ? JSON.stringify({ courseName: filter.filter }) : undefined,
-          fuzzyKeys: "courseName",
-        }
-      );
+      const resp = await get<PagedResultDto<CourseDto>>(`/courses/page`, {
+        page: filter.page,
+        pageSize: filter.pageSize,
+        filters: filter.filter
+          ? JSON.stringify({ courseName: filter.filter })
+          : undefined,
+        fuzzyKeys: "courseName",
+      });
       if (resp.isSuccess && resp.data) {
         setPagedResult(resp.data);
       } else {
@@ -72,6 +85,23 @@ const CoursePage: React.FC = () => {
     };
     load();
   }, [filter]);
+
+  // page permission control init
+  const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
+  const activeMenuId = useActiveMenuIdFromRoute();
+  const { pagePrefix, loading: prefixLoading } =
+    usePagePrefixFromMenuId(activeMenuId);
+  const prefix = pagePrefix ? pagePrefix : "";
+
+  const permissions = useSelector((state: RootState) => state.auth.permissions);
+  const isPermissionLoaded = useSelector(
+    (state: RootState) => state.auth.isPermissionLoaded
+  );
+
+  if (prefixLoading || !isPermissionLoaded) {
+    return <PageLoading loading={true} message="Loading page..." />;
+  }
+  const hasPermission = (p: string) => permissions.includes(p);
 
   const handlePaginationChange = (model: GridPaginationModel) => {
     setFilter((prev) => ({
@@ -85,7 +115,8 @@ const CoursePage: React.FC = () => {
     if (!course) return;
 
     let resp;
-    const isUpdate = "id" in course && typeof course.id === "number" && course.id > 0;
+    const isUpdate =
+      "id" in course && typeof course.id === "number" && course.id > 0;
 
     if (isUpdate) {
       resp = await put(`/courses/${course.id}`, course);
@@ -173,17 +204,22 @@ const CoursePage: React.FC = () => {
       width: 150,
       renderCell: ({ row }) => (
         <Box>
-          <IconButton onClick={() => handleEdit(row)}>
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            onClick={() => {
-              setDeleteId(row.id);
-              setConfirmOpen(true);
-            }}
-          >
-            <DeleteIcon />
-          </IconButton>
+          {/* permission control wrapping */}
+          <BtnPermissionControl hasAccess={hasPermission(`${prefix}:update`)}>
+            <IconButton onClick={() => handleEdit(row)}>
+              <EditIcon />
+            </IconButton>
+          </BtnPermissionControl>
+          <BtnPermissionControl hasAccess={hasPermission(`${prefix}:delete`)}>
+            <IconButton
+              onClick={() => {
+                setDeleteId(row.id);
+                setConfirmOpen(true);
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </BtnPermissionControl>
         </Box>
       ),
     },
@@ -203,16 +239,19 @@ const CoursePage: React.FC = () => {
           }}
           sx={{ width: 300 }}
         />
-        <Button
-          startIcon={<AddIcon />}
-          variant="contained"
-          onClick={() => {
-            setCurrentCourse(null);
-            setOpenDialog(true);
-          }}
-        >
-          Add Course
-        </Button>
+        {/* permission control wrapping */}
+        {hasPermission(`${prefix}:create`) && (
+          <Button
+            startIcon={<AddIcon />}
+            variant="contained"
+            onClick={() => {
+              setCurrentCourse(null);
+              setOpenDialog(true);
+            }}
+          >
+            Add Course
+          </Button>
+        )}
       </Box>
 
       <CourseList
@@ -225,7 +264,7 @@ const CoursePage: React.FC = () => {
       />
 
       <AddUpdateCourseDialog
-      key={currentCourse?.id ?? "new"}
+        key={currentCourse?.id ?? "new"}
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         data={currentCourse}

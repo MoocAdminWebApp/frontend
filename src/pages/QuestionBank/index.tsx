@@ -1,13 +1,13 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Button,
-  IconButton,
-  TextField,
-} from "@mui/material";
+import { Box, Button, IconButton, TextField } from "@mui/material";
 
-import { GridColDef, GridPaginationModel, GridRowId, GridRowSelectionModel } from "@mui/x-data-grid";
+import {
+  GridColDef,
+  GridPaginationModel,
+  GridRowId,
+  GridRowSelectionModel,
+} from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
@@ -15,12 +15,13 @@ import SearchIcon from "@mui/icons-material/Search";
 
 import toast from "react-hot-toast";
 import QuestionList from "./questionList";
-import {
-  FilterPagedResultRequestDto,
-  PagedResultDto,
-} from "../../types/types";
+import { FilterPagedResultRequestDto, PagedResultDto } from "../../types/types";
 import { del, get, post, put } from "../../request/axios/index";
-import { CreateQuestionDto, QuestionDto, UpdateQuestionDto } from "../../types/question";
+import {
+  CreateQuestionDto,
+  QuestionDto,
+  UpdateQuestionDto,
+} from "../../types/question";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
 import useDebounce from "../../hooks/useDebounce";
 import PermissionControl from "../../components/PermissionControl";
@@ -29,7 +30,8 @@ import AddUpdateDialog from "./addUpdateDialog";
 const Questions: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState<UpdateQuestionDto | null>(null);
+  const [currentQuestion, setCurrentQuestion] =
+    useState<UpdateQuestionDto | null>(null);
   const [searchText, setSearchText] = useState("");
 
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
@@ -58,13 +60,21 @@ const Questions: React.FC = () => {
    * Save question (add or modify)
    * @param question
    */
-  const handleSaveQuestion = async (question: CreateQuestionDto | UpdateQuestionDto | null) => {
+  const handleSaveQuestion = async (
+    question: CreateQuestionDto | UpdateQuestionDto | null
+  ) => {
     if (question) {
-      const {options, ...questionData} = question
+      const { options, ...questionData } = question;
 
       if (question.id > 0) {
-        let resQuestion = await put<boolean>(`/questions/${question.id}`, questionData);
-        let resOption = await put<boolean>(`/options/question/${question.id}`, options);
+        let resQuestion = await put<boolean>(
+          `/questions/${question.id}`,
+          questionData
+        );
+        let resOption = await put<boolean>(
+          `/options/question/${question.id}`,
+          options
+        );
 
         if (resQuestion.isSuccess && resOption.isSuccess) {
           toast.success("update success");
@@ -90,7 +100,7 @@ const Questions: React.FC = () => {
     useState<FilterPagedResultRequestDto>({ page: 1, pageSize: 10 });
   const [pageData, setPageData] = useState<PagedResultDto<QuestionDto>>({
     items: [],
-    total: 0
+    total: 0,
   });
 
   useEffect(() => {
@@ -100,11 +110,13 @@ const Questions: React.FC = () => {
         let filterPagedResultRequestDto: FilterPagedResultRequestDto = {
           ...filterPagedResultRequest,
         };
-        let filter = filterPagedResultRequest.filter ? `&title=${filterPagedResultRequestDto.filter}` : ""
+        let filter = filterPagedResultRequest.filter
+          ? `&title=${filterPagedResultRequestDto.filter}`
+          : "";
         let resp = await get<PagedResultDto<QuestionDto>>(
           `/questions/?page=${filterPagedResultRequestDto.page}&limit=${filterPagedResultRequestDto.pageSize}${filter}`
         );
-        console.log(resp.data)
+        console.log(resp.data);
         if (resp.isSuccess) {
           setPageData(resp.data);
         }
@@ -117,14 +129,15 @@ const Questions: React.FC = () => {
 
   //Table Column Definition
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 90, },
+    { field: "id", headerName: "ID", width: 90 },
     { field: "category", headerName: "Category", width: 120 },
     { field: "type", headerName: "Type", width: 120 },
-    { field: "content", headerName: "Question", flex:1, minWidth: 350 },
+    { field: "content", headerName: "Question", flex: 1, minWidth: 350 },
     { field: "difficulty", headerName: "Difficulty", width: 100 },
-    { field: "options", 
-      headerName: "Options Count", 
-      width: 130, 
+    {
+      field: "options",
+      headerName: "Options Count",
+      width: 130,
       valueGetter: (params: string[]) => params.length || 0,
     },
     {
@@ -176,17 +189,20 @@ const Questions: React.FC = () => {
     }
   };
 
-  const [deleteMode, setDelMode] = useState<"single" | "bulk"> ("single")
+  const [deleteMode, setDelMode] = useState<"single" | "bulk">("single");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [deleteId, setDelData] = useState(0);
 
-  const [rowSelectionModel, setRowSelectionModel] = useState<GridRowSelectionModel>([]);
-  const onRowSelectionModelChange = (newRowSelectionModel: GridRowSelectionModel) => {
-    setRowSelectionModel(newRowSelectionModel)
-  }
+  const [rowSelectionModel, setRowSelectionModel] =
+    useState<GridRowSelectionModel>([]);
+  const onRowSelectionModelChange = (
+    newRowSelectionModel: GridRowSelectionModel
+  ) => {
+    setRowSelectionModel(newRowSelectionModel);
+  };
 
   const handleDelete = async (id: GridRowId) => {
-    setDelMode("single")
+    setDelMode("single");
     setDelData(id as number);
     setConfirmDialogOpen(true);
   };
@@ -203,14 +219,14 @@ const Questions: React.FC = () => {
     console.log("handleConfirmDelete", deleteId);
   };
 
-  const handleBulkDelete= async() => {
-    setDelMode("bulk")
+  const handleBulkDelete = async () => {
+    setDelMode("bulk");
     setConfirmDialogOpen(true);
-  }
+  };
 
   const handleConfirmBulkDelete = async () => {
-    const ids = rowSelectionModel.map(Number)
-    let resp = await del<boolean>("questions/bulk", {ids});
+    const ids = rowSelectionModel.map(Number);
+    let resp = await del<boolean>("questions/bulk", { ids });
     if (resp.status === 204) {
       setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
       toast.success("delete success");
@@ -219,7 +235,7 @@ const Questions: React.FC = () => {
     }
     setConfirmDialogOpen(false);
     console.log("handleConfirmDelete", deleteId);
-  }
+  };
 
   const handleConfirmCancel = () => {
     setConfirmDialogOpen(false);
@@ -250,8 +266,15 @@ const Questions: React.FC = () => {
           }}
           sx={{ width: 300 }}
         />
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1, minWidth: "25%"}}>
-          <Button 
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            mb: 1,
+            minWidth: "25%",
+          }}
+        >
+          <Button
             size="small"
             disabled={rowSelectionModel.length === 0}
             variant="contained"
@@ -293,17 +316,19 @@ const Questions: React.FC = () => {
         open={confirmDialogOpen}
         title="confirm delete"
         content={
-          deleteMode === 'single'
+          deleteMode === "single"
             ? "Are you sure you want to delete this question? This action cannot be undone."
             : `Are you sure you want to delete ${rowSelectionModel.length} selected questions? This action cannot be undone.`
         }
-        onConfirm={deleteMode === "single" ? handleConfirmDelete : handleConfirmBulkDelete}
+        onConfirm={
+          deleteMode === "single"
+            ? handleConfirmDelete
+            : handleConfirmBulkDelete
+        }
         onCancel={handleConfirmCancel}
       />
     </Box>
   );
 };
-
-
 
 export default Questions;
