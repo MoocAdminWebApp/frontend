@@ -166,9 +166,12 @@ const Menu: React.FC = () => {
         `/menus/tree?filter=${filterResultRequest.filter ?? ""}`
       );
       if (resp.isSuccess) {
+        console.log("Raw Data:", resp.data);
         const raw = convertMenuDtoToTreeNode(resp.data.items); // Convert the returned MenuDto[] into TreeNode[]
         const builtTree = buildTreeFromFlatData(raw); // Construct tree-structure
         setTreeData(builtTree); // Store as source data for further processing
+      } else {
+        console.log("Fetch menu error");
       }
     };
     getRawData();

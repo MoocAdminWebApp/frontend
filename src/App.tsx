@@ -26,7 +26,6 @@ import Course from "./pages/course/index";
 import Chapter from "./pages/chapter/index";
 import CourseOffering from "./pages/courseOffering";
 import QuestionBank from "./pages/QuestionBank";
-import MenuTree from "./pages/menuTree";
 import CategoryPage from "./pages/category";
 import CategoryList from "./pages/category/categoryList";
 import Permission from "./pages/permission";
@@ -50,12 +49,16 @@ const App: React.FC = () => {
     setOpen(false);
   };
 
-  const dispatch = useDispatch();
-
-  // TODO: connect this part with permission api
+  const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.auth.user);
   const permissions = useSelector((state: RootState) => state.auth.permissions);
-
+  // console.log("Current user: ", user);
+  useEffect(() => {
+    if (user) {
+      console.log("Start fetching user's permission list");
+      dispatch(fetchUserPermissions(user.userId));
+    }
+  }, [user]);
   initSidebarMenu();
 
   return (
@@ -100,7 +103,6 @@ const App: React.FC = () => {
               <Route path="/Course" element={<Course />} />
               <Route path="/Chapter" element={<Chapter courseId={1} />} />
               <Route path="/QuestionBank" element={<QuestionBank />} />
-              <Route path="/MenuTree" element={<MenuTree />} />
               <Route path="/Dummy" element={<Dummy />} />
               <Route path="/Permission" element={<Permission />} />
               <Route path="/Category" element={<CategoryPage />}>

@@ -5,16 +5,21 @@ import { AppThunk } from "../store/store";
 import { PermissionDto } from "../types/permission";
 
 export const fetchUserPermissions =
-  (roleId: number): AppThunk =>
+  (userId: number): AppThunk =>
   async (dispatch) => {
+    console.log("This this fetchUserPermissions thunk");
     try {
-      const resp = await get<PermissionDto[]>(`/permission/role/${roleId}`);
+      const resp = await get<PermissionDto[]>(`/permissions/user/${userId}`);
       if (resp.isSuccess) {
         // convert PermissionDto[] into string[]
         const permissionList = resp.data.map((p) => p.permissionName);
+        console.log(
+          `User-${userId}'s permisson list: `,
+          permissionList.join(",")
+        );
         dispatch(setPermissions(permissionList));
       }
     } catch (err) {
-      console.error(`Failed to fetch role ${roleId} permission`, err);
+      console.error(`Failed to fetch user-${userId}'s permission`, err);
     }
   };
