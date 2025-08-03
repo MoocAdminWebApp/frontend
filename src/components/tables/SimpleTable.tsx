@@ -51,15 +51,12 @@ export const renderCellByType = (
     const { row } = params;
     const raw = row.raw ? row.raw : row;
     const value = raw[field];
-    // console.log("🔍 field:", field, " | value:", value, " | raw:", raw);
 
     switch (type) {
       case "text":
         /// Render permissionInfo as a Typography component (converting to string))
         if (field === "permissionInfo") {
-          return (
-            <Typography>{params.row.permissionInfo?.title || "-"}</Typography>
-          );
+          return <Typography>{value?.permissionName || "-"}</Typography>;
         }
         // Render date in a specific format(DD/MM/YYYY HH:MM) for createdAt field
         if (field === "createdAt" && value) {
