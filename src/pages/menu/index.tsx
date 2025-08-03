@@ -54,11 +54,13 @@ import {
 
 import TreeTable from "../../components/tables/TreeTable";
 import { MenuType, StatusType, ExpandState } from "../../types/enum";
-import useActiveMenuId from "../../hooks/useActiveMenuId";
 
+import useActiveMenuId from "../../hooks/useActiveMenuId";
 import BtnPermissionControl from "../../components/BtnPermissionControl";
 import { usePagePermission } from "../../hooks/usePagePermission";
 import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
 
 const Menu: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -68,17 +70,12 @@ const Menu: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [selectedType, setSelectedType] = useState<string>("");
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
+
   const activeMenuId = useActiveMenuId();
   const { pagePrefix } = usePagePrefixFromMenuId(activeMenuId);
   const prefix = pagePrefix ? pagePrefix : "";
-  const renderPage = usePagePermission(prefix);
-
-  useEffect(() => {
-    if (activeMenuId !== null) {
-      console.log("Current Active ID: ", activeMenuId);
-      console.log(`renderPage for Menu ${activeMenuId}:`, renderPage);
-    }
-  }, [activeMenuId]);
+  const permissions = useSelector((state: RootState) => state.auth.permissions);
+  const hasPermission = (p: string) => permissions.includes(p);
 
   useEffect(() => {
     setFilterResultRequest((pre) => ({ ...pre, filter: searchQuery }));
@@ -267,7 +264,7 @@ const Menu: React.FC = () => {
 
   return (
     <Box sx={{ height: "100%", width: "95%", margin: "0 auto" }}>
-      <h2>Menu Tree Testing</h2>
+      <h2>Menu Management</h2>
       <Box sx={{ height: 700, width: "100%", p: 3 }}>
         {/* Load animation components */}
         {/* <PageLoading
@@ -289,16 +286,16 @@ const Menu: React.FC = () => {
             }}
             sx={{ width: 300 }}
           />
-          {/* <BtnPermissionControl hasAccess={renderPage.create}> */}
-          <Button
-            disabled={loading}
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog(null)}
-          >
-            Add Menu
-          </Button>
-          {/* </BtnPermissionControl> */}
+          {hasPermission(`${prefix}:create`) && (
+            <Button
+              disabled={loading}
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog(null)}
+            >
+              Add Menu
+            </Button>
+          )}
         </Box>
 
         <AddUpdateDialog
