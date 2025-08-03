@@ -9,8 +9,8 @@ import { useSelector } from "react-redux"; // allows functional components to ex
  */
 export function usePagePermission(
   pagePrefix: string,
-  actions: string[] = ["add", "update", "delete", "view"]
-) {
+  actions: string[] = ["create", "update", "delete", "view", "assign"]
+): { renderPage: Record<string, boolean> } {
   // Retrieve user's all the permission list from redux
   const allPermissions = useSelector((state: any) => state.auth.permissions);
 
@@ -18,8 +18,7 @@ export function usePagePermission(
   const renderPage: Record<string, boolean> = {};
 
   for (const action of actions) {
-    renderPage[action] = allPermissions.includes(`${pagePrefix}.${action}`);
+    renderPage[action] = allPermissions.includes(`${pagePrefix}:${action}`);
   }
-
-  return renderPage;
+  return { renderPage };
 }

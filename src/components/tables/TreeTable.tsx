@@ -9,6 +9,7 @@ import { ColumnType, CustomColumn, renderCellByType } from "./SimpleTable";
 interface TreeTableProps {
   rows: FlatNode[];
   columns: CustomColumn[];
+  prefix: string;
   expandMap?: Record<number, ExpandState>;
   onToggleExpand?: (id: number) => void;
   onEdit?: (row: any) => void;
@@ -19,6 +20,7 @@ interface TreeTableProps {
 const TreeTable: React.FC<TreeTableProps> = ({
   rows,
   columns,
+  prefix,
   expandMap,
   onToggleExpand,
   onEdit,
@@ -33,6 +35,7 @@ const TreeTable: React.FC<TreeTableProps> = ({
     renderCell: renderCellByType(
       col.type || "text",
       col.field,
+      prefix,
       onEdit,
       onDelete,
       expandMap,

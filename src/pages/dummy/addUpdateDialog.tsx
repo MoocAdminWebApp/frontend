@@ -1,36 +1,25 @@
 import { useRef } from "react";
-import { CreateMenuDto, UpdateMenuDto } from "../../types/menu";
+import { CreateDemoDto, UpdateDemoDto } from "../../types/demo";
 import * as Yup from "yup";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  FormControlLabel,
-  Switch,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormControlLabel, Switch, TextField } from "@mui/material";
 import { Formik } from "formik";
-import { MenuType, StatusType } from "../../types/enum";
 
-//Umenuser pop-up component Prop
+//Udemoser pop-up component Prop
 interface AddUpdateDialogProps {
   open: boolean;
   onClose: () => void;
-  menu: UpdateMenuDto | null;
-  onSave: (user: CreateMenuDto | UpdateMenuDto | null) => void;
+  demo: UpdateDemoDto | null;
+  onSave: (user: CreateDemoDto | UpdateDemoDto | null) => void;
 }
+
 
 const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
   open,
   onClose,
-  menu,
+  demo,
   onSave,
 }) => {
-  //const isEdit = menu != null;
+  //const isEdit = demo != null;
   const validationSchema = Yup.object({
     title: Yup.string().required("title is required"),
     acitve: Yup.boolean()
@@ -44,20 +33,16 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
   });
 
   const initialValues = {
-    id: menu ? menu.id : 0,
-    title: menu ? menu.title : "",
-    comment: menu ? menu.comment : "",
-    menuType: menu ? menu.menuType : MenuType.Menu,
-    parentId: menu ? menu.parentId : null,
-    orderNum: menu ? menu.orderNum : 0,
-    route: menu ? menu.route : "",
-    componentPath: menu ? menu.componentPath : "",
-    permission: menu ? menu.permission : null,
-    status: menu ? menu.status : StatusType.Active,
+    id: demo ? demo.id : 0,
+    title: demo ? demo.title : "",
+    mark: demo ? demo.mark : "",
+    count: demo ? demo.count : 0,
+    acitve: demo ? demo.acitve : false,
+    dataTime: demo ? demo.dataTime : new Date(),
   };
 
   const formikRef = useRef<any>(null); //  formikRef
-  const handleSubmit = (values: UpdateMenuDto) => {
+  const handleSubmit = (values: UpdateDemoDto) => {
     if (onSave) {
       onSave(values);
     }
@@ -89,8 +74,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>{menu ? "Edit Menu" : "Add Menu"}</DialogTitle>
-      <Typography sx={{ color: "#ff0000" }}>TO BE FIXED</Typography>
+      <DialogTitle>{demo ? "Edit Demo" : "Add Demo"}</DialogTitle>
       <DialogContent>
         <Formik
           innerRef={formikRef}
@@ -121,14 +105,55 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
               />
 
               <TextField
-                name="comment"
-                label="comment"
-                value={values.comment}
+                name="mark"
+                label="mark"
+                value={values.mark}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 fullWidth
                 margin="normal"
                 variant="outlined"
+              />
+
+              <TextField
+                name="count"
+                label="count"
+                value={values.count}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                fullWidth
+                margin="normal"
+                variant="outlined"
+                type="number"
+              />
+
+              <FormControl fullWidth margin="normal" variant="outlined">
+                <TextField
+                  name="dataTime"
+                  label="Birthday"
+                  type="datetime-local"
+                  onBlur={handleBlur}
+                  value={toLocalISOString(values.dataTime)}
+                  onChange={(e) => {
+                    const date = e.target.value
+                      ? new Date(e.target.value)
+                      : null;
+                    setFieldValue("dataTime", date);
+                  }}
+                />
+              </FormControl>
+
+              <FormControlLabel
+                control={
+                  <Switch
+                    name="acitve"
+                    checked={values.acitve}
+                    onChange={handleChange}
+                    color="primary"
+                  />
+                }
+                label={values.acitve ? "acitve" : "not acitve"}
+                labelPlacement="end"
               />
             </form>
           )}
@@ -143,5 +168,6 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({
     </Dialog>
   );
 };
+
 
 export default AddUpdateDialog;

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -21,77 +21,66 @@ import {
   FormControlLabel,
 } from "@mui/material";
 
-import { GridColDef, GridRowId } from "@mui/x-data-grid";
+import { GridColDef, GridPaginationModel, GridRowId } from "@mui/x-data-grid";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 import toast from "react-hot-toast";
+import DemoList from "./demoList";
 import {
+  FilmOptionType,
+  FilterPagedResultRequestDto,
   ListResultDto,
-  FilterResultRequestDto,
-  TreeNode,
+  PagedResultDto,
 } from "../../types/types";
 import { del, get, post, put } from "../../request/axios/index";
-import { CreateMenuDto, MenuDto, UpdateMenuDto } from "../../types/menu";
+import { Gender } from "../../types/enum";
+import { Formik } from "formik";
+import { CreateDemoDto, DemoDto, UpdateDemoDto } from "../../types/demo";
 import PageLoading from "../../components/PageLoading";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
 import useDebounce from "../../hooks/useDebounce";
 import PermissionControl from "../../components/PermissionControl";
 import AddUpdateDialog from "./addUpdateDialog";
 
-// Table Structure
-import SimpleTable, { CustomColumn } from "../../components/tables/SimpleTable";
-import TreeTable from "../../components/tables/TreeTable";
-import {
-  buildTreeFromFlatData,
-  convertMenuDtoToTreeNode,
-  flattenTreeWithExpand,
-} from "../../utils/treeStructureUtil";
-import { MenuType, StatusType, ExpandState } from "../../types/enum";
-
-// Attention: This line is added for passing clicked menu id
+// TODO: Copy and paste the following code block
 import useActiveMenuId from "../../hooks/useActiveMenuId";
+import BtnPermissionControl from "../../components/BtnPermissionControl";
+import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
+// TODO: End of copy and paste
 
-const Dummy: React.FC = () => {
+const Demos: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [currentMenu, setCurrentMenu] = useState<UpdateMenuDto | null>(null);
+  const [currentDemo, setCurrentDemo] = useState<UpdateDemoDto | null>(null);
   const [searchText, setSearchText] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [selectedType, setSelectedType] = useState<string>("");
+
+  // TODO: Copy and paste the following code block
+  const activeMenuId = useActiveMenuId();
+  const { pagePrefix } = usePagePrefixFromMenuId(activeMenuId);
+  const prefix = pagePrefix ? pagePrefix : "";
+  const permissions = useSelector((state: RootState) => state.auth.permissions);
+  const hasPermission = (p: string) => permissions.includes(p);
+  // TODO: End of copy and paste
+
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
-
-  // Attention: The following code block is added for passing clicked menu id
-  const activeMenuId = useActiveMenuId(); // Make sure you import the function on line53
   useEffect(() => {
-    if (activeMenuId !== null) {
-      console.log("Current Active ID: ", activeMenuId);
-    }
-  }, [activeMenuId]);
-
-  useEffect(() => {
-    setFilterResultRequest((pre) => ({ ...pre, filter: searchQuery }));
+    setFilterPagedResultRequest((pre) => ({ ...pre, filter: searchQuery }));
   }, [searchQuery]);
-
-  /** Node expansion record (Expanded / Collapsed / NonExpandable) */
-  const [expandMap, setExpandMap] = useState<Record<number, ExpandState>>({});
-  // toggles expand state of a node with given id
-  const handleToggleExpand = (id: number) => {
-    setExpandMap((prev) => ({
-      ...prev,
-      [id]:
-        prev[id] === ExpandState.Expanded
-          ? ExpandState.Collapsed
-          : ExpandState.Expanded,
-    }));
-  };
 
   /**
    * open Dialog
    * @param user
    */
-  const handleOpenDialog = (menu: UpdateMenuDto | null) => {
-    setCurrentMenu(menu);
+  const handleOpenDialog = (demo: UpdateDemoDto | null) => {
+    setCurrentDemo(demo);
     setOpenDialog(true);
   };
 
@@ -100,29 +89,29 @@ const Dummy: React.FC = () => {
    */
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setCurrentMenu(null);
+    setCurrentDemo(null);
   };
 
   /**
-   * Save menu (add or modify)
-   * @param menu
+   * Save demo (add or modify)
+   * @param demo
    */
-  const handleSaveMenu = async (menu: CreateMenuDto | UpdateMenuDto | null) => {
-    if (menu) {
-      if (menu.id > 0) {
-        let resp = await put<boolean>("/menus", menu);
+  const handleSaveDemo = async (demo: CreateDemoDto | UpdateDemoDto | null) => {
+    if (demo) {
+      if (demo.id > 0) {
+        let resp = await put<boolean>("/demos", demo);
         if (resp.isSuccess) {
           toast.success("update success");
-          setFilterResultRequest((pre) => ({ ...pre, page: 1 }));
+          setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
           handleCloseDialog();
         } else {
           toast.error(resp.message);
         }
       } else {
-        let resp = await post<boolean>("/menus", menu);
+        let resp = await post<boolean>("/demos", demo);
         if (resp.isSuccess) {
           toast.success("add success");
-          setFilterResultRequest((pre) => ({ ...pre, page: 1 }));
+          setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
           handleCloseDialog();
         } else {
           toast.error(resp.message);
@@ -131,97 +120,123 @@ const Dummy: React.FC = () => {
     }
   };
 
-  // Filter and sort conditions
-  const [filterResultRequest, setFilterResultRequest] =
-    useState<FilterResultRequestDto>({
-      sort: "",
-      filter: "",
-    });
+  const [filterPagedResultRequest, setFilterPagedResultRequest] =
+    useState<FilterPagedResultRequestDto>({ page: 1, pageSize: 10 });
+  const [pageData, setPageData] = useState<PagedResultDto<DemoDto>>({
+    items: [],
+    total: 0,
+  });
 
-  /**
-   * @type MenuDto[] - Raw data returned from backend
-   * @type TreeNode[] - Tree structure used to manage parent-child hierarchy
-   * @type FlatNode[] - Flattened data used by frontend table for display; each node includes level, order, expandState, etc.
-   *
-   * Construct data that used to render frontend content following:
-   * 1) Retrieve raw data (MenuDto[]) from backend
-   * 2) Convert raw data into tree data (-->treeData: TreeNode[])
-   * 3) Flatten tree data to obtain display data (-->dispData: FlatNode[])
-   */
-  const [treeData, setTreeData] = useState<TreeNode[]>([]); // Raw data in tree-structure (TreeNode[] type)
-  // Calculates and obtains the data to display (i.e. expanded rows and their child nodes) using treeData and expandMap
-  // Calculation will be triggered when the raw data is updated, or when there's change in expandMap
-  const dispData = useMemo(
-    () => flattenTreeWithExpand(treeData, null, 0, expandMap),
-    [treeData, expandMap]
-  );
-
-  // Monitoring filterResultRequest and update display content
   useEffect(() => {
-    const getRawData = async () => {
-      const resp = await get<ListResultDto<MenuDto>>(
-        `/menus/tree?filter=${filterResultRequest.filter ?? ""}`
-      );
-      if (resp.isSuccess) {
-        const raw = convertMenuDtoToTreeNode(resp.data.items); // Convert the returned MenuDto[] into TreeNode[]
-        const builtTree = buildTreeFromFlatData(raw); // Construct tree-structure
-        setTreeData(builtTree); // Store as source data for further processing
+    let getPageData = async () => {
+      setLoading(true);
+      try {
+        let filterPagedResultRequestDto: FilterPagedResultRequestDto = {
+          ...filterPagedResultRequest,
+        };
+        let resp = await get<PagedResultDto<DemoDto>>(
+          `/demos/${filterPagedResultRequestDto.page}/${filterPagedResultRequestDto.pageSize}?title=${filterPagedResultRequestDto.filter}`
+        );
+        if (resp.isSuccess) {
+          setPageData(resp.data);
+        }
+      } finally {
+        setLoading(false);
       }
     };
-    getRawData();
-  }, [filterResultRequest]);
+    getPageData();
+  }, [filterPagedResultRequest]);
 
-  // Initialize expandMap everytime there's change in treeData
-  useEffect(() => {
-    const initialExpandMap: Record<number, ExpandState> = {};
-
-    function initExpandMap(nodes: TreeNode[]) {
-      nodes.forEach((node) => {
-        initialExpandMap[node.id] = node.children?.length
-          ? ExpandState.Collapsed
-          : ExpandState.NonExpandable;
-        if (node.children?.length) initExpandMap(node.children);
-      });
-    }
-    // Init expandMap only if treeData is not empty
-    if (treeData.length) {
-      initExpandMap(treeData);
-      setExpandMap(initialExpandMap);
-      // console.log("expandMap ready:", initialExpandMap);
-    }
-  }, [treeData]);
-
-  const columns: CustomColumn[] = [
-    { field: "title", headerName: "Title", type: "text", width: 300 },
-    { field: "status", headerName: "Status", type: "chip", width: 150 },
-    { field: "menuType", headerName: "Type", type: "chip", width: 120 },
+  //Table Column Definition
+  const columns: GridColDef[] = [
+    // { field: 'id', headerName: 'ID', width: 90, },
+    { field: "title", headerName: "Title", width: 180 },
+    { field: "mark", headerName: "Mark", width: 220 },
+    { field: "count", headerName: "Count", width: 100 },
     {
-      field: "permissionInfo",
-      headerName: "Permission",
-      type: "text",
+      field: "active",
+      headerName: "Active",
       width: 180,
+      renderCell: (params) => {
+        return (
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            sx={{
+              height: "100%",
+
+              position: "relative",
+              top: "50%",
+              transform: "translateY(-50%)",
+            }}
+          >
+            {params.value ? (
+              <Tooltip title="Active">
+                <CheckCircleIcon color="success" fontSize="small" />
+              </Tooltip>
+            ) : (
+              <Tooltip title="not active">
+                <CancelIcon color="error" fontSize="small" />
+              </Tooltip>
+            )}
+            <Typography variant="body2">
+              {params.value ? "Active" : "not active"}
+            </Typography>
+          </Stack>
+        );
+      },
     },
-    { field: "createdAt", headerName: "Created At", type: "text", width: 150 },
-    { field: "actions", headerName: "Actions", type: "action", width: 100 },
+    {
+      field: "dataTime",
+      headerName: "DataTime",
+      width: 250,
+      valueFormatter: (value) => {
+        if (!value) return "-";
+        return new Date(value).toLocaleString();
+      },
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 150,
+      renderCell: (params) => (
+        <Box>
+          {/* TODO: Wrap your button component with <BtnPermissionControl> like the following */}
+          <BtnPermissionControl hasAccess={hasPermission(`${prefix}:view`)}>
+            <IconButton>
+              <VisibilityIcon />
+            </IconButton>
+          </BtnPermissionControl>
+          <BtnPermissionControl hasAccess={hasPermission(`${prefix}:update`)}>
+            <IconButton onClick={() => handleUpdate(params.row as DemoDto)}>
+              <EditIcon />
+            </IconButton>
+          </BtnPermissionControl>
+          <BtnPermissionControl hasAccess={hasPermission(`${prefix}:delete`)}>
+            <IconButton onClick={() => handleDelete(params.id)}>
+              <DeleteIcon />
+            </IconButton>
+          </BtnPermissionControl>
+          {/* TODO: End of Permission control wrapping */}
+        </Box>
+      ),
+    },
   ];
 
-  const handleUpdate = async (menu: MenuDto | null) => {
-    let resp = await get<MenuDto>(`menus/${menu?.id}`);
+  const handleUpdate = async (demo: DemoDto | null) => {
+    let resp = await get<DemoDto>(`demos/${demo?.id}`);
     if (resp.isSuccess) {
-      let menuDetail = resp.data;
-      let updateMenuDto: UpdateMenuDto = {
-        id: menuDetail.id,
-        title: menuDetail.title,
-        menuType: menuDetail.menuType,
-        parentId: menuDetail.parentId,
-        orderNum: menuDetail.orderNum,
-        route: menuDetail.route,
-        componentPath: menuDetail.componentPath,
-        permission: menuDetail.permission,
-        status: menuDetail.status,
-        comment: menuDetail.comment,
+      let demoDetail = resp.data;
+      let updateDemoDto: UpdateDemoDto = {
+        id: demoDetail.id,
+        title: demoDetail.title,
+        mark: demoDetail.mark,
+        count: demoDetail.count,
+        acitve: demoDetail.acitve,
+        dataTime: new Date(demoDetail.dataTime),
       };
-      handleOpenDialog(updateMenuDto);
+      handleOpenDialog(updateDemoDto);
     } else {
       toast.error(resp.message);
     }
@@ -235,9 +250,9 @@ const Dummy: React.FC = () => {
   };
 
   const handleComfirmDelete = async () => {
-    let resp = await del<boolean>(`menus/${deData}`);
+    let resp = await del<boolean>(`demos/${deData}`);
     if (resp.isSuccess) {
-      setFilterResultRequest((pre) => ({ ...pre, page: 1 }));
+      setFilterPagedResultRequest((pre) => ({ ...pre, page: 1 }));
       toast.success("delete success");
     } else {
       toast.error(resp.message);
@@ -249,75 +264,113 @@ const Dummy: React.FC = () => {
   const handleComfirmCancel = () => {
     setComfirmDialogOpen(false);
   };
-  // console.log("Tree data: ", treeData);
+
+  const onPaginationModelChange = (newModel: GridPaginationModel) => {
+    setFilterPagedResultRequest((preState) => {
+      return {
+        ...preState,
+        page: newModel.page + 1,
+        pageSize: newModel.pageSize,
+      };
+    });
+  };
 
   return (
-    <Box sx={{ height: "100%", width: "95%", margin: "0 auto" }}>
-      <h2>Dummy Testing Page</h2>
-      <Box sx={{ height: 700, width: "100%", p: 3 }}>
-        {/* Load animation components */}
-        {/* <PageLoading
+    <Box sx={{ height: 500, width: "100%", p: 3 }}>
+      {/* Load animation components */}
+      {/* <PageLoading
                 loading={loading}
                 size={50}
                 color="primary"
-                message="Loading menus, please wait..."
+                message="Loading demos, please wait..."
             /> */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-          <TextField
-            variant="outlined"
-            placeholder="Search menus..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <SearchIcon sx={{ color: "action.active", mr: 1 }} />
-              ),
-            }}
-            sx={{ width: 300 }}
-          />
-
+      <h2>Button Permission Control Demonstration Page</h2>
+      <h3>
+        具体应添加的代码请参见
+        src/pages/dummy/index.tsx，所有新增代码均有TODO注释
+      </h3>
+      <h4>注意事项</h4>
+      <ul>
+        <li>
+          所有的权限的组成都是"<b>prefix:suffix</b>"
+          ，prefix代表模块，suffix代表操作
+        </li>
+        <li>
+          每个module都对应一个viewall权限，如dummy:viewall，并由这个viewall权限获得当前页面的prefix
+        </li>
+        <li>
+          每个button对应一个权限suffix，如：create, view, update, delete，assign
+        </li>
+        <li>
+          目前所有模块在数据库中都有对应的viewall, create, view, update,
+          delete权限，role和user模块额外有对应的assign权限
+        </li>
+        <li>
+          当前index.tsx文件基于src/pages/demo/index.tsx，如果你是按照老师给的demo/index.tsx完成的page
+          content可以直接套用这个index里的permission control wrapping （搜索
+          TODO），不需修改其他文件
+        </li>
+        <li>
+          <b>
+            <u>
+              请确保你重新创建了backend数据库，否则i没有permission数据会报错
+            </u>
+          </b>
+        </li>
+      </ul>
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+        <TextField
+          variant="outlined"
+          placeholder="Search demos..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <SearchIcon sx={{ color: "action.active", mr: 1 }} />
+            ),
+          }}
+          sx={{ width: 300 }}
+        />
+        {/* TODO: Wrap your button component like the following, and change the "create" to the action you want to wrap, e.g. "assign" */}
+        {hasPermission(`${prefix}:create`) && (
           <Button
             disabled={loading}
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog(null)}
           >
-            Add Menu
+            Add Permission Control Button
           </Button>
-        </Box>
-
-        <AddUpdateDialog
-          open={openDialog}
-          onClose={handleCloseDialog as () => void}
-          menu={currentMenu}
-          onSave={
-            handleSaveMenu as (
-              menu: CreateMenuDto | UpdateMenuDto | null
-            ) => Promise<void>
-          }
-          //errors={errors}
-          //roles={roles}
-        />
-
-        <TreeTable
-          rows={dispData}
-          columns={columns}
-          expandMap={expandMap}
-          onToggleExpand={handleToggleExpand}
-          onEdit={handleUpdate}
-          onDelete={handleDelete}
-        />
-
-        <OperateConfirmationDialog
-          open={comfirmDialogOpen}
-          title="confirm delete"
-          content="Are you sure you want to delete this item? This operation is irrevocable."
-          onConfirm={handleComfirmDelete}
-          onCancel={handleComfirmCancel}
-        />
+        )}
+        {/* TODO: End of Permission control wrapping */}
       </Box>
+      <DemoList
+        loading={loading}
+        columns={columns}
+        pagedResult={pageData}
+        page={filterPagedResultRequest.page - 1}
+        pageSize={filterPagedResultRequest.pageSize}
+        onPaginationModelChange={onPaginationModelChange}
+      />
+
+      <AddUpdateDialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        demo={currentDemo}
+        onSave={handleSaveDemo}
+        //errors={errors}
+        //roles={roles}
+      />
+
+      <OperateConfirmationDialog
+        open={comfirmDialogOpen}
+        title="confirm delete"
+        content="Are you sure you want to delete this item? This operation is irrevocable."
+        onConfirm={handleComfirmDelete}
+        onCancel={handleComfirmCancel}
+      />
     </Box>
   );
 };
 
-export default Dummy;
+export default Demos;

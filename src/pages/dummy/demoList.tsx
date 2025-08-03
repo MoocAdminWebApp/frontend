@@ -6,19 +6,19 @@ import {
   GridRowId,
 } from "@mui/x-data-grid";
 import { PagedResultDto } from "../../types/types";
-import { MenuDto } from "../../types/menu";
+import { DemoDto } from "../../types/demo";
 
 interface UserListProps {
   loading?: boolean;
   page?: number;
   pageSize?: number;
   pageSizeOptions?: number[];
-  pagedResult: PagedResultDto<MenuDto>;
+  pagedResult: PagedResultDto<DemoDto>;
   columns: GridColDef[];
   onPaginationModelChange?: (newModel: GridPaginationModel) => void;
 }
 
-const MenuList: React.FC<UserListProps> = (props) => {
+const DemoList: React.FC<UserListProps> = (props) => {
   let pageSize = props.pageSize ?? 10; // default value
   let page = props.page ?? 0; // default value
 
@@ -45,9 +45,8 @@ const MenuList: React.FC<UserListProps> = (props) => {
       }}
       pagination
       disableRowSelectionOnClick
-      getRowId={(row) => row.id}
     />
   );
 };
 
-export default MenuList;
+export default DemoList;
