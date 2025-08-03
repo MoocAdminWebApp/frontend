@@ -15,7 +15,7 @@ export const fetchUserPermissions =
         const permissionList = resp.data.map((p) => p.permissionName);
         console.log(
           `User-${userId}'s permisson list: `,
-          permissionList.join(",")
+          permissionList.join(", ")
         );
         dispatch(setPermissions(permissionList));
       }

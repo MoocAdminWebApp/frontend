@@ -36,11 +36,13 @@ interface TableProps {
   onDelete?: (row: any) => void;
   loading?: boolean;
   page?: string;
+  prefix: string;
 }
 
 export const renderCellByType = (
   type: ColumnType,
   field: string,
+  prefix: string,
   onEdit?: (row: any) => void,
   onDelete?: (row: any) => void,
   expandMap?: Record<number, ExpandState>,
@@ -182,13 +184,25 @@ export const renderCellByType = (
         // Render action buttons for edit and delete
         return (
           <Box>
-            {/* <BtnPermissionControl */}
-            <IconButton onClick={() => onEdit?.(params.row)} size="small">
-              <EditIcon sx={{ color: "primary.main" }} />
-            </IconButton>
-            <IconButton onClick={() => onDelete?.(params.row)} size="small">
-              <DeleteIcon sx={{ color: "error.main" }} />
-            </IconButton>
+            <BtnPermissionControl
+              isDirectRendering={false}
+              pagePrefix={prefix}
+              action="update"
+            >
+              <IconButton onClick={() => onEdit?.(params.row)} size="small">
+                <EditIcon sx={{ color: "primary.main" }} />
+              </IconButton>
+            </BtnPermissionControl>
+
+            <BtnPermissionControl
+              isDirectRendering={false}
+              pagePrefix={prefix}
+              action="delete"
+            >
+              <IconButton onClick={() => onDelete?.(params.row)} size="small">
+                <DeleteIcon sx={{ color: "error.main" }} />
+              </IconButton>
+            </BtnPermissionControl>
           </Box>
         );
 
@@ -201,6 +215,7 @@ export const renderCellByType = (
 const SimpleTable: React.FC<TableProps> = ({
   rows,
   columns,
+  prefix,
   onEdit,
   onDelete,
   loading,
@@ -213,6 +228,7 @@ const SimpleTable: React.FC<TableProps> = ({
     renderCell: renderCellByType(
       col.type || "text",
       col.field,
+      prefix,
       onEdit,
       onDelete
     ),
