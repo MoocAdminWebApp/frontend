@@ -50,6 +50,7 @@ import AddUpdateDialog from "./addUpdateDialog";
 
 // TODO: Copy and paste the following code block
 import useActiveMenuId from "../../hooks/useActiveMenuId";
+import { useActiveMenuIdFromRoute } from "../../hooks/useActiveMenuIdFromRoute";
 import BtnPermissionControl from "../../components/BtnPermissionControl";
 import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
 import { useSelector } from "react-redux";
@@ -62,18 +63,62 @@ const Demos: React.FC = () => {
   const [currentDemo, setCurrentDemo] = useState<UpdateDemoDto | null>(null);
   const [searchText, setSearchText] = useState("");
 
-  // TODO: Copy and paste the following code block
-  const activeMenuId = useActiveMenuId();
-  const { pagePrefix } = usePagePrefixFromMenuId(activeMenuId);
-  const prefix = pagePrefix ? pagePrefix : "";
-  const permissions = useSelector((state: RootState) => state.auth.permissions);
-  const hasPermission = (p: string) => permissions.includes(p);
-  // TODO: End of copy and paste
+  const [filterPagedResultRequest, setFilterPagedResultRequest] =
+    useState<FilterPagedResultRequestDto>({ page: 1, pageSize: 10 });
+  const [pageData, setPageData] = useState<PagedResultDto<DemoDto>>({
+    items: [],
+    total: 0,
+  });
+
+  useEffect(() => {
+    let getPageData = async () => {
+      setLoading(true);
+      try {
+        let filterPagedResultRequestDto: FilterPagedResultRequestDto = {
+          ...filterPagedResultRequest,
+        };
+        let resp = await get<PagedResultDto<DemoDto>>(
+          `/demos/${filterPagedResultRequestDto.page}/${filterPagedResultRequestDto.pageSize}?title=${filterPagedResultRequestDto.filter}`
+        );
+        if (resp.isSuccess) {
+          setPageData(resp.data);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    getPageData();
+  }, [filterPagedResultRequest]);
 
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
   useEffect(() => {
     setFilterPagedResultRequest((pre) => ({ ...pre, filter: searchQuery }));
   }, [searchQuery]);
+
+  const [comfirmDialogOpen, setComfirmDialogOpen] = useState(false);
+  const [deData, setDelData] = useState(0);
+  const handleDelete = async (id: GridRowId) => {
+    setDelData(id as number);
+    setComfirmDialogOpen(true);
+  };
+
+  // TODO: Copy and paste the following code block
+  const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
+  const activeMenuId = useActiveMenuIdFromRoute();
+  const { pagePrefix, loading: prefixLoading } =
+    usePagePrefixFromMenuId(activeMenuId);
+  const prefix = pagePrefix ? pagePrefix : "";
+
+  const permissions = useSelector((state: RootState) => state.auth.permissions);
+  const isPermissionLoaded = useSelector(
+    (state: RootState) => state.auth.isPermissionLoaded
+  );
+
+  if (prefixLoading || !isPermissionLoaded) {
+    return <PageLoading loading={true} message="Loading page..." />;
+  }
+  const hasPermission = (p: string) => permissions.includes(p);
+  // TODO: End of copy and paste
 
   /**
    * open Dialog
@@ -119,33 +164,6 @@ const Demos: React.FC = () => {
       }
     }
   };
-
-  const [filterPagedResultRequest, setFilterPagedResultRequest] =
-    useState<FilterPagedResultRequestDto>({ page: 1, pageSize: 10 });
-  const [pageData, setPageData] = useState<PagedResultDto<DemoDto>>({
-    items: [],
-    total: 0,
-  });
-
-  useEffect(() => {
-    let getPageData = async () => {
-      setLoading(true);
-      try {
-        let filterPagedResultRequestDto: FilterPagedResultRequestDto = {
-          ...filterPagedResultRequest,
-        };
-        let resp = await get<PagedResultDto<DemoDto>>(
-          `/demos/${filterPagedResultRequestDto.page}/${filterPagedResultRequestDto.pageSize}?title=${filterPagedResultRequestDto.filter}`
-        );
-        if (resp.isSuccess) {
-          setPageData(resp.data);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    getPageData();
-  }, [filterPagedResultRequest]);
 
   //Table Column Definition
   const columns: GridColDef[] = [
@@ -242,13 +260,6 @@ const Demos: React.FC = () => {
     }
   };
 
-  const [comfirmDialogOpen, setComfirmDialogOpen] = useState(false);
-  const [deData, setDelData] = useState(0);
-  const handleDelete = async (id: GridRowId) => {
-    setDelData(id as number);
-    setComfirmDialogOpen(true);
-  };
-
   const handleComfirmDelete = async () => {
     let resp = await del<boolean>(`demos/${deData}`);
     if (resp.isSuccess) {
@@ -285,39 +296,50 @@ const Demos: React.FC = () => {
                 message="Loading demos, please wait..."
             /> */}
       <h2>Button Permission Control Demonstration Page</h2>
-      <h3>
-        具体应添加的代码请参见
-        src/pages/dummy/index.tsx，所有新增代码均有TODO注释
-      </h3>
-      <h4>注意事项</h4>
-      <ul>
-        <li>
-          所有的权限的组成都是"<b>prefix:suffix</b>"
-          ，prefix代表模块，suffix代表操作
-        </li>
-        <li>
-          每个module都对应一个viewall权限，如dummy:viewall，并由这个viewall权限获得当前页面的prefix
-        </li>
-        <li>
-          每个button对应一个权限suffix，如：create, view, update, delete，assign
-        </li>
-        <li>
-          目前所有模块在数据库中都有对应的viewall, create, view, update,
-          delete权限，role和user模块额外有对应的assign权限
-        </li>
-        <li>
-          当前index.tsx文件基于src/pages/demo/index.tsx，如果你是按照老师给的demo/index.tsx完成的page
-          content可以直接套用这个index里的permission control wrapping （搜索
-          TODO），不需修改其他文件
-        </li>
-        <li>
-          <b>
-            <u>
-              请确保你重新创建了backend数据库，否则i没有permission数据会报错
-            </u>
-          </b>
-        </li>
-      </ul>
+      {/* <div>
+        <h3>
+          具体应添加的代码请参见
+          src/pages/dummy/index.tsx，所有新增代码均有TODO注释
+        </h3>
+        <h4>注意事项</h4>
+        <ul>
+          <li>
+            所有的权限的组成都是"<b>prefix:suffix</b>"
+            ，prefix代表模块，suffix代表操作
+          </li>
+          <li>
+            每个module都对应一个viewall权限，如dummy:viewall，并由这个viewall权限获得当前页面的prefix
+          </li>
+          <li>
+            每个button对应一个权限suffix，如：create, view, update,
+            delete，assign
+          </li>
+          <li>
+            目前所有模块在数据库中都有对应的viewall, create, view, update,
+            delete权限，role和user模块额外有对应的assign权限
+          </li>
+          <li>
+            当前index.tsx文件基于src/pages/demo/index.tsx，如果你是按照老师给的demo/index.tsx完成的page
+            content可以直接套用这个index里的permission control wrapping （搜索
+            TODO），不需修改其他文件
+            <br></br>
+            <ul>
+              已完成添加模块的PermissionControl：
+              <ul>
+                System Management
+                <li>Menu</li>
+              </ul>
+            </ul>
+          </li>
+          <li>
+            <b>
+              <u>
+                请确保你重新创建了backend数据库，否则i没有permission数据会报错
+              </u>
+            </b>
+          </li>
+        </ul>
+      </div> */}
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
           variant="outlined"
@@ -339,10 +361,21 @@ const Demos: React.FC = () => {
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog(null)}
           >
-            Add Permission Control Button
+            Add Dummy Control Button
           </Button>
         )}
         {/* TODO: End of Permission control wrapping */}
+
+        {hasPermission(`${prefix}:assign`) && (
+          <Button
+            disabled={loading}
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog(null)}
+          >
+            Assign Dummy Button
+          </Button>
+        )}
       </Box>
       <DemoList
         loading={loading}

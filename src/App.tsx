@@ -35,6 +35,8 @@ import { initSidebarMenu } from "./store/PermissionSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUserPermissions } from "./thunks/fetchRolePermission";
 import { RootState, AppDispatch } from "./store/store";
+import { fetchRouteMapping } from "./thunks/fetchRouteMapping";
+import { useActiveMenuIdFromRoute } from "./hooks/useActiveMenuIdFromRoute";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
@@ -51,15 +53,21 @@ const App: React.FC = () => {
 
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.auth.user);
-  const permissions = useSelector((state: RootState) => state.auth.permissions);
-  // console.log("Current user: ", user);
+  // const activeMenuId = useActiveMenuIdFromRoute();
+  // console.log("Current active menu id: ", activeMenuId);
+  useEffect(() => {
+    dispatch(fetchRouteMapping());
+  }, [dispatch]);
+
   useEffect(() => {
     if (user) {
       console.log("Start fetching user's permission list");
       dispatch(fetchUserPermissions(user.userId));
     }
   }, [user]);
-  initSidebarMenu();
+  useEffect(() => {
+    initSidebarMenu();
+  }, []);
 
   return (
     <Provider store={store}>
@@ -67,6 +75,7 @@ const App: React.FC = () => {
       <Router>
         <Box sx={{ display: "flex" }}>
           <CssBaseline />
+          <RouteDebugger />
           <Routes>
             {/* Login page not required Layout */}
             <Route path="/login" element={<Login />} />
@@ -119,3 +128,9 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+const RouteDebugger = () => {
+  const activeMenuId = useActiveMenuIdFromRoute();
+  console.log("Active Menu ID:", activeMenuId);
+  return null;
+};
