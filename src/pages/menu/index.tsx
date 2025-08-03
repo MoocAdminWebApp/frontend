@@ -56,7 +56,7 @@ import TreeTable from "../../components/tables/TreeTable";
 import { MenuType, StatusType, ExpandState } from "../../types/enum";
 
 import useActiveMenuId from "../../hooks/useActiveMenuId";
-import BtnPermissionControl from "../../components/BtnPermissionControl";
+import BtnPermissionControl from "../../components/permissionControl/BtnPermissionControl";
 import { usePagePermission } from "../../hooks/usePagePermission";
 import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
 import { useSelector } from "react-redux";

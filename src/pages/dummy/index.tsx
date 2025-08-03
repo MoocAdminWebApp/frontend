@@ -49,9 +49,9 @@ import PermissionControl from "../../components/PermissionControl";
 import AddUpdateDialog from "./addUpdateDialog";
 
 // TODO: Copy and paste the following code block
-import useActiveMenuId from "../../hooks/useActiveMenuId";
 import { useActiveMenuIdFromRoute } from "../../hooks/useActiveMenuIdFromRoute";
-import BtnPermissionControl from "../../components/BtnPermissionControl";
+import BtnPermissionControl from "../../components/permissionControl/BtnPermissionControl";
+import PagePermissionControl from "../../components/permissionControl/PagePermissionControl";
 import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";

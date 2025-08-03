@@ -12,7 +12,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { MenuType, StatusType, ExpandState } from "../../types/enum";
 import { convertDateFormat } from "../../utils/convertDateFormat";
 
-import BtnPermissionControl from "../BtnPermissionControl";
+import BtnPermissionControl from "../permissionControl/BtnPermissionControl";
 import { usePagePermission } from "../../hooks/usePagePermission";
 
 // Define the types for the column types
