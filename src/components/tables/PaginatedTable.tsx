@@ -8,6 +8,7 @@ import { CustomColumn, renderCellByType } from "./SimpleTable";
 interface PaginatedTableProps {
   rows: any[];
   columns: CustomColumn[];
+  prefix: string;
   paginationModel?: GridPaginationModel;
   onPaginationModelChange?: (model: GridPaginationModel) => void;
   onEdit?: (row: any) => void;
@@ -20,6 +21,7 @@ interface PaginatedTableProps {
 const PaginatedTable: React.FC<PaginatedTableProps> = ({
   rows,
   columns,
+  prefix,
   onEdit,
   onDelete,
   paginationModel: externalPaginationModel,
@@ -52,6 +54,7 @@ const PaginatedTable: React.FC<PaginatedTableProps> = ({
     renderCell: renderCellByType(
       col.type || "text",
       col.field,
+      prefix,
       onEdit,
       onDelete
     ),

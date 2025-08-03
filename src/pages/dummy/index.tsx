@@ -299,15 +299,6 @@ const Dummy: React.FC = () => {
           //roles={roles}
         />
 
-        <TreeTable
-          rows={dispData}
-          columns={columns}
-          expandMap={expandMap}
-          onToggleExpand={handleToggleExpand}
-          onEdit={handleUpdate}
-          onDelete={handleDelete}
-        />
-
         <OperateConfirmationDialog
           open={comfirmDialogOpen}
           title="confirm delete"

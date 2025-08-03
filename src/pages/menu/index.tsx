@@ -56,6 +56,10 @@ import TreeTable from "../../components/tables/TreeTable";
 import { MenuType, StatusType, ExpandState } from "../../types/enum";
 import useActiveMenuId from "../../hooks/useActiveMenuId";
 
+import BtnPermissionControl from "../../components/BtnPermissionControl";
+import { usePagePermission } from "../../hooks/usePagePermission";
+import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
+
 const Menu: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
@@ -64,11 +68,15 @@ const Menu: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [selectedType, setSelectedType] = useState<string>("");
   const searchQuery = useDebounce(searchText, 500); //use Debounce Hook
-  const activeMenuId = useActiveMenuId(); // ✅ 加在函数组件体内顶部
+  const activeMenuId = useActiveMenuId();
+  const { pagePrefix } = usePagePrefixFromMenuId(activeMenuId);
+  const prefix = pagePrefix ? pagePrefix : "";
+  const renderPage = usePagePermission(prefix);
 
   useEffect(() => {
     if (activeMenuId !== null) {
       console.log("Current Active ID: ", activeMenuId);
+      console.log(`renderPage for Menu ${activeMenuId}:`, renderPage);
     }
   }, [activeMenuId]);
 
@@ -166,7 +174,6 @@ const Menu: React.FC = () => {
         `/menus/tree?filter=${filterResultRequest.filter ?? ""}`
       );
       if (resp.isSuccess) {
-        console.log("Raw Data:", resp.data);
         const raw = convertMenuDtoToTreeNode(resp.data.items); // Convert the returned MenuDto[] into TreeNode[]
         const builtTree = buildTreeFromFlatData(raw); // Construct tree-structure
         setTreeData(builtTree); // Store as source data for further processing
@@ -282,7 +289,7 @@ const Menu: React.FC = () => {
             }}
             sx={{ width: 300 }}
           />
-
+          {/* <BtnPermissionControl hasAccess={renderPage.create}> */}
           <Button
             disabled={loading}
             variant="contained"
@@ -291,6 +298,7 @@ const Menu: React.FC = () => {
           >
             Add Menu
           </Button>
+          {/* </BtnPermissionControl> */}
         </Box>
 
         <AddUpdateDialog
@@ -309,6 +317,7 @@ const Menu: React.FC = () => {
         <TreeTable
           rows={dispData}
           columns={columns}
+          prefix={prefix}
           expandMap={expandMap}
           onToggleExpand={handleToggleExpand}
           onEdit={handleUpdate}
