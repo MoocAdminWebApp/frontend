@@ -23,7 +23,7 @@ import User from "./pages/User";
 import Role from "./pages/role";
 import Menu from "./pages/menu";
 import Course from "./pages/course/index";
-import Chapter from "./pages/chapter/index";
+import Chapter from "./pages/chapter";
 import CourseOffering from "./pages/courseOffering";
 import QuestionBank from "./pages/QuestionBank";
 import MenuTree from "./pages/menuTree";
@@ -98,7 +98,7 @@ const App: React.FC = () => {
               <Route path="/Menu" element={<Menu />} />
               <Route path="/CourseOffering" element={<CourseOffering />} />
               <Route path="/Course" element={<Course />} />
-              <Route path="/Chapter" element={<Chapter courseId={1} />} />
+              <Route path="/Chapter" element={<Chapter />} />
               <Route path="/QuestionBank" element={<QuestionBank />} />
               <Route path="/MenuTree" element={<MenuTree />} />
               <Route path="/Dummy" element={<Dummy />} />

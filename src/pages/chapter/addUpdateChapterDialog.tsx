@@ -19,7 +19,6 @@ export interface ChapterDto {
   courseId: number;
   title: string;
   description?: string | null;
-  orderNum: number;
   status: "DRAFT" | "PUBLISHED" | "HIDDEN";
   content?: string | null;
   videoUrl?: string | null;
@@ -61,7 +60,6 @@ const AddUpdateChapterDialog: React.FC<AddUpdateChapterDialogProps> = ({
     courseId: data?.courseId ?? courseId,
     title: data?.title ?? "",
     description: data?.description ?? "",
-    orderNum: data?.orderNum ?? 0,
     status: data?.status ?? "DRAFT",
     content: data?.content ?? "",
     videoUrl: data?.videoUrl ?? "",
@@ -74,7 +72,6 @@ const AddUpdateChapterDialog: React.FC<AddUpdateChapterDialogProps> = ({
       .min(1, "Must be at least 1"),
     title: Yup.string().required("Title is required"),
     description: Yup.string(),
-    orderNum: Yup.number().required("Order number is required"),
     status: Yup.string()
       .oneOf(["DRAFT", "PUBLISHED", "HIDDEN"])
       .required("Status is required"),
@@ -151,20 +148,6 @@ const AddUpdateChapterDialog: React.FC<AddUpdateChapterDialogProps> = ({
                     onBlur={handleBlur}
                     error={touched.description && Boolean(errors.description)}
                     helperText={touched.description && renderHelperText(errors.description)}
-                    fullWidth
-                  />
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Order Number"
-                    name="orderNum"
-                    type="number"
-                    value={values.orderNum}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    error={touched.orderNum && Boolean(errors.orderNum)}
-                    helperText={touched.orderNum && renderHelperText(errors.orderNum)}
                     fullWidth
                   />
                 </Grid>
