@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 import { get, post, put, del } from "../../request/axios";
 import useDebounce from "../../hooks/useDebounce";
 import CourseOfferingList from "./courseOfferingList";
-import AddUpdateDialog from "./addUpdateDialog";
+import AddUpdateDialog, {statusOptions} from "./addUpdateDialog";
 import OperateConfirmationDialog from "../../components/OperateConfirmationDialog";
 import {
   CreateCourseOfferingDto,
@@ -78,7 +78,6 @@ const CourseOffering: React.FC = () => {
           items: resp.data.data.items ?? [],
           total: resp.data.data.total ?? 0,
         };
-        
         setPagedResult(result);
       }
       setLoading(false);
@@ -121,6 +120,7 @@ const CourseOffering: React.FC = () => {
     const resp = await get<UpdateCourseOfferingDto>(
       `/courseofferings/${row.id}`
     );
+    console.log("resp", resp);
     if (resp.isSuccess) {
       setCurrentItem(resp.data);
       setOpenDialog(true);
@@ -149,12 +149,17 @@ const CourseOffering: React.FC = () => {
 
 
   const columns: GridColDef[] = [
-    { field: "courseName", headerName: "Course Name", flex: 1 },
+    { field: "courseName", headerName: "Course Name", width: 200 },
     { field: "teacherName", headerName: "Teacher Name", flex: 1 },
     { field: "semester", headerName: "Semester", flex: 1 },
     { field: "capacity", headerName: "Capacity", flex:1},
     { field: "location", headerName: "Location", flex: 1 },
     { field: "schedule", headerName: "Schedule", flex: 1 },
+    {
+      field:"statusText",
+      headerName:"Status",
+      flex:1,
+    },
     {
       field: "actions",
       headerName: "Actions",
