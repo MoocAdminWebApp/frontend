@@ -196,6 +196,8 @@ const CourseOffering: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <h2>Course Offering Management</h2>
+
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
           variant="outlined"
@@ -217,7 +219,7 @@ const CourseOffering: React.FC = () => {
               setOpenDialog(true);
             }}
           >
-            Add Course
+            Add Course Offering
           </Button>
         )}
       </Box>

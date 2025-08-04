@@ -4,7 +4,12 @@ import { Box, TextField, Button, CircularProgress } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
 import { Category } from "../../types/category";
-import { createCategory, deleteCategories, fetchAllTreeCategories, getCategoryPageById } from "../../request/category";
+import {
+  createCategory,
+  deleteCategories,
+  fetchAllTreeCategories,
+  getCategoryPageById,
+} from "../../request/category";
 import CategoryList from "./categoryList";
 import CategoryTree from "./categoryTree/index";
 import { useSelector } from "react-redux";
@@ -88,9 +93,14 @@ const CategoryPage: React.FC = () => {
         setSearchText("");
         setHighlightId(category.id);
 
-        const parentPath = category.parentId === null ? "/category" : `/category/${category.parentId}/children`;
+        const parentPath =
+          category.parentId === null
+            ? "/category"
+            : `/category/${category.parentId}/children`;
 
-        navigate(`${parentPath}?page=${page}&pageSize=${pageSize}&id=${category.id}`);
+        navigate(
+          `${parentPath}?page=${page}&pageSize=${pageSize}&id=${category.id}`
+        );
       } catch (err: any) {
         console.error("Failed to navigate to selected category:", err);
         toast.error(err?.message || "Failed to navigate");
@@ -124,8 +134,12 @@ const CategoryPage: React.FC = () => {
       const newParentId = newCategory.parentId ?? null;
       const currentId = params.id ? Number(params.id) : null;
 
-      const newPath = newParentId === null ? "/category" : `/category/${newParentId}/children`;
-      const currentPath = currentId === null ? "/category" : `/category/${currentId}/children`;
+      const newPath =
+        newParentId === null
+          ? "/category"
+          : `/category/${newParentId}/children`;
+      const currentPath =
+        currentId === null ? "/category" : `/category/${currentId}/children`;
 
       if (newPath === currentPath) {
         setReloadTrigger((v) => v + 1);
@@ -155,6 +169,7 @@ const CategoryPage: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       {/* Search + Add */}
+      <h2>Category Management</h2>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
           variant="outlined"
@@ -168,7 +183,12 @@ const CategoryPage: React.FC = () => {
         {isAdmin && (
           <Box sx={{ display: "flex", gap: 2 }}>
             {selectedIds.length > 0 && (
-              <Button sx={{ height: 40 }} variant="outlined" color="error" onClick={() => setConfirmDeleteOpen(true)}>
+              <Button
+                sx={{ height: 40 }}
+                variant="outlined"
+                color="error"
+                onClick={() => setConfirmDeleteOpen(true)}
+              >
                 Delete
               </Button>
             )}
@@ -190,7 +210,11 @@ const CategoryPage: React.FC = () => {
       <Box sx={{ display: "flex" }}>
         {/* Tree */}
         <Box sx={{ flex: "0 0 20%", minWidth: 300, overflowY: "auto" }}>
-          {loading ? <CircularProgress /> : <CategoryTree data={treeCategories} onSelect={handleTreeSelect} />}
+          {loading ? (
+            <CircularProgress />
+          ) : (
+            <CategoryTree data={treeCategories} onSelect={handleTreeSelect} />
+          )}
         </Box>
 
         {/* Table */}
