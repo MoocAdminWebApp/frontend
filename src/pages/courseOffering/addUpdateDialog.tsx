@@ -96,12 +96,12 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({ open, onClose, data, 
 
   useEffect(() => {
     const loadCourses = async () => {
-  const resp = await get<{ data: Course[] }>("/courses");
+  const resp = await get<Course[]>("/courses");
   console.log("resp", resp);
 
-  if (resp.isSuccess && Array.isArray(resp.data?.data)) {
+  if (resp.isSuccess && Array.isArray(resp.data)) {
     setCourseOptions(
-      resp.data.data.map((c) => ({
+      resp.data.map((c) => ({
         id: c.id,
         courseCode: c.courseCode,
         courseName: c.courseName,
@@ -162,8 +162,8 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({ open, onClose, data, 
                      setFieldValue("courseId", selectedCourse?.id ?? ""); 
                      }}
                     onBlur={handleBlur}
-                    error={touched.courseId && Boolean(errors.courseId)}
-                    helperText={touched.courseId && errors.courseId}
+                    error={touched.courseName && Boolean(errors.courseName)}
+                    helperText={touched.courseName && errors.courseName}
                     fullWidth
                   >
                     {courseOptions.map((course) => (
