@@ -11,7 +11,6 @@ import Page404 from "./pages/page404";
 import { Provider } from "react-redux";
 import store from "./store/store";
 import ProtectedRoute from "./components/ProtectedRoute";
-//import menuItems, { MenuItem } from './menuItems';
 import ProfileForm from "./pages/ProfileForm";
 import Demos from "./pages/demo";
 import SignupSuccess from "./pages/SignupSuccess";
@@ -31,17 +30,27 @@ import CategoryList from "./pages/category/categoryList";
 import Permission from "./pages/permission";
 import Dummy from "./pages/dummy";
 
-import { initSidebarMenu } from "./store/PermissionSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUserPermissions } from "./thunks/fetchRolePermission";
 import { RootState, AppDispatch } from "./store/store";
-import { fetchRouteMapping } from "./thunks/fetchRouteMapping";
 import { useActiveMenuIdFromRoute } from "./hooks/useActiveMenuIdFromRoute";
+import { initSideMenu } from "./thunks/initSideMenu";
+import { fetchUserPermissions } from "./thunks/fetchRolePermission";
+import { fetchRouteMapping } from "./thunks/fetchRouteMapping";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
 const App: React.FC = () => {
   const [open, setOpen] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  useEffect(() => {
+    const user = store.getState().auth.user;
+
+    if (user) {
+      dispatch(fetchUserPermissions(user.userId));
+      dispatch(fetchRouteMapping());
+      dispatch(initSideMenu());
+    }
+  }, []);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -51,22 +60,7 @@ const App: React.FC = () => {
     setOpen(false);
   };
 
-  const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.auth.user);
-  useEffect(() => {
-    dispatch(fetchRouteMapping());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (user) {
-      console.log("Start fetching user's permission list");
-      dispatch(fetchUserPermissions(user.userId));
-    }
-  }, [user]);
-  useEffect(() => {
-    initSidebarMenu();
-  }, []);
-
   return (
     <Provider store={store}>
       <Toaster />

@@ -1,22 +1,22 @@
 // store/PermissionSlice.ts
-import store from "./store";
+// import store from "./store";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { MenuDto } from "../types/menu";
-import { buildSidebarStructure } from "../utils/treeStructureUtil";
-import { get } from "../request/axios";
+// import { buildSidebarStructure } from "../utils/treeStructureUtil";
+// import { get } from "../request/axios";
 
-export const initSidebarMenu = async () => {
-  const resp = await get<MenuDto[]>("/menus");
-  if (resp.isSuccess) {
-    const structured = buildSidebarStructure(resp.data);
-    store.dispatch(
-      setPermissions({
-        menuItems: structured,
-        permissions: [],
-      })
-    );
-  }
-};
+// export const initSidebarMenu = async () => {
+//   const resp = await get<MenuDto[]>("/menus");
+//   if (resp.isSuccess) {
+//     const structured = buildSidebarStructure(resp.data);
+//     store.dispatch(
+//       setPermissions({
+//         menuItems: structured,
+//         permissions: [],
+//       })
+//     );
+//   }
+// };
 
 interface PermissionState {
   menuItems: Array<MenuDto> | null;
@@ -25,10 +25,19 @@ interface PermissionState {
 }
 
 const getInitialState = (): PermissionState => {
+  // return {
+  //   permissions: null,
+  //   menuItems: [],
+  //   routeMap: {},
+  // };
+  const savedMenuItems = localStorage.getItem("user_menuItems");
+  const savedPermissions = localStorage.getItem("user_permissions");
+  const savedRouteMap = localStorage.getItem("user_routeMap");
+
   return {
-    permissions: null,
-    menuItems: [],
-    routeMap: {},
+    menuItems: savedMenuItems ? JSON.parse(savedMenuItems) : [],
+    permissions: savedPermissions ? JSON.parse(savedPermissions) : [],
+    routeMap: savedRouteMap ? JSON.parse(savedRouteMap) : {},
   };
 };
 
@@ -57,10 +66,10 @@ const permissionSlice = createSlice({
     clearPermissions(state) {
       state.menuItems = null;
       state.permissions = null;
-      state.routeMap = {}; // ✅ 同步清空 routeMap
+      state.routeMap = {};
       localStorage.removeItem("user_menuItems");
       localStorage.removeItem("user_permissions");
-      localStorage.removeItem("user_routeMap"); // ✅ 清理缓存
+      localStorage.removeItem("user_routeMap");
     },
     setRouteMap(state, action: PayloadAction<Record<string, number>>) {
       state.routeMap = action.payload;
