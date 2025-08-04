@@ -1,12 +1,7 @@
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  List,
-  ListItemButton,
-  ListItemText,
-  Typography,
-  Divider,
-} from "@mui/material";
+
+import { Box, List, ListItemButton, ListItemText, Typography, Divider } from "@mui/material";
+
 import { get } from "../../request/axios";
 import { CourseDto } from "../../types/course";
 import ChapterPage from "./ChapterPage";
