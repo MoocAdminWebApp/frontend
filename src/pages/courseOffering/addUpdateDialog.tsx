@@ -21,9 +21,20 @@ import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/en-au";
+import { AnyAaaaRecord } from "node:dns";
+
+
+export const statusOptions = [
+    { value: 0, label: "open" },
+    { value: 1, label: "closed" },
+     { value: 2, label: "canceled" },
+   ];
+
+
 
 interface Course {
   id: number;
+  courseCode: string;
   courseName: string;
 }
 
@@ -37,18 +48,12 @@ interface AddUpdateDialogProps {
 const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({ open, onClose, data, onSave }) => {
   const formikRef = useRef<any>(null);
 
-  const statusOptions = [
-    { value: 0, label: "open" },
-    { value: 1, label: "closed" },
-    { value: 2, label: "canceled" },
-  ];
-
   const semesterOptions = [
     { id: 0, name: "2026 First" },
     { id: 1, name: "2026 Second" },
   ];
 
-  const [courseOptions, setCourseOptions] = useState<{ id: number; courseName: string }[]>([]);
+  const [courseOptions, setCourseOptions] = useState<{ id:number;courseCode: string; courseName: string }[]>([]);
   const [teacherOptions, setTeacherOptions] = useState<{ id: number; name: string }[]>([]);
 
   const parseSchedule = (raw: string | undefined): [Dayjs | null, Dayjs | null] => {
@@ -63,6 +68,7 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({ open, onClose, data, 
   const initialValues: CourseOfferingFormValues = {
     id: data?.id ?? 0,
     courseId: data?.courseId ?? "",
+    courseCode: data?.courseCode ?? "",
     courseName: data?.courseName ?? "",
     teacherName: data?.teacherName ?? "",
     semester: data?.semester ?? "",
@@ -90,13 +96,14 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({ open, onClose, data, 
 
   useEffect(() => {
     const loadCourses = async () => {
-  const resp = await get<Course[]>("/courses");
+  const resp = await get<{ data: Course[] }>("/courses");
   console.log("resp", resp);
 
-  if (resp.isSuccess && Array.isArray(resp.data)) {
+  if (resp.isSuccess && Array.isArray(resp.data?.data)) {
     setCourseOptions(
-      resp.data.map((c) => ({
+      resp.data.data.map((c) => ({
         id: c.id,
+        courseCode: c.courseCode,
         courseName: c.courseName,
       }))
     );
@@ -144,20 +151,23 @@ const AddUpdateDialog: React.FC<AddUpdateDialogProps> = ({ open, onClose, data, 
                   <TextField
                     select
                     label="Course"
-                    name="courseId"
-                    value={values.courseId}
+                    name="courseName"
+                    value={values.courseName}
                     onChange={(e) => {
-                      const selected = courseOptions.find((c) => c.id === Number(e.target.value));
-                      setFieldValue("courseId", e.target.value);
-                      setFieldValue("courseName", selected?.courseName ?? "");
-                    }}
+                        const selectedCourse = courseOptions.find(
+                          (c) => c.courseName === e.target.value
+                        );
+                     setFieldValue("courseName", e.target.value);
+                     setFieldValue("courseCode", selectedCourse?.courseCode ?? "");
+                     setFieldValue("courseId", selectedCourse?.id ?? ""); 
+                     }}
                     onBlur={handleBlur}
                     error={touched.courseId && Boolean(errors.courseId)}
                     helperText={touched.courseId && errors.courseId}
                     fullWidth
                   >
                     {courseOptions.map((course) => (
-                      <MenuItem key={course.id} value={course.id}>
+                      <MenuItem key={course.courseCode} value={course.courseName}>
                         {course.courseName}
                       </MenuItem>
                     ))}

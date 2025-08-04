@@ -8,6 +8,7 @@ export interface CourseOfferingDto{
     schedule:string;
     status:number;
     courseId:number;
+    courseCode:string;
     capacity:number;
     enrolledCount:number;
     createdBy:number;
@@ -24,6 +25,7 @@ export interface CreateCourseOfferingDto{
     schedule:string;
     status:number | string;
     courseId:number | string;
+    courseCode:string;
     capacity:number;
 }
 
@@ -34,6 +36,7 @@ export interface UpdateCourseOfferingDto extends CreateCourseOfferingDto{
 export interface CourseOfferingFormValues {
   id?: number;
   courseId: number | string;
+  courseCode: string;
   courseName: string;
   teacherName: string;
   semester: string;
