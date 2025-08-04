@@ -34,6 +34,16 @@ import { formatDateValue } from "../../utils/formatDate";
 import UserNameCell from "../../components/UserNameCell";
 import { RoleDto } from "../../types/role";
 
+// permission control imports
+import { useEffect, useRef, useState } from "react";
+import { useActiveMenuIdFromRoute } from "../../hooks/useActiveMenuIdFromRoute";
+import BtnPermissionControl from "../../components/permissionControl/BtnPermissionControl";
+import PagePermissionControl from "../../components/permissionControl/PagePermissionControl";
+import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
+import PageLoading from "../../components/PageLoading";
+
 const User: React.FC = () => {
   const [roles, setRoles] = React.useState<RoleDto[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -99,6 +109,23 @@ const User: React.FC = () => {
     };
     load();
   }, [filter]);
+
+  // page permission control init
+  const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
+  const activeMenuId = useActiveMenuIdFromRoute();
+  const { pagePrefix, loading: prefixLoading } =
+    usePagePrefixFromMenuId(activeMenuId);
+  const prefix = pagePrefix ? pagePrefix : "";
+
+  const permissions = useSelector((state: RootState) => state.auth.permissions);
+  const isPermissionLoaded = useSelector(
+    (state: RootState) => state.auth.isPermissionLoaded
+  );
+
+  if (prefixLoading || !isPermissionLoaded) {
+    return <PageLoading loading={true} message="Loading page..." />;
+  }
+  const hasPermission = (p: string) => permissions.includes(p);
 
   const handlePaginationChange = (model: GridPaginationModel) => {
     setFilter((prev) => ({
@@ -274,20 +301,27 @@ const User: React.FC = () => {
       width: 150,
       renderCell: ({ row }) => (
         <Box>
-          <IconButton onClick={() => handleEdit(row)}>
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            onClick={() => {
-              setDeleteId(row.id);
-              setConfirmOpen(true);
-            }}
-          >
-            <DeleteIcon />
-          </IconButton>
-          <IconButton onClick={() => handleProfile(row)}>
-            <PageviewIcon />
-          </IconButton>
+          {/* permission control wrapping */}
+          <BtnPermissionControl hasAccess={hasPermission(`${prefix}:update`)}>
+            <IconButton onClick={() => handleEdit(row)}>
+              <EditIcon />
+            </IconButton>
+          </BtnPermissionControl>
+          <BtnPermissionControl hasAccess={hasPermission(`${prefix}:delete`)}>
+            <IconButton
+              onClick={() => {
+                setDeleteId(row.id);
+                setConfirmOpen(true);
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </BtnPermissionControl>
+          <BtnPermissionControl hasAccess={hasPermission(`${prefix}:update`)}>
+            <IconButton onClick={() => handleProfile(row)}>
+              <PageviewIcon />
+            </IconButton>
+          </BtnPermissionControl>
         </Box>
       ),
     },
@@ -295,6 +329,8 @@ const User: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <h2>User Management</h2>
+
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
           variant="outlined"
@@ -306,16 +342,19 @@ const User: React.FC = () => {
           }}
           sx={{ width: 300 }}
         />
-        <Button
-          startIcon={<AddIcon />}
-          variant="contained"
-          onClick={() => {
-            setCurrentUser(null);
-            setOpenDialog(true);
-          }}
-        >
-          Add User
-        </Button>
+        {/* permission control wrapping */}
+        {hasPermission(`${prefix}:create`) && (
+          <Button
+            startIcon={<AddIcon />}
+            variant="contained"
+            onClick={() => {
+              setCurrentUser(null);
+              setOpenDialog(true);
+            }}
+          >
+            Add User
+          </Button>
+        )}
       </Box>
 
       <UserList

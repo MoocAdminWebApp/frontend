@@ -1,16 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { get } from "../request/axios";
 
 /**
  * Obtain the permission prefix based on menuId
  */
 export function usePagePrefixFromMenuId(menuId: number | null) {
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pagePrefix, setPagePrefixState] = useState<string | null>(null);
+  const [pagePrefix, setPagePrefix] = useState<string>("");
+
+  // 🚫 Skip fetch if no menuId
+  const shouldFetch = useMemo(() => !!menuId, [menuId]);
 
   useEffect(() => {
-    if (!menuId) return;
+    if (!shouldFetch) return;
 
     const fetchPrefix = async () => {
       setLoading(true);
@@ -19,22 +22,26 @@ export function usePagePrefixFromMenuId(menuId: number | null) {
       try {
         const resp = await get(`/menus/permissionprefix/${menuId}`);
         if (resp.isSuccess && typeof resp.data === "string") {
-          const permissionPrefix = resp.data.trim();
-          console.log(`Permission Prefix: ${permissionPrefix}`);
-          setPagePrefixState(permissionPrefix);
+          const prefix = resp.data.trim();
+          console.log("Permission Prefix Fetched:", prefix);
+          setPagePrefix(prefix);
         } else {
-          setPagePrefixState(null);
+          setPagePrefix("");
         }
       } catch (err) {
+        console.error("Error fetching permission prefix:", err);
         setError("Failed to load permission prefix");
-        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchPrefix();
-  }, [menuId]);
+  }, [shouldFetch, menuId]);
 
-  return { pagePrefix, loading, error };
+  // ✅ Memoized return to avoid triggering re-renders
+  return useMemo(
+    () => ({ pagePrefix, loading, error }),
+    [pagePrefix, loading, error]
+  );
 }

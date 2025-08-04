@@ -1,7 +1,7 @@
 // src/components/BtnPermissionControl.tsx
 
 import React from "react";
-import { usePagePermission } from "../hooks/usePagePermission";
+import { usePagePermission } from "../../hooks/usePagePermission";
 
 interface BtnPermissionControlProps {
   /** Determine whether:
@@ -23,14 +23,6 @@ interface BtnPermissionControlProps {
   pagePrefix?: string;
   action?: string;
 }
-
-// const BtnPermissionControl: React.FC<BtnPermissionControlProps> = ({
-//   hasAccess,
-//   children,
-// }) => {
-//   if (!hasAccess) return null;
-//   return <>{children}</>;
-// };
 
 const BtnPermissionControl: React.FC<BtnPermissionControlProps> = ({
   isDirectRendering = true,

@@ -30,6 +30,53 @@ import { MenuDto } from "../../types/menu";
 import { MenuType } from "../../types/enum";
 //import menuItems, { MenuItem } from '../../menuItems';
 
+import {
+  // General
+  HelpOutline as DefaultIcon,
+  Home as DashboardIcon,
+
+  // System Management
+  Settings as SystemMgmtIcon,
+  AdminPanelSettings as RoleIcon,
+  Widgets as MenuIcon,
+  Person as UserIcon,
+  Security as PermissionIcon,
+
+  // Course Management
+  MenuBook as CourseMgmtIcon,
+  School as CourseIcon,
+  EventAvailable as CourseOfferingIcon,
+  ViewModule as ChapterIcon,
+  Category as CategoryIcon,
+  ViewCarousel as CarouselIcon,
+  // Exam Management
+  Assignment as ExamMgmtIcon,
+  Quiz as QuestionBankIcon,
+} from "@mui/icons-material";
+
+const iconMap: Record<string, React.ReactNode> = {
+  DashboardIcon: <DashboardIcon />,
+  DefaultIcon: <DefaultIcon />,
+
+  // System Management
+  SystemMgmtIcon: <SystemMgmtIcon />,
+  RoleIcon: <RoleIcon />,
+  MenuIcon: <MenuIcon />,
+  UserIcon: <UserIcon />,
+  PermissionIcon: <PermissionIcon />,
+
+  // Course Management
+  CourseMgmtIcon: <CourseMgmtIcon />,
+  CourseIcon: <CourseIcon />,
+  CourseOfferingIcon: <CourseOfferingIcon />,
+  ChapterIcon: <ChapterIcon />,
+  CategoryIcon: <CategoryIcon />,
+  CarouselIcon: <CarouselIcon />,
+  // Exam Management
+  ExamMgmtIcon: <ExamMgmtIcon />,
+  QuestionBankIcon: <QuestionBankIcon />,
+};
+
 const SideMenu: React.FC = () => {
   const location = useLocation();
   const currentPath = location.pathname;
@@ -86,7 +133,7 @@ const SideMenu: React.FC = () => {
                   color: currentPath === item.route ? "#1976d2" : "inherit",
                 }}
               >
-                {item.icon && <item.icon />}
+                {iconMap[item.icon as string] ?? <DefaultIcon />}
               </ListItemIcon>
               <ListItemText
                 primary={

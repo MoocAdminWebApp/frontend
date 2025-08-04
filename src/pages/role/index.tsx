@@ -7,10 +7,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import {
-  GridColDef,
-  GridPaginationModel,
-} from "@mui/x-data-grid";
+import { GridColDef, GridPaginationModel } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -29,10 +26,22 @@ import { FilterPagedResultRequestDto, PagedResultDto } from "../../types/types";
 import { formatDateValue } from "../../utils/formatDate";
 import UserNameCell from "../../components/UserNameCell";
 
+// permission control imports
+import { useEffect, useRef, useState } from "react";
+import { useActiveMenuIdFromRoute } from "../../hooks/useActiveMenuIdFromRoute";
+import BtnPermissionControl from "../../components/permissionControl/BtnPermissionControl";
+import PagePermissionControl from "../../components/permissionControl/PagePermissionControl";
+import { usePagePrefixFromMenuId } from "../../hooks/usePagePrefixFromMenuId";
+import PageLoading from "../../components/PageLoading";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
+
 const Role: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
   const [openDialog, setOpenDialog] = React.useState(false);
-  const [currentRole, setCurrentRole] = React.useState<UpdateRoleDto | null>(null);
+  const [currentRole, setCurrentRole] = React.useState<UpdateRoleDto | null>(
+    null
+  );
   const [searchText, setSearchText] = React.useState("");
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [deleteId, setDeleteId] = React.useState<number>(0);
@@ -40,10 +49,12 @@ const Role: React.FC = () => {
     page: 1,
     pageSize: 10,
   });
-  const [pagedResult, setPagedResult] = React.useState<PagedResultDto<RoleDto>>({
-    items: [],
-    total: 0,
-  });
+  const [pagedResult, setPagedResult] = React.useState<PagedResultDto<RoleDto>>(
+    {
+      items: [],
+      total: 0,
+    }
+  );
 
   const searchQuery = useDebounce(searchText, 500);
 
@@ -54,15 +65,14 @@ const Role: React.FC = () => {
   React.useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const resp = await get<PagedResultDto<RoleDto>>(
-        `/roles/page`,
-        {
-          page: filter.page,
-          pageSize: filter.pageSize,
-          filters: filter.filter ? JSON.stringify({ roleName: filter.filter }) : undefined,
-          fuzzyKeys: "roleName",
-        }
-      );
+      const resp = await get<PagedResultDto<RoleDto>>(`/roles/page`, {
+        page: filter.page,
+        pageSize: filter.pageSize,
+        filters: filter.filter
+          ? JSON.stringify({ roleName: filter.filter })
+          : undefined,
+        fuzzyKeys: "roleName",
+      });
       if (resp.isSuccess && resp.data) {
         setPagedResult(resp.data);
       } else {
@@ -72,6 +82,23 @@ const Role: React.FC = () => {
     };
     load();
   }, [filter]);
+
+  // page permission control init
+  const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
+  const activeMenuId = useActiveMenuIdFromRoute();
+  const { pagePrefix, loading: prefixLoading } =
+    usePagePrefixFromMenuId(activeMenuId);
+  const prefix = pagePrefix ? pagePrefix : "";
+
+  const permissions = useSelector((state: RootState) => state.auth.permissions);
+  const isPermissionLoaded = useSelector(
+    (state: RootState) => state.auth.isPermissionLoaded
+  );
+
+  if (prefixLoading || !isPermissionLoaded) {
+    return <PageLoading loading={true} message="Loading page..." />;
+  }
+  const hasPermission = (p: string) => permissions.includes(p);
 
   const handlePaginationChange = (model: GridPaginationModel) => {
     setFilter((prev) => ({
@@ -140,28 +167,28 @@ const Role: React.FC = () => {
         ),
     },
     {
-  field: "createdBy",
-  headerName: "Created By",
-  flex: 1,
-  renderCell: ({ row }) => <UserNameCell user={row.creator} />,
-},
-{
-  field: "updatedBy",
-  headerName: "Updated By",
-  flex: 1,
-  renderCell: ({ row }) => <UserNameCell user={row.updater} />,
-},
+      field: "createdBy",
+      headerName: "Created By",
+      flex: 1,
+      renderCell: ({ row }) => <UserNameCell user={row.creator} />,
+    },
     {
-    field: 'createdAt',
-    headerName: 'Created At',
-    flex: 1,
-    valueFormatter: formatDateValue
-  },
-  {
-    field: 'updatedAt',
-    headerName: 'Updated At',
-    flex: 1,
-    valueFormatter:formatDateValue
+      field: "updatedBy",
+      headerName: "Updated By",
+      flex: 1,
+      renderCell: ({ row }) => <UserNameCell user={row.updater} />,
+    },
+    {
+      field: "createdAt",
+      headerName: "Created At",
+      flex: 1,
+      valueFormatter: formatDateValue,
+    },
+    {
+      field: "updatedAt",
+      headerName: "Updated At",
+      flex: 1,
+      valueFormatter: formatDateValue,
     },
     {
       field: "actions",
@@ -169,17 +196,23 @@ const Role: React.FC = () => {
       width: 150,
       renderCell: ({ row }) => (
         <Box>
-          <IconButton onClick={() => handleEdit(row)}>
-            <EditIcon />
-          </IconButton>
-          <IconButton
-            onClick={() => {
-              setDeleteId(row.id);
-              setConfirmOpen(true);
-            }}
-          >
-            <DeleteIcon />
-          </IconButton>
+          {/* permission control wrapping */}
+          <BtnPermissionControl hasAccess={hasPermission(`${prefix}:update`)}>
+            <IconButton onClick={() => handleEdit(row)}>
+              <EditIcon />
+            </IconButton>
+          </BtnPermissionControl>
+
+          <BtnPermissionControl hasAccess={hasPermission(`${prefix}:delete`)}>
+            <IconButton
+              onClick={() => {
+                setDeleteId(row.id);
+                setConfirmOpen(true);
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </BtnPermissionControl>
         </Box>
       ),
     },
@@ -187,6 +220,7 @@ const Role: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <h2>Role Management</h2>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
           variant="outlined"
@@ -198,16 +232,20 @@ const Role: React.FC = () => {
           }}
           sx={{ width: 300 }}
         />
-        <Button
-          startIcon={<AddIcon />}
-          variant="contained"
-          onClick={() => {
-            setCurrentRole(null);
-            setOpenDialog(true);
-          }}
-        >
-          Add Role
-        </Button>
+
+        {/* permission control wrapping */}
+        {hasPermission(`${prefix}:create`) && (
+          <Button
+            startIcon={<AddIcon />}
+            variant="contained"
+            onClick={() => {
+              setCurrentRole(null);
+              setOpenDialog(true);
+            }}
+          >
+            Add Role
+          </Button>
+        )}
       </Box>
 
       <RoleList

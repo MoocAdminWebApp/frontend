@@ -2,7 +2,7 @@ import * as React from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "../store/authSlice";
-import { Formik, Form,FormikHelpers } from "formik";
+import { Formik, Form, FormikHelpers } from "formik";
 import {
   Box,
   Button,
@@ -13,13 +13,20 @@ import {
   InputAdornment,
   TextField,
   Grid,
-  Link
+  Link,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import * as Yup from "yup";
-import {post } from "../request/axios/index";
+import { post } from "../request/axios/index";
 import { jwtDecode } from "jwt-decode";
-import { useTheme } from '@mui/material/styles';
+import { useTheme } from "@mui/material/styles";
+
+// Imports for permission control and menu mapping
+import { initSideMenu } from "../thunks/initSideMenu";
+import { fetchRouteMapping } from "../thunks/fetchRouteMapping";
+import { fetchUserPermissions } from "../thunks/fetchRolePermission";
+import { AppDispatch } from "../store/store";
+
 //Define the type of form value
 interface LoginFormValues {
   email: string;
@@ -39,15 +46,15 @@ interface RoleInfo {
 
 interface TokenPayload {
   userId: number;
-  profileId:number;
+  profileId: number;
   firstName: string;
   lastName: string;
   email: string;
   roles: RoleInfo[];
-  address:string;
+  address: string;
   gender: string;
   phone: string;
-  birthdate:string;
+  birthdate: string;
 }
 //Define Yup validation rules
 const LoginSchema = Yup.object().shape({
@@ -64,7 +71,8 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
 
   const handleLogin = async (
@@ -80,9 +88,9 @@ const Login: React.FC = () => {
         password: values.password,
       });
       const decodedData = jwtDecode<TokenPayload>(resp.data);
-       const userForFrontEnd = {
+      const userForFrontEnd = {
         userId: decodedData.userId,
-        profileId:decodedData.profileId,
+        profileId: decodedData.profileId,
         lastName: decodedData.lastName,
         firstName: decodedData.firstName,
         email: decodedData.email,
@@ -90,7 +98,7 @@ const Login: React.FC = () => {
         address: decodedData.address,
         gender: decodedData.gender,
         phone: decodedData.phone,
-        birthdate:decodedData.birthdate,
+        birthdate: decodedData.birthdate,
       };
       if (resp.isSuccess) {
         dispatch(
@@ -99,6 +107,12 @@ const Login: React.FC = () => {
             user: userForFrontEnd,
           })
         ); //Update Redux status
+
+        // Init SideMenu, UserPermission, MenuRouteMapping
+        dispatch(fetchUserPermissions(userForFrontEnd.userId));
+        dispatch(fetchRouteMapping());
+        dispatch(initSideMenu());
+
         navigate("/"); //After successful login, jump to the homepage
       } else {
         setError(resp.message || "Invalid username or password");
@@ -126,7 +140,7 @@ const Login: React.FC = () => {
         height: "100vh",
         backgroundColor: "background.default",
         p: 3,
-        background:`linear-gradient(45deg, #1976d2  0%, ${theme.palette.secondary.main}  50%, ${theme.palette.primary.main} 100%)`
+        background: `linear-gradient(45deg, #1976d2  0%, ${theme.palette.secondary.main}  50%, ${theme.palette.primary.main} 100%)`,
       }}
     >
       <Typography
@@ -214,54 +228,54 @@ const Login: React.FC = () => {
           )}
         </Formik>
         <Grid
-                container
-                justifyContent="space-between"
-                sx={{ mt: 1, fontSize: "1rem" }}
+          container
+          justifyContent="space-between"
+          sx={{ mt: 1, fontSize: "1rem" }}
+        >
+          <Grid item>
+            <Link
+              sx={{ textDecoration: "none" }}
+              component={RouterLink}
+              to="/forgotPwd"
+            >
+              <Typography
+                sx={{
+                  fontSize: "1rem",
+                  color: "#000",
+                  fontWeight: "bold",
+                  mb: 2,
+                  textAlign: "center",
+                }}
+                component="h1"
+                variant="h5"
               >
-                <Grid item>
-                  <Link
-                    sx={{ textDecoration: "none" }}
-                    component={RouterLink}
-                    to="/forgotPwd"
-                  >
-                    <Typography
-                      sx={{
-                        fontSize: "1rem",
-                        color: "#000",
-                        fontWeight: "bold",
-                        mb: 2,
-                        textAlign: "center",
-                      }}
-                      component="h1"
-                      variant="h5"
-                    >
-                      Forgot Password ?
-                    </Typography>
-                  </Link>
-                </Grid>
-                <Grid item>
-                  <Link
-                    sx={{ textDecoration: "none" }}
-                    component={RouterLink}
-                    to="/Signup"
-                  >
-                    <Typography
-                      sx={{
-                        fontSize: "1rem",
-                        color: "#000",
-                        fontWeight: "bold",
-                        mb: 2,
-                        textAlign: "center",
-                        textDecoration: "none",
-                      }}
-                      component="h1"
-                      variant="h5"
-                    >
-                      Sign Up
-                    </Typography>
-                  </Link>
-                </Grid>
-              </Grid>
+                Forgot Password ?
+              </Typography>
+            </Link>
+          </Grid>
+          <Grid item>
+            <Link
+              sx={{ textDecoration: "none" }}
+              component={RouterLink}
+              to="/Signup"
+            >
+              <Typography
+                sx={{
+                  fontSize: "1rem",
+                  color: "#000",
+                  fontWeight: "bold",
+                  mb: 2,
+                  textAlign: "center",
+                  textDecoration: "none",
+                }}
+                component="h1"
+                variant="h5"
+              >
+                Sign Up
+              </Typography>
+            </Link>
+          </Grid>
+        </Grid>
       </Box>
     </Box>
   );

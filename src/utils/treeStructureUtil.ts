@@ -119,7 +119,7 @@ export function buildSidebarStructure(rawData: MenuDto[]): MenuDto[] {
       ...item,
       children: [],
       level: 0,
-      icon: assignIcon(item.icon as string),
+      // icon: assignIcon(item.icon as string),
     });
   }
 

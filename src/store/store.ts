@@ -3,6 +3,7 @@ import authReducer from "./authSlice";
 import permissionSlice from "./PermissionSlice";
 import { createStore, applyMiddleware } from "redux";
 import thunk from "redux-thunk";
+localStorage.removeItem("user_menuItems");
 
 const store = configureStore({
   reducer: {
