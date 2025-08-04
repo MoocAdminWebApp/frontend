@@ -60,28 +60,6 @@ const CourseOffering: React.FC = () => {
   React.useEffect(() => {
     setFilter((prev) => ({ ...prev, filter: searchQuery }));
   }, [searchQuery]);
-
-  React.useEffect(() => {
-    load();
-  }, [filter]);
-
-  // page permission control init
-  const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
-  const activeMenuId = useActiveMenuIdFromRoute();
-  const { pagePrefix, loading: prefixLoading } =
-    usePagePrefixFromMenuId(activeMenuId);
-  const prefix = pagePrefix ? pagePrefix : "";
-
-  const permissions = useSelector((state: RootState) => state.auth.permissions);
-  const isPermissionLoaded = useSelector(
-    (state: RootState) => state.auth.isPermissionLoaded
-  );
-
-  if (prefixLoading || !isPermissionLoaded) {
-    return <PageLoading loading={true} message="Loading page..." />;
-  }
-  const hasPermission = (p: string) => permissions.includes(p);
-
   const load = async () => {
     setLoading(true);
     const resp = await get<
@@ -103,6 +81,26 @@ const CourseOffering: React.FC = () => {
     }
     setLoading(false);
   };
+  React.useEffect(() => {
+    load();
+  }, [filter]);
+
+  // page permission control init
+  const [currentPrefix, setCurrentPrefix] = useState<string | null>(null);
+  const activeMenuId = useActiveMenuIdFromRoute();
+  const { pagePrefix, loading: prefixLoading } =
+    usePagePrefixFromMenuId(activeMenuId);
+  const prefix = pagePrefix ? pagePrefix : "";
+
+  const permissions = useSelector((state: RootState) => state.auth.permissions);
+  const isPermissionLoaded = useSelector(
+    (state: RootState) => state.auth.isPermissionLoaded
+  );
+
+  if (prefixLoading || !isPermissionLoaded) {
+    return <PageLoading loading={true} message="Loading page..." />;
+  }
+  const hasPermission = (p: string) => permissions.includes(p);
 
   const handlePaginationChange = (model: GridPaginationModel) => {
     setFilter((prev) => ({
