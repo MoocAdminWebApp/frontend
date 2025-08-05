@@ -88,7 +88,7 @@ const ProfileInfoDialog: React.FC<ProfileInfoDialogProps> = ({
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>
-        {profile ? "Edit Profile Info" : "Add Profile Info"}
+        {profile ? "Show Profile Info" : "Add Profile Info"}
       </DialogTitle>
       <DialogContent>
         <Formik

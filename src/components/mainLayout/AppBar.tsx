@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
@@ -10,14 +10,21 @@ import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import { Box } from "@mui/material";
+import { Box, Avatar } from "@mui/material";
 
 import { logout } from "../../store/authSlice";
 import { clearPermissions } from "../../store/PermissionSlice";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { ensureTrailingSlash, isBase64DataURL } from "../../utils/stringUtil";
+import {
+  ensureTrailingSlash,
+  isBase64DataURL,
+  imageHttpUrlToBase64,
+} from "../../utils/stringUtil";
+import { get } from "../../request/axios";
+import { ProfileDto } from "../../types/profile";
+import { getFullAvatarUrl } from "../../utils/getFullAvatarUrl";
 
 const drawerWidth = 300;
 
@@ -46,34 +53,62 @@ interface CustomAppBarProps {
   open: boolean;
   handleDrawerOpen: () => void;
 }
-
+//get full avatar URL
 const CustomAppBar: React.FC<CustomAppBarProps> = ({
   open,
   handleDrawerOpen,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [avatar, setAvatar] = useState<string>("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const loginUser = useSelector((state: RootState) => state.auth.user);
-  // 打开下拉菜单
+
+  // fetch user avatar when component mounts or loginUser changes
+  useEffect(() => {
+    const fetchUserAvatar = async () => {
+      if (loginUser?.userId) {
+        try {
+          const resp = await get<ProfileDto>(
+            `/profiles/by-user/${loginUser.userId}`
+          );
+          if (resp.isSuccess && resp.data && resp.data.avatar) {
+            const fullAvatarUrl = getFullAvatarUrl(resp.data.avatar);
+            setAvatar(fullAvatarUrl);
+          } else {
+            setAvatar(""); // clear avatar if not found and show default avatar
+          }
+        } catch (error) {
+          console.error("Failed to fetch user avatar:", error);
+          setAvatar(""); // clear avatar on error
+        }
+      } else {
+        setAvatar(""); // If no user is logged in, clear the avatar
+      }
+    };
+
+    fetchUserAvatar();
+  }, [loginUser?.userId, loginUser?.avatar]);
+
+  // When the user update avatar in ProfileForm page, listen to the change from redux store
+  useEffect(() => {
+    if (loginUser?.avatar) {
+      const fullAvatarUrl = getFullAvatarUrl(loginUser.avatar);
+      setAvatar(fullAvatarUrl);
+    }
+  }, [loginUser?.avatar]);
+
+  // open the user menu
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
-  // 关闭下拉菜单
+  // close the user menu
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
 
-  // if (isBase64DataURL(resp.data.avatar)) {
-  //   setPreview(resp.data.avatar);
-  // } else {
-  //   let imageUrl = `${ensureTrailingSlash(process.env.REACT_APP_BASE_API_URL ?? '')}${resp.data.avatar}`;
-  //   let imageData = await imageHttpUrlToBase64(imageUrl);
-  //   setPreview(`data:image/png;base64,${imageData}`);
-  // }
-
-  // 处理菜单项点击
+  // handle menu item click
   const handleMenuItemClick = (action: string) => {
     handleMenuClose();
     switch (action) {
@@ -81,8 +116,6 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
         navigate("/profile");
         break;
       case "logout":
-        console.log("Logout clicked");
-
         dispatch(logout());
         //dispatch(clearPermissions());
         break;
@@ -90,7 +123,6 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
         break;
     }
   };
-  const [avatar, setAvatar] = useState<string>("");
 
   return (
     <AppBar position="fixed" open={open}>
@@ -107,23 +139,35 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
         <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
           Mooc Dashboard
         </Typography>
-        <Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography variant="body2" sx={{ color: "inherit" }}>
+            {`${loginUser?.firstName || ""} ${
+              loginUser?.lastName || ""
+            }`.trim()}
+          </Typography>
           <IconButton
             color="inherit"
             aria-label="account of current user"
             aria-controls="user-menu"
             aria-haspopup="true"
             onClick={handleMenuOpen}
+            sx={{ p: 0.5 }}
           >
-            {`${loginUser?.firstName} ${loginUser?.lastName}`}
             {avatar ? (
-              <img
+              <Avatar
                 src={avatar}
-                alt="avatar"
-                style={{ width: "30px", height: "30px", borderRadius: "50%" }}
+                alt="User Avatar"
+                sx={{
+                  width: 32,
+                  height: 32,
+                  border: "2px solid rgba(255, 255, 255, 0.3)",
+                }}
+                onError={() => {
+                  setAvatar(""); // if avatar fails to load, reset to default
+                }}
               />
             ) : (
-              <AccountCircle />
+              <AccountCircle sx={{ fontSize: 32 }} />
             )}
           </IconButton>
           <Menu
