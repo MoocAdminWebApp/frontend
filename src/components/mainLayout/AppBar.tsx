@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { styled } from "@mui/material/styles";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
@@ -10,14 +10,20 @@ import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import { Box } from "@mui/material";
+import { Box, Avatar } from "@mui/material";
 
 import { logout } from "../../store/authSlice";
 import { clearPermissions } from "../../store/PermissionSlice";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { ensureTrailingSlash, isBase64DataURL } from "../../utils/stringUtil";
+import {
+  ensureTrailingSlash,
+  isBase64DataURL,
+  imageHttpUrlToBase64,
+} from "../../utils/stringUtil";
+import { get } from "../../request/axios";
+import { ProfileDto } from "../../types/profile";
 
 const drawerWidth = 300;
 
@@ -47,14 +53,57 @@ interface CustomAppBarProps {
   handleDrawerOpen: () => void;
 }
 
+//get full avatar URL
+const getFullAvatarUrl = (avatarPath: string): string => {
+  if (!avatarPath) return "";
+  if (avatarPath.startsWith("http")) return avatarPath;
+  return `${process.env.REACT_APP_BASE_API_URL}${avatarPath}`;
+};
+
 const CustomAppBar: React.FC<CustomAppBarProps> = ({
   open,
   handleDrawerOpen,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [avatar, setAvatar] = useState<string>("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const loginUser = useSelector((state: RootState) => state.auth.user);
+
+  // 获取用户头像
+  useEffect(() => {
+    const fetchUserAvatar = async () => {
+      if (loginUser?.userId) {
+        try {
+          const resp = await get<ProfileDto>(
+            `/profiles/by-user/${loginUser.userId}`
+          );
+          if (resp.isSuccess && resp.data && resp.data.avatar) {
+            const fullAvatarUrl = getFullAvatarUrl(resp.data.avatar);
+            setAvatar(fullAvatarUrl);
+          } else {
+            setAvatar(""); // 清空头像，显示默认图标
+          }
+        } catch (error) {
+          console.error("Failed to fetch user avatar:", error);
+          setAvatar(""); // 出错时清空头像
+        }
+      } else {
+        setAvatar(""); // 没有登录用户时清空头像
+      }
+    };
+
+    fetchUserAvatar();
+  }, [loginUser?.userId, loginUser?.avatar]); // 依赖用户ID和avatar字段的变化
+
+  // 监听 Redux store 中 avatar 的变化（当用户在Profile页面更新头像时）
+  useEffect(() => {
+    if (loginUser?.avatar) {
+      const fullAvatarUrl = getFullAvatarUrl(loginUser.avatar);
+      setAvatar(fullAvatarUrl);
+    }
+  }, [loginUser?.avatar]);
+
   // 打开下拉菜单
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -65,14 +114,6 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
     setAnchorEl(null);
   };
 
-  // if (isBase64DataURL(resp.data.avatar)) {
-  //   setPreview(resp.data.avatar);
-  // } else {
-  //   let imageUrl = `${ensureTrailingSlash(process.env.REACT_APP_BASE_API_URL ?? '')}${resp.data.avatar}`;
-  //   let imageData = await imageHttpUrlToBase64(imageUrl);
-  //   setPreview(`data:image/png;base64,${imageData}`);
-  // }
-
   // 处理菜单项点击
   const handleMenuItemClick = (action: string) => {
     handleMenuClose();
@@ -82,7 +123,6 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
         break;
       case "logout":
         console.log("Logout clicked");
-
         dispatch(logout());
         //dispatch(clearPermissions());
         break;
@@ -90,7 +130,6 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
         break;
     }
   };
-  const [avatar, setAvatar] = useState<string>("");
 
   return (
     <AppBar position="fixed" open={open}>
@@ -107,23 +146,36 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
         <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
           Mooc Dashboard
         </Typography>
-        <Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography variant="body2" sx={{ color: "inherit" }}>
+            {`${loginUser?.firstName || ""} ${
+              loginUser?.lastName || ""
+            }`.trim()}
+          </Typography>
           <IconButton
             color="inherit"
             aria-label="account of current user"
             aria-controls="user-menu"
             aria-haspopup="true"
             onClick={handleMenuOpen}
+            sx={{ p: 0.5 }}
           >
-            {`${loginUser?.firstName} ${loginUser?.lastName}`}
             {avatar ? (
-              <img
+              <Avatar
                 src={avatar}
-                alt="avatar"
-                style={{ width: "30px", height: "30px", borderRadius: "50%" }}
+                alt="User Avatar"
+                sx={{
+                  width: 32,
+                  height: 32,
+                  border: "2px solid rgba(255, 255, 255, 0.3)",
+                }}
+                onError={() => {
+                  console.log("Avatar failed to load, falling back to default");
+                  setAvatar(""); // 如果头像加载失败，回退到默认图标
+                }}
               />
             ) : (
-              <AccountCircle />
+              <AccountCircle sx={{ fontSize: 32 }} />
             )}
           </IconButton>
           <Menu
