@@ -70,7 +70,7 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
   const dispatch = useDispatch();
   const loginUser = useSelector((state: RootState) => state.auth.user);
 
-  // 获取用户头像
+  // fetch user avatar when component mounts or loginUser changes
   useEffect(() => {
     const fetchUserAvatar = async () => {
       if (loginUser?.userId) {
@@ -82,21 +82,21 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
             const fullAvatarUrl = getFullAvatarUrl(resp.data.avatar);
             setAvatar(fullAvatarUrl);
           } else {
-            setAvatar(""); // 清空头像，显示默认图标
+            setAvatar(""); // clear avatar if not found and show default avatar
           }
         } catch (error) {
           console.error("Failed to fetch user avatar:", error);
-          setAvatar(""); // 出错时清空头像
+          setAvatar(""); // clear avatar on error
         }
       } else {
-        setAvatar(""); // 没有登录用户时清空头像
+        setAvatar(""); // If no user is logged in, clear the avatar
       }
     };
 
     fetchUserAvatar();
-  }, [loginUser?.userId, loginUser?.avatar]); // 依赖用户ID和avatar字段的变化
+  }, [loginUser?.userId, loginUser?.avatar]);
 
-  // 监听 Redux store 中 avatar 的变化（当用户在Profile页面更新头像时）
+  // When the user update avatar in ProfileForm page, listen to the change from redux store
   useEffect(() => {
     if (loginUser?.avatar) {
       const fullAvatarUrl = getFullAvatarUrl(loginUser.avatar);
@@ -104,17 +104,17 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
     }
   }, [loginUser?.avatar]);
 
-  // 打开下拉菜单
+  // open the user menu
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
-  // 关闭下拉菜单
+  // close the user menu
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
 
-  // 处理菜单项点击
+  // handle menu item click
   const handleMenuItemClick = (action: string) => {
     handleMenuClose();
     switch (action) {
@@ -122,7 +122,6 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
         navigate("/profile");
         break;
       case "logout":
-        console.log("Logout clicked");
         dispatch(logout());
         //dispatch(clearPermissions());
         break;
@@ -170,8 +169,7 @@ const CustomAppBar: React.FC<CustomAppBarProps> = ({
                   border: "2px solid rgba(255, 255, 255, 0.3)",
                 }}
                 onError={() => {
-                  console.log("Avatar failed to load, falling back to default");
-                  setAvatar(""); // 如果头像加载失败，回退到默认图标
+                  setAvatar(""); // if avatar fails to load, reset to default
                 }}
               />
             ) : (

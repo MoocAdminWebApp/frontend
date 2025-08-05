@@ -79,7 +79,6 @@ const uploadAvatar = async (base64Data: string): Promise<string> => {
 const getFullAvatarUrl = (avatarPath: string): string => {
   if (!avatarPath) return "";
   if (avatarPath.startsWith("http")) return avatarPath;
-  // 不添加时间戳，让浏览器正常缓存
   return `${process.env.REACT_APP_BASE_API_URL}${avatarPath}`;
 };
 
@@ -148,7 +147,6 @@ const ProfileForm = () => {
 
   const { user } = useSelector((state: RootState) => state.auth);
 
-  // 在 ProfileForm 组件中的 useEffect 修改为：
   useEffect(() => {
     if (user) {
       setInitialValues({
@@ -169,13 +167,10 @@ const ProfileForm = () => {
             const resp = await get<ProfileDto>(
               `/profiles/by-user/${user.userId}`
             );
-            console.log("fetch profile resp:", resp);
             if (resp.isSuccess && resp.data && resp.data.avatar) {
               const fullUrl = getFullAvatarUrl(resp.data.avatar);
-              console.log("Setting preview URL:", fullUrl);
               setPreview(fullUrl);
             } else {
-              console.log("No avatar found or request failed");
               setPreview(null);
             }
           } catch (error) {
@@ -188,20 +183,6 @@ const ProfileForm = () => {
       fetchProfile();
     }
   }, [user]);
-
-  // useEffect(() => {
-  // const fetchProfile = async (row: ProfileDto) => {
-  //   if (user) {
-  //     const resp = await get<ProfileDto>(`/profiles/by-user/${user.userid}`);
-  //     if (resp.isSuccess && resp.data) {
-  //     } else {
-  //       // setCurrentProfile(null);
-  //       // setOpenProfileDialog(true);
-  //       toast.error(resp.message || "Failed to load user");
-  //     }
-  //   }
-  // };
-  // }, [user]);
 
   return (
     <Box sx={{ padding: 3 }}>
@@ -266,7 +247,7 @@ const ProfileForm = () => {
                       }
                     }
 
-                    // 更新用户表数据
+                    // update user table
                     let respFromUserTable = await put<FormValues>(
                       `/users/${user?.userId}`,
                       {
@@ -275,7 +256,7 @@ const ProfileForm = () => {
                       }
                     );
 
-                    // 更新profile表数据（包括头像路径）
+                    // update profile table
                     let respFromProfileTable = await put<FormValues>(
                       `/profiles/${user?.profileId}`,
                       {
@@ -284,7 +265,7 @@ const ProfileForm = () => {
                         birthdate: values.birthdate,
                         streetAddress: values.streetAddress,
                         gender: mapGenderEnumToString(values.gender),
-                        avatar: uploadedAvatarPath, // 更新头像路径
+                        avatar: uploadedAvatarPath, // update avatar path
                       }
                     );
 

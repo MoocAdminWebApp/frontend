@@ -51,21 +51,20 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
   const [rotate, setRotate] = useState(0);
   const [aspect, setAspect] = useState<number | undefined>(1); // 1:1 ratio for square crop
   const [editing, setEditing] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false); // 新增：跟踪图像加载状态
+  const [imageLoaded, setImageLoaded] = useState(false); // image loaded state
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (prop.imageData) {
       setImgSrc(prop.imageData);
-      setImageLoaded(false); // 重置加载状态
-      console.log("Image data updated:", prop.imageData);
+      setImageLoaded(false); // reset image loaded state
     }
   }, [prop.imageData]);
 
   function onSelectFile(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
       setCrop(undefined); // Makes crop preview update between images.
-      setImageLoaded(false); // 重置加载状态
+      setImageLoaded(false); // reset image loaded state
       const reader = new FileReader();
       reader.addEventListener("load", () => {
         setImgSrc(reader.result?.toString() || "");
@@ -76,7 +75,7 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
 
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
     const img = e.currentTarget;
-    setImageLoaded(true); // 标记图像已加载
+    setImageLoaded(true); // set image loaded state to true
 
     if (aspect) {
       const { width, height } = img;
@@ -84,7 +83,6 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
     }
   }
 
-  // 修复：只有在图像加载完成后才执行crop操作
   useDebounceEffect(
     async () => {
       if (
@@ -92,7 +90,7 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
         completedCrop?.height &&
         imgRef.current &&
         previewCanvasRef.current &&
-        imageLoaded // 关键：确保图像已加载
+        imageLoaded // ensure image is loaded before processing
       ) {
         try {
           // We use canvasPreview as it's much faster than imgPreview.
@@ -110,7 +108,7 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
           }
         } catch (error) {
           console.error("Canvas preview error:", error);
-          // 类型安全的错误处理
+          // error handling
           const errorMessage =
             error instanceof Error ? error.message : String(error);
           if (
@@ -124,7 +122,7 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
       }
     },
     100,
-    [completedCrop, scale, rotate, imageLoaded] // 添加imageLoaded依赖
+    [completedCrop, scale, rotate, imageLoaded]
   );
 
   function handleToggleAspectClick() {
@@ -145,7 +143,7 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
 
   const handleEditClick = () => {
     setEditing(true);
-    // 清理文件输入以确保每次都能触发onChange
+    // clear file input to ensure trigger onChange each time
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -189,14 +187,14 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
       return canvas.toDataURL("image/png");
     } catch (error) {
       console.error("cropToBase64 error:", error);
-      // 类型安全的错误处理
+      // error handling
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       if (
         errorMessage.includes("tainted") ||
         errorMessage.includes("cross-origin")
       ) {
-        throw new Error("图像跨域错误，请重新上传图片");
+        throw new Error("image is tainted, cannot crop to base64");
       }
       throw error;
     }
@@ -252,7 +250,7 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
               ref={imgRef}
               alt="Crop me"
               src={imgSrc}
-              crossOrigin={imgSrc.startsWith("http") ? "anonymous" : undefined} // 只对HTTP URL设置crossOrigin
+              crossOrigin={imgSrc.startsWith("http") ? "anonymous" : undefined} // set crossOrigin only if imgSrc is a URL
               style={{
                 transform: `scale(${scale}) rotate(${rotate}deg)`,
                 maxWidth: "100%",
