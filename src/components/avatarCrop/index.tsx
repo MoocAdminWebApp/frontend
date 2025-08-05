@@ -51,11 +51,13 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
   const [rotate, setRotate] = useState(0);
   const [aspect, setAspect] = useState<number | undefined>(1); // 1:1 ratio for square crop
   const [editing, setEditing] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false); // 新增：跟踪图像加载状态
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (prop.imageData) {
       setImgSrc(prop.imageData);
+      setImageLoaded(false); // 重置加载状态
       console.log("Image data updated:", prop.imageData);
     }
   }, [prop.imageData]);
@@ -63,6 +65,7 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
   function onSelectFile(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
       setCrop(undefined); // Makes crop preview update between images.
+      setImageLoaded(false); // 重置加载状态
       const reader = new FileReader();
       reader.addEventListener("load", () => {
         setImgSrc(reader.result?.toString() || "");
@@ -72,37 +75,56 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
   }
 
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const img = e.currentTarget;
+    setImageLoaded(true); // 标记图像已加载
+
     if (aspect) {
-      const { width, height } = e.currentTarget;
+      const { width, height } = img;
       setCrop(centerAspectCrop(width, height, aspect));
     }
   }
 
+  // 修复：只有在图像加载完成后才执行crop操作
   useDebounceEffect(
     async () => {
       if (
         completedCrop?.width &&
         completedCrop?.height &&
         imgRef.current &&
-        previewCanvasRef.current
+        previewCanvasRef.current &&
+        imageLoaded // 关键：确保图像已加载
       ) {
-        // We use canvasPreview as it's much faster than imgPreview.
-        canvasPreview(
-          imgRef.current,
-          previewCanvasRef.current,
-          completedCrop,
-          scale,
-          rotate
-        );
+        try {
+          // We use canvasPreview as it's much faster than imgPreview.
+          await canvasPreview(
+            imgRef.current,
+            previewCanvasRef.current,
+            completedCrop,
+            scale,
+            rotate
+          );
 
-        let imageData = await cropToBase64();
-        if (prop.imageDataCallBack) {
-          prop.imageDataCallBack(imageData);
+          let imageData = await cropToBase64();
+          if (prop.imageDataCallBack) {
+            prop.imageDataCallBack(imageData);
+          }
+        } catch (error) {
+          console.error("Canvas preview error:", error);
+          // 类型安全的错误处理
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          if (
+            errorMessage.includes("tainted") ||
+            errorMessage.includes("cross-origin")
+          ) {
+            console.warn("Canvas tainted, skipping callback");
+            return;
+          }
         }
       }
     },
     100,
-    [completedCrop, scale, rotate]
+    [completedCrop, scale, rotate, imageLoaded] // 添加imageLoaded依赖
   );
 
   function handleToggleAspectClick() {
@@ -111,7 +133,7 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
     } else {
       setAspect(1); // 1:1 ratio for square crop
 
-      if (imgRef.current) {
+      if (imgRef.current && imageLoaded) {
         const { width, height } = imgRef.current;
         const newCrop = centerAspectCrop(width, height, 1);
         setCrop(newCrop);
@@ -123,43 +145,61 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
 
   const handleEditClick = () => {
     setEditing(true);
+    // 清理文件输入以确保每次都能触发onChange
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
     fileInputRef.current?.click();
   };
 
   async function cropToBase64() {
     const image = imgRef.current;
     const previewCanvas = previewCanvasRef.current;
-    if (!image || !previewCanvas || !completedCrop) {
-      throw new Error("Crop canvas does not exist");
+    if (!image || !previewCanvas || !completedCrop || !imageLoaded) {
+      throw new Error("Crop canvas does not exist or image not loaded");
     }
 
-    // compute scale based on natural size
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
+    try {
+      // compute scale based on natural size
+      const scaleX = image.naturalWidth / image.width;
+      const scaleY = image.naturalHeight / image.height;
 
-    // create a canvas to draw the cropped image
-    const canvas = document.createElement("canvas");
-    canvas.width = completedCrop.width * scaleX;
-    canvas.height = completedCrop.height * scaleY;
+      // create a canvas to draw the cropped image
+      const canvas = document.createElement("canvas");
+      canvas.width = completedCrop.width * scaleX;
+      canvas.height = completedCrop.height * scaleY;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("No 2d context");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("No 2d context");
 
-    // draw the cropped image onto the canvas
-    ctx.drawImage(
-      image,
-      completedCrop.x * scaleX,
-      completedCrop.y * scaleY,
-      completedCrop.width * scaleX,
-      completedCrop.height * scaleY,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
+      // draw the cropped image onto the canvas
+      ctx.drawImage(
+        image,
+        completedCrop.x * scaleX,
+        completedCrop.y * scaleY,
+        completedCrop.width * scaleX,
+        completedCrop.height * scaleY,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
 
-    // convert the canvas to a base64 data URL
-    return canvas.toDataURL("image/png");
+      // convert the canvas to a base64 data URL
+      return canvas.toDataURL("image/png");
+    } catch (error) {
+      console.error("cropToBase64 error:", error);
+      // 类型安全的错误处理
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (
+        errorMessage.includes("tainted") ||
+        errorMessage.includes("cross-origin")
+      ) {
+        throw new Error("图像跨域错误，请重新上传图片");
+      }
+      throw error;
+    }
   }
 
   return (
@@ -175,16 +215,14 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
       {!editing && (
         <Avatar
           sx={{ width: 120, height: 120, mb: 2, cursor: "pointer" }}
-          src={prop.imageData}
-          //src={imgSrc}
-          //onClick={() => setEditing(true)}
+          src={imgSrc}
         >
           {!prop.imageData && <EditIcon />}
         </Avatar>
       )}
 
       {/* preview cropped image */}
-      {!!completedCrop && (
+      {!!completedCrop && imageLoaded && (
         <Box sx={{ mb: 2 }}>
           <canvas
             ref={previewCanvasRef}
@@ -214,12 +252,17 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
               ref={imgRef}
               alt="Crop me"
               src={imgSrc}
+              crossOrigin={imgSrc.startsWith("http") ? "anonymous" : undefined} // 只对HTTP URL设置crossOrigin
               style={{
                 transform: `scale(${scale}) rotate(${rotate}deg)`,
                 maxWidth: "100%",
                 maxHeight: "400px",
               }}
               onLoad={onImageLoad}
+              onError={(e) => {
+                console.error("Image load error:", e);
+                setImageLoaded(false);
+              }}
             />
           </ReactCrop>
         </Box>
@@ -246,7 +289,7 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
           {imgSrc ? "Change Avatar" : "Upload Avatar"}
         </Button>
 
-        {imgSrc && (
+        {imgSrc && imageLoaded && (
           <>
             <Button
               variant="outlined"

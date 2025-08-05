@@ -79,6 +79,7 @@ const uploadAvatar = async (base64Data: string): Promise<string> => {
 const getFullAvatarUrl = (avatarPath: string): string => {
   if (!avatarPath) return "";
   if (avatarPath.startsWith("http")) return avatarPath;
+  // 不添加时间戳，让浏览器正常缓存
   return `${process.env.REACT_APP_BASE_API_URL}${avatarPath}`;
 };
 
@@ -147,6 +148,7 @@ const ProfileForm = () => {
 
   const { user } = useSelector((state: RootState) => state.auth);
 
+  // 在 ProfileForm 组件中的 useEffect 修改为：
   useEffect(() => {
     if (user) {
       setInitialValues({
@@ -163,33 +165,29 @@ const ProfileForm = () => {
 
       const fetchProfile = async () => {
         if (user) {
-          const resp = await get<ProfileDto>(
-            `/profiles/by-user/${user.userId}`
-          );
-          console.log("fetch profile resp:", resp);
-          if (resp.isSuccess && resp.data && resp.data.avatar) {
-            setPreview(getFullAvatarUrl(resp.data.avatar));
-            setInitialValues((prev) => ({
-              ...prev,
-              avatar: resp.data.avatar,
-            }));
-            console.log("Profile avatar URL:", initialValues.avatar);
-          } else {
-            // setCurrentProfile(null);
-            // setOpenProfileDialog(true);
-            toast.error(resp.message || "Failed to get profile avatar url");
+          try {
+            const resp = await get<ProfileDto>(
+              `/profiles/by-user/${user.userId}`
+            );
+            console.log("fetch profile resp:", resp);
+            if (resp.isSuccess && resp.data && resp.data.avatar) {
+              const fullUrl = getFullAvatarUrl(resp.data.avatar);
+              console.log("Setting preview URL:", fullUrl);
+              setPreview(fullUrl);
+            } else {
+              console.log("No avatar found or request failed");
+              setPreview(null);
+            }
+          } catch (error) {
+            console.error("Failed to fetch profile:", error);
+            setPreview(null);
           }
         }
       };
 
-      // upload avatar if exists
-      if (user?.avatar) {
-        setPreview(getFullAvatarUrl(user.avatar));
-      } else {
-        fetchProfile();
-      }
+      fetchProfile();
     }
-  }, [user, initialValues.avatar]);
+  }, [user]);
 
   // useEffect(() => {
   // const fetchProfile = async (row: ProfileDto) => {
