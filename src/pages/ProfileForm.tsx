@@ -38,7 +38,8 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import { useNavigate } from "react-router-dom";
-interface UploadAvatarResponse {
+import { ProfileDto } from "../types/profile";
+interface IUploadAvatarResponse {
   avatar: string;
 }
 // Avatar upload function
@@ -57,7 +58,7 @@ const uploadAvatar = async (base64Data: string): Promise<string> => {
   formData.append("avatar", blob, "avatar.png");
 
   //call api to upload avatar
-  const response = await post<UploadAvatarResponse>(
+  const response = await post<IUploadAvatarResponse>(
     "profiles/upload-avatar",
     formData,
     {
@@ -78,7 +79,7 @@ const uploadAvatar = async (base64Data: string): Promise<string> => {
 const getFullAvatarUrl = (avatarPath: string): string => {
   if (!avatarPath) return "";
   if (avatarPath.startsWith("http")) return avatarPath;
-  return `${window.location.origin}${avatarPath}`;
+  return `${process.env.REACT_APP_BASE_API_URL}${avatarPath}`;
 };
 
 // Form Validation Rules
@@ -160,12 +161,49 @@ const ProfileForm = () => {
         gender: mapGenderStringToEnum(user?.gender),
       });
 
+      const fetchProfile = async () => {
+        if (user) {
+          const resp = await get<ProfileDto>(
+            `/profiles/by-user/${user.userId}`
+          );
+          console.log("fetch profile resp:", resp);
+          if (resp.isSuccess && resp.data && resp.data.avatar) {
+            setPreview(getFullAvatarUrl(resp.data.avatar));
+            setInitialValues((prev) => ({
+              ...prev,
+              avatar: resp.data.avatar,
+            }));
+            console.log("Profile avatar URL:", initialValues.avatar);
+          } else {
+            // setCurrentProfile(null);
+            // setOpenProfileDialog(true);
+            toast.error(resp.message || "Failed to get profile avatar url");
+          }
+        }
+      };
+
       // upload avatar if exists
       if (user?.avatar) {
         setPreview(getFullAvatarUrl(user.avatar));
+      } else {
+        fetchProfile();
       }
     }
-  }, [user]);
+  }, [user, initialValues.avatar]);
+
+  // useEffect(() => {
+  // const fetchProfile = async (row: ProfileDto) => {
+  //   if (user) {
+  //     const resp = await get<ProfileDto>(`/profiles/by-user/${user.userid}`);
+  //     if (resp.isSuccess && resp.data) {
+  //     } else {
+  //       // setCurrentProfile(null);
+  //       // setOpenProfileDialog(true);
+  //       toast.error(resp.message || "Failed to load user");
+  //     }
+  //   }
+  // };
+  // }, [user]);
 
   return (
     <Box sx={{ padding: 3 }}>

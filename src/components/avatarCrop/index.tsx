@@ -49,12 +49,14 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [scale, setScale] = useState(1);
   const [rotate, setRotate] = useState(0);
-  const [aspect, setAspect] = useState<number | undefined>(1); // 1:1 比例适合头像
+  const [aspect, setAspect] = useState<number | undefined>(1); // 1:1 ratio for square crop
+  const [editing, setEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (prop.imageData) {
       setImgSrc(prop.imageData);
+      console.log("Image data updated:", prop.imageData);
     }
   }, [prop.imageData]);
 
@@ -120,6 +122,7 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
   }
 
   const handleEditClick = () => {
+    setEditing(true);
     fileInputRef.current?.click();
   };
 
@@ -169,9 +172,13 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
       }}
     >
       {/* show default image */}
-      {!imgSrc && (
-        <Avatar sx={{ width: 120, height: 120, mb: 2 }} src={prop.imageData}>
-          {/* if no default image,show edit icon */}
+      {!editing && (
+        <Avatar
+          sx={{ width: 120, height: 120, mb: 2, cursor: "pointer" }}
+          src={prop.imageData}
+          //src={imgSrc}
+          //onClick={() => setEditing(true)}
+        >
           {!prop.imageData && <EditIcon />}
         </Avatar>
       )}
@@ -193,7 +200,7 @@ const AvatarCrop: React.FC<AvatarCropProps> = (prop: AvatarCropProps) => {
       )}
 
       {/* crop operation part */}
-      {!!imgSrc && (
+      {editing && imgSrc && (
         <Box sx={{ maxWidth: "100%", mb: 2 }}>
           <ReactCrop
             crop={crop}
