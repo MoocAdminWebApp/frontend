@@ -39,6 +39,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
 import { useNavigate } from "react-router-dom";
 import { ProfileDto } from "../types/profile";
+import { getFullAvatarUrl } from "../utils/getFullAvatarUrl";
 interface IUploadAvatarResponse {
   avatar: string;
 }
@@ -73,13 +74,6 @@ const uploadAvatar = async (base64Data: string): Promise<string> => {
   } else {
     throw new Error(response.message || "Upload failed");
   }
-};
-
-//get full avatar URL
-const getFullAvatarUrl = (avatarPath: string): string => {
-  if (!avatarPath) return "";
-  if (avatarPath.startsWith("http")) return avatarPath;
-  return `${process.env.REACT_APP_BASE_API_URL}${avatarPath}`;
 };
 
 // Form Validation Rules

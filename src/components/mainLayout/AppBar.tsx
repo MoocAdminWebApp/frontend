@@ -24,6 +24,7 @@ import {
 } from "../../utils/stringUtil";
 import { get } from "../../request/axios";
 import { ProfileDto } from "../../types/profile";
+import { getFullAvatarUrl } from "../../utils/getFullAvatarUrl";
 
 const drawerWidth = 300;
 
@@ -52,14 +53,7 @@ interface CustomAppBarProps {
   open: boolean;
   handleDrawerOpen: () => void;
 }
-
 //get full avatar URL
-const getFullAvatarUrl = (avatarPath: string): string => {
-  if (!avatarPath) return "";
-  if (avatarPath.startsWith("http")) return avatarPath;
-  return `${process.env.REACT_APP_BASE_API_URL}${avatarPath}`;
-};
-
 const CustomAppBar: React.FC<CustomAppBarProps> = ({
   open,
   handleDrawerOpen,
